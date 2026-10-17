@@ -1,0 +1,303 @@
+estimate_id,customer_name,phone,job_type,amount,estimate_date,status,sms_consent
+E0001,Maria Garcia,(614) 555-0100,Furnace repair,1290.0,2026-04-03,declined,no
+E0002,Maria Garcia,(614) 555-0101,Water heater replacement,2580.0,2026-05-22,open,yes
+E0003,Jose Brown,(614) 555-0102,Furnace replacement,8760.0,2026-06-08,expired,no
+E0004,Maria Hall,(614) 555-0103,Water heater replacement,3650.0,2025-02-26,open,no
+E0005,Mei Martinez,(614) 555-0104,Heat pump install,8820.0,2025-09-23,open,no
+E0006,Maria King,(614) 555-0105,Furnace replacement,5430.0,2023-10-20,open,no
+E0007,Aisha Thomas,(614) 555-0106,Furnace repair,600.0,2025-10-09,open,no
+E0008,Sandra Moore,(614) 555-0107,Ductless mini split,7510.0,2025-03-02,open,no
+E0009,Carlos Davis,(614) 555-0108,Furnace replacement,8700.0,2024-06-01,open,yes
+E0010,Carlos Moore,(614) 555-0109,Furnace replacement,7630.0,2023-12-30,won,no
+E0011,William Lewis,(614) 555-0110,Maintenance plan,320.0,2026-06-01,open,yes
+E0012,Brian Thomas,(614) 555-0111,AC repair - compressor,2850.0,2024-11-01,expired,yes
+E0013,Sandra Johnson,(614) 555-0112,Maintenance plan,200.0,2025-03-03,open,yes
+E0014,Sandra Garcia,(614) 555-0113,Ductless mini split,4420.0,2024-07-12,open,no
+E0015,Mei Anderson,(614) 555-0114,AC repair - compressor,2820.0,2024-10-08,lost to competitor,no
+E0016,Patricia Davis,(614) 555-0115,Duct cleaning,520.0,2025-06-22,declined,yes
+E0017,Elizabeth Smith,(614) 555-0116,Maintenance plan,190.0,2023-10-14,won,no
+E0018,Tyrone King,(614) 555-0117,Water heater replacement,3140.0,2026-06-24,expired,no
+E0019,Linda Lewis,(614) 555-0118,Thermostat upgrade,540.0,2026-06-07,open,yes
+E0020,Linda Moore,(614) 555-0119,Furnace replacement,7200.0,2026-03-17,declined,yes
+E0021,Aisha King,(614) 555-0120,Water heater replacement,1560.0,2025-08-13,open,no
+E0022,Aisha King,(614) 555-0121,Duct cleaning,580.0,2026-02-03,open,yes
+E0023,Sandra Thomas,(614) 555-0122,Maintenance plan,170.0,2026-03-17,declined,no
+E0024,Patricia Walker,(614) 555-0123,Furnace repair,330.0,2023-10-27,won,no
+E0025,Tyrone Thomas,(614) 555-0124,Heat pump install,15830.0,2026-04-09,expired,no
+E0026,Aisha Wilson,(614) 555-0125,AC repair - compressor,2420.0,2023-12-18,open,no
+E0027,David Wilson,(614) 555-0126,Ductless mini split,8000.0,2025-07-05,expired,yes
+E0028,James Anderson,(614) 555-0127,Thermostat upgrade,460.0,2025-09-11,open,no
+E0029,Aisha Jackson,(614) 555-0128,Water heater replacement,1700.0,2026-03-17,declined,yes
+E0030,Karen King,(614) 555-0129,Maintenance plan,360.0,2024-02-04,open,no
+E0031,Linda Lee,(614) 555-0130,Furnace repair,1240.0,2025-08-30,won,no
+E0032,Robert Lee,(614) 555-0131,Heat pump install,11710.0,2026-04-22,open,no
+E0033,Michael Young,(614) 555-0132,Heat pump install,15240.0,2025-12-17,open,no
+E0034,Aisha Davis,(614) 555-0133,Water heater replacement,2870.0,2026-01-17,declined,yes
+E0035,Linda Walker,(614) 555-0134,AC replacement,10620.0,2025-12-31,won,no
+E0036,William Lopez,(614) 555-0135,Ductless mini split,5110.0,2025-06-07,won,no
+E0037,Michael Johnson,(614) 555-0136,Furnace repair,1390.0,2024-10-18,open,no
+E0038,Tyrone Davis,(614) 555-0137,Water heater replacement,2830.0,2023-11-05,won,no
+E0039,Karen Smith,(614) 555-0138,AC replacement,10770.0,2025-12-10,won,yes
+E0040,Mei Johnson,(614) 555-0139,Heat pump install,10610.0,2023-11-16,open,no
+E0041,Mei Johnson,(614) 555-0140,Thermostat upgrade,360.0,2025-03-24,open,yes
+E0042,Robert Clark,(614) 555-0141,Furnace replacement,5970.0,2023-12-12,open,no
+E0043,Tyrone Hall,(614) 555-0142,Thermostat upgrade,610.0,2023-12-08,open,yes
+E0044,William Hall,(614) 555-0143,Thermostat upgrade,650.0,2025-08-24,won,no
+E0045,Carlos Garcia,(614) 555-0144,Heat pump install,13370.0,2024-05-18,open,yes
+E0046,Michael Jackson,(614) 555-0145,Ductless mini split,4290.0,2026-01-04,expired,no
+E0047,Sandra Martinez,(614) 555-0146,Ductless mini split,8940.0,2025-07-11,won,yes
+E0048,Nancy Lopez,(614) 555-0147,Duct cleaning,580.0,2026-04-07,declined,no
+E0049,Brian Smith,(614) 555-0148,Furnace repair,760.0,2023-11-18,open,no
+E0050,Jennifer Brown,(614) 555-0149,AC repair - compressor,1390.0,2025-04-04,open,yes
+E0051,Nancy Anderson,(614) 555-0150,Heat pump install,11250.0,2023-11-23,open,no
+E0052,Maria Martinez,(614) 555-0151,Maintenance plan,260.0,2026-05-17,expired,no
+E0053,Robert King,(614) 555-0152,AC replacement,11210.0,2026-05-29,expired,no
+E0054,Mei Harris,(614) 555-0153,Furnace replacement,8670.0,2025-04-12,open,no
+E0055,Linda Martinez,(614) 555-0154,Heat pump install,10100.0,2025-10-07,open,yes
+E0056,David Thomas,(614) 555-0155,AC repair - compressor,2230.0,2025-10-13,expired,no
+E0057,Maria Smith,(614) 555-0156,Furnace repair,320.0,2023-12-12,won,no
+E0058,Brian Brown,(614) 555-0157,Ductless mini split,7120.0,2024-05-10,open,no
+E0059,Tyrone Thomas,(614) 555-0158,Maintenance plan,320.0,2025-06-29,open,no
+E0060,Michael Lee,(614) 555-0159,Ductless mini split,8940.0,2026-06-23,won,yes
+E0061,William Harris,(614) 555-0160,AC replacement,7400.0,2026-04-22,open,no
+E0062,Elizabeth King,(614) 555-0161,Duct cleaning,520.0,2025-02-19,won,yes
+E0063,James Anderson,(614) 555-0162,Maintenance plan,240.0,2024-12-08,open,no
+E0064,Elizabeth Lopez,(614) 555-0163,Furnace repair,730.0,2026-10-10,open,no
+E0065,David Wilson,(614) 555-0164,Duct cleaning,650.0,2026-10-02,open,yes
+E0066,Jose Johnson,(614) 555-0165,AC repair - compressor,2110.0,2025-02-06,won,no
+E0067,Michael King,(614) 555-0166,Ductless mini split,5640.0,2024-12-14,open,no
+E0068,Michael Johnson,(614) 555-0167,Maintenance plan,360.0,2023-11-27,open,no
+E0069,Michael Walker,(614) 555-0168,Duct cleaning,780.0,2026-09-10,won,no
+E0070,Jennifer Garcia,(614) 555-0169,Water heater replacement,1580.0,2026-01-13,won,no
+E0071,Brian Hall,(614) 555-0170,Furnace repair,360.0,2026-09-04,declined,no
+E0072,James Clark,(614) 555-0171,Thermostat upgrade,610.0,2023-12-17,expired,no
+E0073,Sandra Anderson,(614) 555-0172,Furnace replacement,8140.0,2025-04-17,expired,yes
+E0074,Brian Lewis,(614) 555-0173,Ductless mini split,8150.0,2026-05-08,open,no
+E0075,David Garcia,(614) 555-0174,AC repair - compressor,2580.0,2024-12-02,won,no
+E0076,Sandra Johnson,(614) 555-0175,AC repair - compressor,2320.0,2026-03-23,expired,no
+E0077,Tyrone Thomas,(614) 555-0176,Ductless mini split,6060.0,2024-03-01,expired,yes
+E0078,Sandra Smith,(614) 555-0177,Thermostat upgrade,380.0,2026-05-09,open,no
+E0079,David Garcia,(614) 555-0178,Maintenance plan,300.0,2025-12-26,declined,no
+E0080,Karen Walker,(614) 555-0179,Thermostat upgrade,380.0,2026-02-24,open,no
+E0081,Sandra Lee,(614) 555-0180,Furnace repair,330.0,2026-10-05,open,no
+E0082,Nancy Jackson,(614) 555-0181,Maintenance plan,240.0,2026-02-07,open,no
+E0083,Kevin Brown,(614) 555-0182,AC replacement,11670.0,2025-09-07,open,no
+E0084,Aisha Garcia,(614) 555-0183,AC replacement,8660.0,2026-05-09,lost to competitor,no
+E0085,William Brown,(614) 555-0184,Duct cleaning,430.0,2025-03-07,won,no
+E0086,Tyrone Moore,(614) 555-0185,Heat pump install,9520.0,2024-09-08,open,no
+E0087,Mei Hall,(614) 555-0186,AC replacement,7620.0,2026-04-30,won,yes
+E0088,Elizabeth Lewis,(614) 555-0187,Duct cleaning,420.0,2026-01-25,open,yes
+E0089,William Anderson,(614) 555-0188,Maintenance plan,250.0,2025-06-11,open,no
+E0090,Patricia Martinez,(614) 555-0189,Maintenance plan,170.0,2023-12-22,expired,no
+E0091,Brian Harris,(614) 555-0190,Thermostat upgrade,310.0,2025-09-13,open,yes
+E0092,Carlos Wilson,(614) 555-0191,Furnace replacement,6160.0,2025-08-25,open,yes
+E0093,David Lee,(614) 555-0192,Duct cleaning,540.0,2026-06-07,open,no
+E0094,Tyrone Walker,(614) 555-0193,AC repair - compressor,2650.0,2025-07-27,expired,yes
+E0095,Brian Harris,(614) 555-0194,AC repair - compressor,3390.0,2026-08-29,lost to competitor,yes
+E0096,Sandra Young,(614) 555-0195,AC replacement,9190.0,2026-05-16,open,no
+E0097,Jennifer Brown,(614) 555-0196,Thermostat upgrade,350.0,2025-12-05,won,no
+E0098,Brian Garcia,(614) 555-0197,Furnace replacement,6980.0,2026-07-24,declined,yes
+E0099,Elizabeth Davis,(614) 555-0198,Heat pump install,13010.0,2023-10-27,open,no
+E0100,Robert Thomas,(614) 555-0199,Duct cleaning,660.0,2025-09-15,expired,no
+E0101,James Hall,(937) 555-0100,AC repair - compressor,1890.0,2024-03-13,open,no
+E0102,Sandra Walker,(937) 555-0101,Furnace repair,580.0,2025-05-25,expired,yes
+E0103,James Lopez,(937) 555-0102,Duct cleaning,650.0,2024-06-04,expired,yes
+E0104,Aisha Wilson,(937) 555-0103,AC repair - compressor,2330.0,2024-11-19,open,no
+E0105,James Thomas,(937) 555-0104,Duct cleaning,770.0,2023-12-14,open,yes
+E0106,David Wilson,(937) 555-0105,Ductless mini split,6060.0,2025-04-18,open,no
+E0107,Patricia Wilson,(937) 555-0106,Furnace replacement,6680.0,2026-06-19,declined,no
+E0108,James King,(937) 555-0107,Heat pump install,9140.0,2026-06-28,lost to competitor,no
+E0109,Carlos Brown,(937) 555-0108,AC replacement,11990.0,2025-11-07,open,no
+E0110,Brian Johnson,(937) 555-0109,Ductless mini split,5220.0,2024-08-28,open,no
+E0111,Robert Anderson,(937) 555-0110,Furnace repair,400.0,2024-06-04,open,yes
+E0112,Aisha Thomas,(937) 555-0111,Thermostat upgrade,620.0,2024-05-10,declined,yes
+E0113,Mei Clark,(937) 555-0112,AC replacement,7560.0,2024-09-27,expired,no
+E0114,Kevin Johnson,(937) 555-0113,Maintenance plan,240.0,2024-03-06,open,yes
+E0115,Karen Moore,(937) 555-0114,AC replacement,8500.0,2024-11-25,open,no
+E0116,Carlos Anderson,(937) 555-0115,AC replacement,8140.0,2026-06-01,open,yes
+E0117,Brian Lee,(937) 555-0116,Ductless mini split,7840.0,2024-05-15,open,no
+E0118,Elizabeth Davis,(937) 555-0117,Heat pump install,12860.0,2024-12-10,lost to competitor,no
+E0119,Robert Walker,(937) 555-0118,Maintenance plan,200.0,2025-11-19,open,yes
+E0120,Mei Hall,n/a,Duct cleaning,560.0,2024-05-22,open,yes
+E0121,Linda Harris,(937) 555-0120,Furnace replacement,6740.0,2024-04-10,open,yes
+E0122,Jennifer Hall,(937) 555-0121,Ductless mini split,8160.0,2026-02-06,open,no
+E0123,William Anderson,(937) 555-0122,AC repair - compressor,1660.0,2025-05-24,open,yes
+E0124,Jose Lopez,(937) 555-0123,Ductless mini split,5290.0,2024-07-23,open,no
+E0125,Linda Clark,(937) 555-0124,Ductless mini split,8950.0,2026-03-17,open,yes
+E0126,Brian Jackson,(937) 555-0125,Maintenance plan,160.0,2025-02-18,lost to competitor,yes
+E0127,Jose Lopez,(937) 555-0126,Furnace replacement,8690.0,2024-09-10,open,no
+E0128,James Brown,(937) 555-0127,Heat pump install,13100.0,2024-10-26,open,yes
+E0129,David Anderson,(937) 555-0128,AC replacement,6710.0,2025-08-22,open,yes
+E0130,Karen Thomas,(937) 555-0129,Furnace repair,390.0,2026-08-09,open,no
+E0131,Kevin Hall,(937) 555-0130,Thermostat upgrade,320.0,2023-10-15,open,yes
+E0132,Elizabeth Thomas,(937) 555-0131,Heat pump install,11340.0,2026-06-29,open,no
+E0133,James Jackson,(937) 555-0132,Water heater replacement,3110.0,2024-08-03,lost to competitor,no
+E0134,Patricia Harris,n/a,Duct cleaning,460.0,2026-04-10,open,no
+E0135,Patricia Davis,(937) 555-0134,Water heater replacement,1540.0,2025-12-25,lost to competitor,no
+E0136,Aisha Walker,(937) 555-0135,Duct cleaning,490.0,2024-10-30,open,no
+E0137,Linda Lee,(937) 555-0136,Heat pump install,11920.0,2025-09-03,open,no
+E0138,Sandra Moore,(937) 555-0137,Heat pump install,8430.0,2024-08-09,won,yes
+E0139,Jennifer King,(937) 555-0138,Water heater replacement,2510.0,2025-09-06,expired,no
+E0140,Tyrone Martinez,(937) 555-0139,Heat pump install,11070.0,2026-02-02,expired,yes
+E0141,David Johnson,(937) 555-0140,Ductless mini split,8360.0,2026-07-26,declined,no
+E0142,Mei Thomas,(937) 555-0141,Furnace repair,1080.0,2025-01-19,open,no
+E0143,Brian Walker,(937) 555-0142,Ductless mini split,5910.0,2026-08-26,open,yes
+E0144,Brian King,(937) 555-0143,Water heater replacement,3450.0,2024-03-18,declined,yes
+E0145,Aisha Harris,(937) 555-0144,Maintenance plan,240.0,2024-04-20,open,no
+E0146,Michael Garcia,(937) 555-0145,Thermostat upgrade,660.0,2025-01-08,expired,no
+E0147,Kevin Davis,(937) 555-0146,Thermostat upgrade,260.0,2026-05-30,open,no
+E0148,Sandra Thomas,(937) 555-0147,Furnace replacement,8800.0,2025-11-08,open,no
+E0149,William Martinez,(937) 555-0148,Ductless mini split,5280.0,2025-03-28,open,no
+E0150,Sandra Lopez,(937) 555-0149,Heat pump install,12740.0,2023-12-11,open,yes
+E0151,Kevin Martinez,(937) 555-0150,Furnace repair,1060.0,2025-03-22,open,no
+E0152,William Brown,(937) 555-0151,Furnace repair,1220.0,2026-07-05,lost to competitor,no
+E0153,Tyrone Young,(937) 555-0152,Furnace repair,1130.0,2026-03-12,declined,no
+E0154,Aisha Anderson,(937) 555-0153,Thermostat upgrade,420.0,2024-09-17,expired,no
+E0155,Brian Wilson,(937) 555-0154,Heat pump install,9410.0,2026-07-06,open,no
+E0156,Jose Moore,(937) 555-0155,Thermostat upgrade,580.0,2026-08-04,open,yes
+E0157,Nancy Walker,(937) 555-0156,Heat pump install,10910.0,2026-07-07,open,yes
+E0158,James Johnson,(937) 555-0157,Maintenance plan,150.0,2024-10-16,open,no
+E0159,Nancy Young,(937) 555-0158,Furnace replacement,5860.0,2026-01-12,open,yes
+E0160,Michael Smith,(937) 555-0159,Furnace repair,1420.0,2025-06-01,expired,no
+E0161,Michael Anderson,(937) 555-0160,Heat pump install,11220.0,2025-04-19,open,yes
+E0162,Aisha King,(937) 555-0161,AC replacement,10050.0,2024-04-17,expired,no
+E0163,James Johnson,(937) 555-0162,Thermostat upgrade,280.0,2026-08-22,won,no
+E0164,Linda Smith,(937) 555-0163,Heat pump install,12900.0,2025-09-04,open,yes
+E0165,Tyrone Harris,(937) 555-0164,Duct cleaning,810.0,2025-10-20,open,no
+E0166,Sandra Hall,(937) 555-0165,AC repair - compressor,1210.0,2024-05-01,open,no
+E0167,Patricia Wilson,(937) 555-0166,Maintenance plan,400.0,2025-04-25,open,yes
+E0168,William Johnson,(937) 555-0167,AC replacement,7960.0,2024-05-02,open,no
+E0169,David Garcia,(937) 555-0168,Thermostat upgrade,650.0,2026-09-11,declined,yes
+E0170,David Martinez,(937) 555-0169,AC repair - compressor,2920.0,2024-12-12,lost to competitor,yes
+E0171,Mei Lewis,(937) 555-0170,Duct cleaning,640.0,2023-10-22,open,no
+E0172,Jennifer Young,(937) 555-0171,AC replacement,11370.0,2025-08-04,won,no
+E0173,Patricia Davis,(937) 555-0172,Water heater replacement,1580.0,2026-02-25,expired,yes
+E0174,Michael Smith,(937) 555-0173,Water heater replacement,1580.0,2026-01-02,lost to competitor,no
+E0175,Robert Young,(937) 555-0174,AC replacement,10690.0,2025-08-30,expired,no
+E0176,Kevin Brown,(937) 555-0175,Furnace replacement,5610.0,2025-08-22,won,yes
+E0177,Robert Thomas,(937) 555-0176,AC replacement,9120.0,2026-01-14,open,yes
+E0178,William Smith,(937) 555-0177,Ductless mini split,5430.0,2025-03-13,open,yes
+E0179,Karen Walker,(937) 555-0178,Furnace repair,870.0,2025-03-02,lost to competitor,no
+E0180,Tyrone Brown,n/a,AC replacement,8410.0,2026-07-06,won,no
+E0181,Robert Young,(937) 555-0180,Water heater replacement,3550.0,2025-10-29,open,no
+E0182,Maria Smith,(937) 555-0181,AC replacement,8410.0,2026-03-31,open,no
+E0183,Tyrone Anderson,(937) 555-0182,Heat pump install,12620.0,2025-11-21,declined,no
+E0184,Patricia Brown,(937) 555-0183,Ductless mini split,8660.0,2026-04-30,declined,no
+E0185,Aisha Brown,(937) 555-0184,Thermostat upgrade,430.0,2024-07-26,won,no
+E0186,Aisha Lopez,(937) 555-0185,Furnace replacement,5860.0,2024-05-19,open,no
+E0187,Jennifer Clark,(937) 555-0186,Thermostat upgrade,310.0,2026-08-04,open,no
+E0188,Brian Hall,(937) 555-0187,Water heater replacement,3350.0,2025-10-30,open,no
+E0189,Jennifer Davis,(937) 555-0188,Maintenance plan,230.0,2025-06-12,expired,no
+E0190,Karen Davis,(937) 555-0189,Ductless mini split,7480.0,2025-05-23,open,no
+E0191,Jennifer Moore,(937) 555-0190,Furnace repair,1450.0,2025-05-01,expired,no
+E0192,David Lee,(937) 555-0191,Furnace replacement,5180.0,2025-12-13,open,no
+E0193,Linda Anderson,(937) 555-0192,AC repair - compressor,1670.0,2024-08-08,open,no
+E0194,Nancy Wilson,(937) 555-0193,AC replacement,9250.0,2025-02-13,open,no
+E0195,Kevin Smith,(937) 555-0194,AC replacement,10580.0,2024-05-15,open,no
+E0196,Jennifer Young,(937) 555-0195,Water heater replacement,3630.0,2025-10-06,expired,no
+E0197,Linda Harris,(937) 555-0196,Furnace replacement,5590.0,2024-07-15,open,no
+E0198,Brian Smith,(937) 555-0197,Heat pump install,12970.0,2024-06-26,open,no
+E0199,James Lee,(937) 555-0198,Heat pump install,14650.0,2026-03-09,lost to competitor,yes
+E0200,David Walker,(937) 555-0199,AC repair - compressor,2000.0,2024-03-21,open,no
+E0201,Aisha Walker,(330) 555-0100,Ductless mini split,5390.0,2024-03-21,expired,yes
+E0202,Linda King,(330) 555-0101,Heat pump install,10840.0,2026-06-19,open,no
+E0203,Robert Harris,(330) 555-0102,AC repair - compressor,3310.0,2024-10-21,open,no
+E0204,Kevin Walker,(330) 555-0103,AC repair - compressor,3430.0,2024-08-01,open,no
+E0205,Robert Lopez,(330) 555-0104,Ductless mini split,6080.0,2025-07-07,open,yes
+E0206,Nancy Clark,(330) 555-0105,Furnace repair,1500.0,2026-01-29,expired,no
+E0207,Kevin Anderson,(330) 555-0106,Furnace repair,1480.0,2025-09-27,won,no
+E0208,Aisha Wilson,(330) 555-0107,AC replacement,10100.0,2024-12-25,won,no
+E0209,Aisha Davis,(330) 555-0108,Maintenance plan,380.0,2024-08-15,open,yes
+E0210,Michael Walker,(330) 555-0109,Furnace replacement,8240.0,2026-09-12,won,no
+E0211,Elizabeth Anderson,(330) 555-0110,AC replacement,9850.0,2025-12-24,open,yes
+E0212,Michael Lopez,(330) 555-0111,Heat pump install,15230.0,2023-10-14,won,yes
+E0213,Robert Hall,(330) 555-0112,Water heater replacement,3470.0,2025-02-11,lost to competitor,yes
+E0214,Brian Brown,(330) 555-0113,Maintenance plan,290.0,2025-04-19,expired,no
+E0215,Mei Johnson,(330) 555-0114,Ductless mini split,6160.0,2025-12-21,won,no
+E0216,Karen Smith,(330) 555-0115,Maintenance plan,190.0,2024-12-25,open,no
+E0217,Brian Jackson,(330) 555-0116,Water heater replacement,2560.0,2026-05-11,open,yes
+E0218,Karen Johnson,n/a,Furnace repair,1120.0,2024-12-05,expired,yes
+E0219,Michael Johnson,(330) 555-0118,Thermostat upgrade,350.0,2024-06-13,open,no
+E0220,Aisha Moore,(330) 555-0119,Heat pump install,11800.0,2023-11-01,open,no
+E0221,William Hall,(330) 555-0120,Ductless mini split,3790.0,2025-02-27,open,no
+E0222,Tyrone Anderson,(330) 555-0121,Furnace repair,1350.0,2024-11-05,won,yes
+E0223,Carlos Thomas,(330) 555-0122,Maintenance plan,180.0,2026-04-16,won,yes
+E0224,Mei Young,(330) 555-0123,Duct cleaning,420.0,2025-02-04,expired,yes
+E0225,Sandra King,(330) 555-0124,AC replacement,10710.0,2026-06-11,open,no
+E0226,Karen Garcia,(330) 555-0125,Thermostat upgrade,350.0,2024-03-19,expired,no
+E0227,Maria Harris,(330) 555-0126,Heat pump install,14200.0,2026-09-15,open,no
+E0228,William Thomas,(330) 555-0127,Heat pump install,9480.0,2026-08-03,won,no
+E0229,Maria Lewis,(330) 555-0128,AC replacement,9620.0,2026-07-24,open,yes
+E0230,Brian Garcia,(330) 555-0129,Duct cleaning,410.0,2024-08-11,expired,no
+E0231,Michael Lewis,(330) 555-0130,Water heater replacement,3420.0,2026-03-18,declined,yes
+E0232,James Harris,(330) 555-0131,Maintenance plan,150.0,2026-02-05,open,yes
+E0233,James Anderson,(330) 555-0132,Ductless mini split,7460.0,2025-06-03,won,no
+E0234,Michael Garcia,(330) 555-0133,Heat pump install,10350.0,2023-12-27,lost to competitor,no
+E0235,Maria Smith,(330) 555-0134,AC repair - compressor,1340.0,2026-05-02,lost to competitor,no
+E0236,Sandra King,(330) 555-0135,AC repair - compressor,1340.0,2024-09-20,open,no
+E0237,Linda Jackson,(330) 555-0136,Maintenance plan,390.0,2025-11-11,open,no
+E0238,Brian Anderson,(330) 555-0137,Duct cleaning,790.0,2024-11-28,open,no
+E0239,Karen Moore,(330) 555-0138,AC repair - compressor,3200.0,2026-09-11,open,yes
+E0240,Jennifer Lee,(330) 555-0139,Water heater replacement,2470.0,2024-09-02,won,no
+E0241,James Moore,(330) 555-0140,Ductless mini split,4950.0,2024-05-30,won,yes
+E0242,Maria Thomas,(330) 555-0141,Water heater replacement,3580.0,2025-12-15,lost to competitor,no
+E0243,Aisha Hall,(330) 555-0142,Thermostat upgrade,290.0,2024-01-24,expired,no
+E0244,Jennifer Thomas,(330) 555-0143,Ductless mini split,6840.0,2024-07-25,won,no
+E0245,James Lee,(330) 555-0144,Ductless mini split,6030.0,2026-04-16,lost to competitor,no
+E0246,Jose Walker,(330) 555-0145,Furnace repair,1380.0,2023-11-09,won,no
+E0247,David Lopez,(330) 555-0146,Maintenance plan,170.0,2025-02-26,open,no
+E0248,Tyrone Davis,(330) 555-0147,Water heater replacement,2120.0,2024-01-06,expired,no
+E0249,Robert Davis,(330) 555-0148,Furnace replacement,5920.0,2026-08-11,open,no
+E0250,Maria Lopez,n/a,AC repair - compressor,3480.0,2024-01-21,open,no
+E0251,William Harris,(330) 555-0150,Water heater replacement,1740.0,2024-04-10,open,no
+E0252,Maria Moore,(330) 555-0151,Water heater replacement,2000.0,2025-10-07,declined,no
+E0253,Aisha Clark,n/a,Furnace replacement,6690.0,2026-06-03,open,no
+E0254,Robert Anderson,(330) 555-0153,Duct cleaning,560.0,2025-06-22,lost to competitor,no
+E0255,Kevin Martinez,(330) 555-0154,Furnace replacement,6520.0,2025-11-19,declined,no
+E0256,Maria Anderson,(330) 555-0155,Ductless mini split,8680.0,2026-06-13,declined,no
+E0257,Tyrone Lewis,(330) 555-0156,AC replacement,6810.0,2025-12-20,won,no
+E0258,Elizabeth Young,(330) 555-0157,AC replacement,9750.0,2026-03-11,declined,no
+E0259,Aisha Lewis,(330) 555-0158,Furnace repair,760.0,2024-04-22,open,yes
+E0260,Brian Lopez,(330) 555-0159,Heat pump install,14390.0,2025-11-25,lost to competitor,yes
+E0261,Michael Clark,(330) 555-0160,Furnace replacement,8810.0,2024-08-15,declined,yes
+E0262,Jennifer Lewis,(330) 555-0161,Furnace replacement,5020.0,2024-09-23,open,yes
+E0263,Brian Hall,(330) 555-0162,Furnace repair,1370.0,2024-04-26,open,yes
+E0264,James Anderson,(330) 555-0163,AC repair - compressor,2510.0,2025-02-12,open,no
+E0265,Brian Lewis,(330) 555-0164,Heat pump install,8910.0,2023-11-26,open,yes
+E0266,Linda Anderson,(330) 555-0165,Ductless mini split,7650.0,2024-09-26,expired,no
+E0267,Linda Lee,(330) 555-0166,AC repair - compressor,1870.0,2025-11-14,declined,yes
+E0268,Brian Walker,(330) 555-0167,AC repair - compressor,1980.0,2025-12-29,open,no
+E0269,Elizabeth Martinez,(330) 555-0168,AC replacement,8480.0,2026-07-21,won,no
+E0270,Patricia Walker,(330) 555-0169,Ductless mini split,7740.0,2025-10-18,open,yes
+E0271,Karen Lewis,(330) 555-0170,Water heater replacement,3400.0,2025-10-18,open,yes
+E0272,David Young,(330) 555-0171,Heat pump install,10460.0,2026-09-22,expired,yes
+E0273,Maria Walker,(330) 555-0172,Thermostat upgrade,610.0,2024-11-25,open,no
+E0274,Sandra Davis,(330) 555-0173,Maintenance plan,370.0,2025-04-15,open,yes
+E0275,Maria Martinez,(330) 555-0174,Heat pump install,13620.0,2026-10-03,expired,no
+E0276,Robert Brown,(330) 555-0175,Thermostat upgrade,410.0,2025-05-29,declined,no
+E0277,Elizabeth Brown,(330) 555-0176,Duct cleaning,880.0,2024-01-03,expired,no
+E0278,Michael Smith,(330) 555-0177,Thermostat upgrade,360.0,2026-04-14,open,yes
+E0279,William Hall,(330) 555-0178,Water heater replacement,3540.0,2026-08-12,open,yes
+E0280,William Smith,(330) 555-0179,Furnace replacement,8270.0,2024-03-06,lost to competitor,no
+E0281,Linda Martinez,(330) 555-0180,Ductless mini split,3750.0,2026-02-02,expired,no
+E0282,Linda Brown,(330) 555-0181,Maintenance plan,180.0,2026-01-05,expired,no
+E0283,Jose Clark,(330) 555-0182,Water heater replacement,3370.0,2025-11-10,open,yes
+E0284,Karen Walker,(330) 555-0183,Duct cleaning,420.0,2026-06-28,expired,no
+E0285,Nancy Young,(330) 555-0184,Furnace repair,1270.0,2024-12-25,open,no
+E0286,Aisha Wilson,(330) 555-0185,Thermostat upgrade,640.0,2026-09-19,open,no
+E0287,Nancy Lopez,(330) 555-0186,Furnace replacement,6770.0,2026-08-31,open,yes
+E0288,Brian Johnson,(330) 555-0187,Heat pump install,14470.0,2026-07-22,open,yes
+E0289,William Hall,(330) 555-0188,Water heater replacement,3520.0,2026-07-31,open,no
+E0290,Nancy Wilson,(330) 555-0189,Furnace replacement,8780.0,2025-03-03,open,yes
+E0291,Maria King,(330) 555-0190,AC repair - compressor,3410.0,2023-11-25,open,no
+E0292,Michael Clark,(330) 555-0191,Furnace replacement,5060.0,2026-01-16,open,no
+E0293,Robert Hall,(330) 555-0192,Duct cleaning,540.0,2024-03-26,expired,no
+E0294,Mei Jackson,(330) 555-0193,Water heater replacement,2650.0,2025-01-29,open,no
+E0295,Jennifer Moore,(330) 555-0194,Maintenance plan,210.0,2023-11-28,open,no
+E0296,Aisha Martinez,(330) 555-0195,Duct cleaning,830.0,2025-06-11,declined,no
+E0297,David Thomas,(330) 555-0196,Thermostat upgrade,280.0,2026-08-29,open,yes
+E0298,Brian Johnson,(330) 555-0197,Thermostat upgrade,480.0,2024-04-25,open,no
+E0299,Michael Harris,(330) 555-0198,Furnace replacement,6020.0,2024-10-21,open,yes
+E0300,Tyrone Brown,(330) 555-0199,Ductless mini split,7560.0,2024-02-12,expired,no
+E9998,Maria Hall,(614) 555-0103,Water heater replacement,3650.0,2025-02-26,open,no
+E9999,Sandra Moore,(614) 555-0107,Ductless mini split,7510.0,2025-03-02,open,no

@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+# live campaign data has real customer phone numbers - never commit it
+campaign/
+mcr-data/
+setter-data/
+*.local.csv

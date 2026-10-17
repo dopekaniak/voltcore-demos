@@ -1,0 +1,13 @@
+{
+  "label": "Commission setter - local website agency",
+  "pricing": "the agency builds the site for a one-time fee and it's live in a week - they'll go over exact numbers on the call",
+  "opener": "Hey, is this {owner}? This is {me} - you guys are {business} in {city}, right? Quick question.",
+  "question": "When someone in {city} Googles you, what do they land on right now?",
+  "value": "You've got {reviews} reviews - people clearly like you - but with no website a lot of those searchers go to whoever has one. The team I work with builds trades sites that turn those searches into calls, live in about a week.",
+  "ask": "Can I get you 15 minutes with them Thursday or Friday? They'll show you what it'd look like before you spend anything.",
+  "objections": {
+    "word_of_mouth_is_enough": "That's how you got {reviews} reviews - awesome. The site just catches the people who hear your name and look you up before they call.",
+    "had_a_bad_web_guy": "Yeah, that's common. That's exactly why they show you the site first - you don't pay until you've seen it."
+  },
+  "voicemail": "Hey {owner}, {me} here - I noticed {business} doesn't have a website yet even with {reviews} reviews. I work with a team that builds them for trades in {city}. Call me back at [YOUR NUMBER]."
+}

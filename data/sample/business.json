@@ -1,0 +1,7 @@
+{
+  "name": "Cool Air HVAC",
+  "owner_phone": "+16145550199",
+  "service_zips": ["43004", "43016", "43026", "43081", "43201", "43215", "43230"],
+  "slots": ["8am-12pm", "12pm-4pm"],
+  "business_number": "+16145550100"
+}
