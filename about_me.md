@@ -6,6 +6,9 @@
 3. **Automated Content & UGC Pipelines:** High-retention short-form video scripting, creator hook analysis, and automated asset generation.
 4. **Industrial & Electrical Tech:** PLC ladder logic, electrical systems, and hardware/3D printing fabrication.
 
+## Business Details
+- **Mailing address (for CAN-SPAM email footers):** 153 Claire Lane, Box 206, Mooresville NC 28117
+
 ## Preferred Tech Stack
 - **IDEs & Agents:** Claude Code (Terminal), Cursor IDE, Google Antigravity, Google Cloud Shell
 - **Orchestration & Routing:** n8n, OmniRoute (local multi-provider API proxy), GCP Workflows & Cloud Functions
