@@ -1,0 +1,10 @@
+# Secrets
+.env
+
+# Cloned third-party repos (installed on demand by scripts/install_ai_stack.sh)
+repos/*
+!repos/.gitkeep
+
+# Scratch output
+projects/*
+!projects/.gitkeep
