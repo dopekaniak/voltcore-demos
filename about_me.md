@@ -16,3 +16,7 @@
 - **Fixed commitment:** School, Monday–Friday, 5:00 p.m.–10:30 p.m. (no work time).
 - **Available:** all other hours, every day.
 - **Current income:** gig work (DoorDash, Walmart, Spark, and similar). Build time competes with this income, so plan blocks deliberately rather than treating every hour as free.
+
+## Deployment Priority
+- **First project:** LaunchLocal lead pipeline. Scrape local businesses, tier them by website presence (no-website businesses first), generate a demo site for each lead, and draft outreach for approval before anything is sent.
+- **Deferred:** Shopify stores (pending review of why they stalled), UGC pipeline (low-cost test later), trading (paper-only research).
