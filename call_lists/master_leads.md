@@ -48,13 +48,25 @@ Update the Status column as you call: To call, Called - no answer, Called - inte
 | 37 | All Out Chimney Sweep LLC | Chimney sweep | Mooresville / Statesville area | (704) 553-1908 | 4.89 (62) HomeAdvisor | (Claude Oct 23) | | No website found | To call |
 | 38 | Growing Green | Fall cleanup / landscaping | Mooresville | 704-902-8067 | HomeAdvisor | (Claude Oct 23) | | Same number appears under another company; confirm | To call |
 | 39 | Stowe Dairy Christmas Tree Farm | Christmas tree farm | 169 Stowe Dairy Rd, Gastonia | (704) 228-9826 | Not found | Not named (Claude Oct 23 run) | | Verified: tree-farm directory, WBTV; Facebook only | Emailed Oct 23 with demo site; follow-ups automatic |
-| 40 | Helms Christmas Tree Farm | Christmas tree farm | 6345 Christmas Tree Ln, Vale | 704-276-1835 | Not found | Henry Helms per listings (Claude Oct 23 run) | | Partly: directory lists it as active and "presumed closed"; Facebook only | Emailed Oct 23 with demo site (Trudylaw3@yahoo.com); follow-ups automatic |
+| 40 | Helms Christmas Tree Farm | Christmas tree farm | 6345 Christmas Tree Ln, Vale | 704-276-1835 | Not found | Henry Helms per listings (Claude Oct 23 run) | | Has a website: helmschristmastreefarm.com (found Oct 24). Our Oct 23 email wrongly said it had none. | Emailed Oct 23 (Trudylaw3@yahoo.com); follow-ups paused via Suppression List |
 | 41 | Hendrix Home Improvements, LLC | Gutters | Mooresville | Thumbtack only | Thumbtack 5.0 (114-170) | Not named (Claude Oct 23 run) | | Unverified outside Thumbtack; no website found | To call |
 | 42 | Roof Top Sentinels | Gutter cleaning | Mooresville area | Thumbtack only | Thumbtack 5.0 (132) | Not named (Claude Oct 23 run) | | Unverified outside Thumbtack; no website found | To call |
 | 43 | Red Moose Exterior Cleaning | Pressure washing | Charlotte metro | Not found | Thumbtack 4.8 (30); HomeAdvisor 5.0 (4) | Not named (Claude Oct 23 run) | | HomeAdvisor and Thumbtack; no website found | To call |
 | 44 | Express Handyman Services | Handyman | Cornelius (covers Mooresville) | Thumbtack only | Thumbtack 5.0 (11) | Not named (Claude Oct 23 run) | | Unverified outside Thumbtack; no website found | To call |
 | 45 | Mark Janssen | Handyman | Mooresville | Thumbtack only | Thumbtack 5.0 (17) | Mark Janssen (listing name) | | Unverified outside Thumbtack; no website found | To call |
 | 46 | MVP Solutions | Handyman | Mooresville | Thumbtack only | Thumbtack 5.0 (25) | Not named (Claude Oct 23 run) | | Unverified outside Thumbtack; no website found | To call |
+| 47 | Toler's Tree & Lawn Service, LLC | Tree service, lawn, gutters | 2909 Amethyst Ln, Iron Station | (704) 607-7252 | BBB A+ | Kent B. Toler per BBB (Claude Oct 24 run) | | Verified: BBB profile; Facebook only | To call |
+| 48 | Windy Ridge Christmas Trees | Christmas tree lot | 6510 Bruton Smith Blvd, Concord | (704) 454-5093 | Not found | Not named (Claude Oct 24 run) | | Partly: Yellow Pages, Speedway Charities page; no website found | To call |
+| 49 | Arthur Massey Paint Gutter Cleaning and Repair | Gutters, painting | 707 Cascade St, Mooresville | (980) 280-2318 | Not found | Arthur Massey (listing name) | | Partly: Yellow Pages only; no website found | To call |
+| 50 | Lutz Christmas Tree Farm | Christmas tree farm | 756 Neelands Rd, Clover SC (about 55 mi) | 704-860-5604, alt (803) 627-2392 | Not found | Brian and Jamie Lutz per SC Agriculture listing (Claude Oct 24 run) | | Verified: SC Dept of Agriculture listing; Facebook only | To call |
+| 51 | Jordan Painting And Pressure Washing Service | Pressure washing, painting | 12223 Wickson Ct, Huntersville | (313) 686-9322 | Not found | Not named (Claude Oct 24 run) | | Unverified: Yellow Pages only; no website found | To call |
+| 52 | J E Pressure Washing | Pressure washing | Mooresville area | (704) 840-5220 | Not found | Not named (Claude Oct 24 run) | | Unverified: Yellow Pages only; no website found | To call |
+| 53 | AA Pro Pressure Washing | Pressure washing | Mooresville area | (704) 576-1298 | Not found | Not named (Claude Oct 24 run) | | Unverified: Yellow Pages only; no website found | To call |
+| 54 | HG Washing LLC | Pressure washing | Charlotte 28212 | (980) 292-0810 | Not found | Not named (Claude Oct 24 run) | | Unverified: Yellow Pages only; no website found | To call |
+| 55 | L&R Pressure Washing | Pressure washing | Charlotte 28226 | (980) 341-2145 | Not found | Not named (Claude Oct 24 run) | | Unverified: Yellow Pages only; no website found | To call |
+| 56 | JC Pressure Works | Pressure washing | Charlotte 28217 | (980) 306-5583 | Not found | Not named (Claude Oct 24 run) | | Unverified: Yellow Pages only; no website found | To call |
+| 57 | Roofing & Gutter Mafia | Roofing, gutters | Huntersville | (704) 605-4320 | Not found | Not named (Claude Oct 24 run) | | Unverified: Yellow Pages only; no website found | To call |
+| 58 | Seven H Commercial And Residential Wash | Pressure washing | 7020 Wallace Rd, Charlotte | (336) 459-0388 | Not found | Not named (Claude Oct 24 run) | | Unverified: Yellow Pages only; no website found | To call |
 
 ## What the Gemini history shows
 - 63 daily runs produced 33 different businesses. Most days repeat the same 8 to 10 names in a new order, so the "10 fresh leads a day" was mostly the same list.
