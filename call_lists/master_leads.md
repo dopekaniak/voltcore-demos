@@ -47,7 +47,7 @@ Update the Status column as you call: To call, Called - no answer, Called - inte
 | 36 | Matthews Holiday Lighting | Christmas lights | Mooresville (Thumbtack) | Thumbtack only | 56 hires | Bret Matthews (Claude Oct 23) | | No website found | Gmail draft ready (no recipient) |
 | 37 | All Out Chimney Sweep LLC | Chimney sweep | Mooresville / Statesville area | (704) 553-1908 | 4.89 (62) HomeAdvisor | (Claude Oct 23) | | No website found | To call |
 | 38 | Growing Green | Fall cleanup / landscaping | Mooresville | 704-902-8067 | HomeAdvisor | (Claude Oct 23) | | Same number appears under another company; confirm | To call |
-| 39 | Stowe Dairy Christmas Tree Farm | Christmas tree farm | 169 Stowe Dairy Rd, Gastonia | (704) 228-9826 | Not found | Not named (Claude Oct 23 run) | | Verified: tree-farm directory, WBTV; Facebook only | Emailed Oct 23 with demo site; follow-ups automatic |
+| 39 | Stowe Dairy Christmas Tree Farm | Christmas tree farm | 169 Stowe Dairy Rd, Gastonia | (704) 228-9826 | Not found | Not named (Claude Oct 23 run) | | Verified: tree-farm directory, WBTV; Facebook only | Emails bounced (Oct 23 and Oct 24 follow-up): Yahoo inbox full. Call or message on Facebook instead |
 | 40 | Helms Christmas Tree Farm | Christmas tree farm | 6345 Christmas Tree Ln, Vale | 704-276-1835 | Not found | Henry Helms per listings (Claude Oct 23 run) | | Has a website: helmschristmastreefarm.com (found Oct 24). Our Oct 23 email wrongly said it had none. | Emailed Oct 23 (Trudylaw3@yahoo.com); follow-ups paused via Suppression List |
 | 41 | Hendrix Home Improvements, LLC | Gutters | Mooresville | Thumbtack only | Thumbtack 5.0 (114-170) | Not named (Claude Oct 23 run) | | Unverified outside Thumbtack; no website found | To call |
 | 42 | Roof Top Sentinels | Gutter cleaning | Mooresville area | Thumbtack only | Thumbtack 5.0 (132) | Not named (Claude Oct 23 run) | | Unverified outside Thumbtack; no website found | To call |
@@ -67,6 +67,18 @@ Update the Status column as you call: To call, Called - no answer, Called - inte
 | 56 | JC Pressure Works | Pressure washing | Charlotte 28217 | (980) 306-5583 | Not found | Not named (Claude Oct 24 run) | | Unverified: Yellow Pages only; no website found | To call |
 | 57 | Roofing & Gutter Mafia | Roofing, gutters | Huntersville | (704) 605-4320 | Not found | Not named (Claude Oct 24 run) | | Unverified: Yellow Pages only; no website found | To call |
 | 58 | Seven H Commercial And Residential Wash | Pressure washing | 7020 Wallace Rd, Charlotte | (336) 459-0388 | Not found | Not named (Claude Oct 24 run) | | Unverified: Yellow Pages only; no website found | To call |
+| 59 | Smitty's Meats Inc | Deer processing | 301 Oak Hollow Rd, Union Grove | (704) 929-2341 | Not found | Not named (Claude Oct 25 run) | | Verified: NCDA deer processor list; no website found | To call |
+| 60 | Deer Shack Processing | Deer processing | 216 Helms Dr, Mount Holly | (704) 718-9135 | Not found | Not named (Claude Oct 25 run) | | Verified: NCDA deer processor list; no website found | To call |
+| 61 | Imperial Meats, LLC | Deer processing | 6167 Hudson Chapel Rd, Catawba | (828) 237-1992 | Not found | Not named (Claude Oct 25 run) | | Verified: NCDA deer processor list; no website found | To call |
+| 62 | Caldwell Meat Processing Company | Meat and deer processing | 3726 Goodson Rd, Maiden | (828) 428-8833 | Not found | Not named (Claude Oct 25 run) | | Verified: NCDA deer and inspected plant lists; no website found | To call |
+| 63 | Rocky River Game Processing | Deer and game processing | 4090 Yow Rd, Stanfield | (704) 888-6834 | Not found | Not named (Claude Oct 25 run) | | Verified: NCDA deer and custom plant lists; no website found | To call |
+| 64 | Jackson Farms Deer Processing | Deer processing | 989 Hwy 47, Lexington | (336) 240-2757 | Not found | Not named (Claude Oct 25 run) | | Verified: NCDA deer processor list; no website found | To call |
+| 65 | Joe's Tree Care | Tree removal | 360 Proctor Dr, Salisbury | (980) 777-2801 | BBB A+ | Joe E. Keener, co-owner per BBB (Claude Oct 25 run) | | Verified: BBB profile; Facebook only | To call |
+| 66 | Tailor Made Lawns | Lawn care, tree service | 1003 1st St W, Conover | (828) 465-4070 | BBB A+ | Todd Taylor, president per BBB (Claude Oct 25 run) | | Verified: BBB profile; Facebook and Twitter only | To call |
+| 67 | Lawn & Garden Care, Inc. | Landscape maintenance | 3645 Prairie Trail, Denver | (704) 201-8142 | BBB A+ | Glen M. Robinson, president per BBB (Claude Oct 25 run) | | Verified: BBB profile; no website or social found | To call |
+| 68 | H & T Logging & Grading | Logging, grading | 368 Carson Chapel Rd, Taylorsville | (828) 244-7410 | BBB A+ | Todd Sipe, owner per BBB (Claude Oct 25 run) | | Verified: BBB profile; no website found | To call |
+| 69 | Competitive Tree Service | Tree service | 1344 Tyro Rd, Lexington | (336) 250-6614 | Not found | Not named (Claude Oct 25 run) | | Partly: BBB directory and Yellow Pages; no website found | To call |
+| 70 | Chimney Pro | Chimney sweep | 1504 Longbow Dr, Kannapolis | (704) 791-9842 | Not found | Not named (Claude Oct 25 run) | | Unverified: a same-phone "Chimney Pro, LLC" listing shows a website; check first | To call |
 
 ## What the Gemini history shows
 - 63 daily runs produced 33 different businesses. Most days repeat the same 8 to 10 names in a new order, so the "10 fresh leads a day" was mostly the same list.
