@@ -79,6 +79,17 @@ Update the Status column as you call: To call, Called - no answer, Called - inte
 | 68 | H & T Logging & Grading | Logging, grading | 368 Carson Chapel Rd, Taylorsville | (828) 244-7410 | BBB A+ | Todd Sipe, owner per BBB (Claude Oct 25 run) | | Verified: BBB profile; no website found | To call |
 | 69 | Competitive Tree Service | Tree service | 1344 Tyro Rd, Lexington | (336) 250-6614 | Not found | Not named (Claude Oct 25 run) | | Partly: BBB directory and Yellow Pages; no website found | To call |
 | 70 | Chimney Pro | Chimney sweep | 1504 Longbow Dr, Kannapolis | (704) 791-9842 | Not found | Not named (Claude Oct 25 run) | | Unverified: a same-phone "Chimney Pro, LLC" listing shows a website; check first | To call |
+| 71 | A & H Meats LLC | Custom meat processing | 134 Kay Rd, Lawndale | (704) 312-6307 | Not found | Not named (Claude Oct 26 run) | | Verified: NCDA custom plant list; no website found | To call |
+| 72 | Cline Custom Processing | Custom meat processing | 857 Hammer Rd, Taylorsville | (828) 234-1089 | Not found | Not named (Claude Oct 26 run) | | Verified: NCDA custom plant list; no website found | To call |
+| 73 | Coletown, LLC | Custom meat and deer processing | 4611 NC Hwy 47, Lexington | (336) 596-0826 | Not found | William Cook per 2019 news story (confirm) | | Verified: NCDA custom plant list; no website found | To call |
+| 74 | Stillwell Whitetail Taxidermy | Taxidermy | 14010 Beatties Ford Rd, Huntersville | (704) 875-1262 | Not found | K B Stillwell (listing name) | | Unverified: Yellow Pages only; no website found | To call |
+| 75 | Wild Country Taxidermy NC | Taxidermy | 1024 Barrow Ln, Salisbury | (704) 239-0338 | Not found | Not named (Claude Oct 26 run) | | Unverified: Yellow Pages only; no website found | To call |
+| 76 | Wildlife Obsession Taxidermy | Taxidermy | 5895 Bringle Ferry Rd, Salisbury | (704) 798-4350 | Not found | Not named (Claude Oct 26 run) | | Unverified: Yellow Pages only; no website found | To call |
+| 77 | Nature Art Custom Taxidermy | Taxidermy | 301 Trivette Rd, Harmony | (704) 539-5634 | Not found | Not named (Claude Oct 26 run) | | Unverified: Yellow Pages only; no website found | To call |
+| 78 | Himes Small Engine | Small-engine repair | 5401 Mooresville Rd, Salisbury | (704) 637-3782 | Not found | Not named (Claude Oct 26 run) | | Unverified: Yellow Pages only; no website found | To call |
+| 79 | Sloop's Small Engine Repair | Small-engine repair | 144 Presbyterian Rd, Mooresville | (704) 237-4331 | Not found | Not named (Claude Oct 26 run) | | Unverified: Yellow Pages only; no website found | To call |
+| 80 | Tim's Small Engine Service & Repair | Small-engine repair | Statesville | (704) 871-0765 | Not found | Not named (Claude Oct 26 run) | | Unverified: Yellow Pages only; no website found | To call |
+| 81 | Lyerly's ATV & Mower Repair | ATV and mower repair | 275 Buck Dr, Salisbury | (704) 642-2787 | Not found | Not named (Claude Oct 26 run) | | Unverified: Yellow Pages only; no website found | To call |
 
 ## What the Gemini history shows
 - 63 daily runs produced 33 different businesses. Most days repeat the same 8 to 10 names in a new order, so the "10 fresh leads a day" was mostly the same list.
