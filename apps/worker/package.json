@@ -15,9 +15,11 @@
     "@sw/db": "workspace:*",
     "@sw/shared": "workspace:*",
     "bullmq": "5.81.5",
-    "ioredis": "5.11.1"
+    "ioredis": "5.11.1",
+    "nodemailer": "7.0.13"
   },
   "devDependencies": {
+    "@types/nodemailer": "^8.0.2",
     "tsup": "8.5.1",
     "tsx": "4.23.15"
   }

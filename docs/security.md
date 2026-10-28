@@ -86,10 +86,10 @@ at the end tracks status per slice.
 | Forge sandbox | `packages/forge-kit/test/sandbox.test.ts` | 4 |
 | Uploads | `apps/api/test/uploads.test.ts`, `apps/mesh/tests` | 7 |
 | Signed URLs, 404 on private | `apps/api/test/files.test.ts` | 6 |
-| IDOR | `apps/api/test/idor.test.ts` | 3, extended each slice |
-| Repo owner scope | `packages/db/test/repo-scope.test.ts` | 3 |
+| IDOR | `apps/api/test/idor.test.ts` | 3 (keys, webhooks), extended each slice |
+| Repo owner scope | `packages/db/test/repo-scope.test.ts` | 3 (done) |
 | Money checks | `apps/api/test/checkout.test.ts` | 8 |
 | Webhook dedupe and ordering | `apps/api/test/webhooks.test.ts`, `packages/providers/test` | 6, 8 |
-| Magic link, sessions, TOTP | `apps/api/test/auth.test.ts` | 3 |
-| Headers and log redaction | `apps/api/test/headers.test.ts` | 3, 9 |
-| Rate limits | `apps/api/test/ratelimit.test.ts` | 3 |
+| Magic link, sessions, TOTP, Origin check | `apps/api/test/auth.test.ts` | 3 (done) |
+| Headers and log redaction | `apps/api/test/headers.test.ts`, `health.test.ts` | 3 (done), 9 |
+| Rate limits | `apps/api/test/ratelimit.test.ts` | 3 (done) |

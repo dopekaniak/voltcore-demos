@@ -27,6 +27,7 @@
   "devDependencies": {
     "@sw/config": "workspace:*",
     "@sw/pricing": "workspace:*",
+    "fast-check": "4.10.2",
     "prisma": "6.19.3",
     "tsx": "4.23.15"
   }

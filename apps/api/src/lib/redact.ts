@@ -10,7 +10,7 @@ export const REDACT_PATHS = [
   '*.secret',
 ];
 
-const SECRET_PATTERNS = [/sk_(test|live)_[A-Za-z0-9]+/g, /sw_(live|test)_[A-Za-z0-9]+/g, /msy_[A-Za-z0-9]+/g, /whsec_[A-Za-z0-9_]+/g];
+const SECRET_PATTERNS = [/sk_(test|live)_[A-Za-z0-9]+/g, /sw_(live|test)_[A-Za-z0-9_-]+/g, /msy_[A-Za-z0-9]+/g, /whsec_[A-Za-z0-9_]+/g];
 
 /** Scrub secrets that appear inside free text (error messages, URLs). */
 export function scrubSecrets(text: string): string {

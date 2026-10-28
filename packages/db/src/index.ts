@@ -18,3 +18,10 @@ export function createDb(url?: string, opts: { log?: boolean } = {}): PrismaClie
 export function isUniqueViolation(err: unknown): boolean {
   return err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002';
 }
+
+export * from './credits';
+export * from './scope';
+export * from './users';
+export { makeRepos, type Repos } from './repos/index';
+export * from './outbox';
+export * from './audit';

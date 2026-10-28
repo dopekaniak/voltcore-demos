@@ -51,3 +51,9 @@ Entries below are added as dependencies land.
 | uvicorn, httpx, numpy, scipy, networkx | BSD-3-Clause | Mesh service runtime and tests |
 | trimesh | MIT | Mesh analysis and repair (ADR-002) |
 | pytest | MIT | Python tests |
+
+### Slice 3 — Accounts and credits
+
+| Package | License | Reason |
+| --- | --- | --- |
+| nodemailer | MIT-0 | SMTP email to Mailpit and production relays (ADR-017) |

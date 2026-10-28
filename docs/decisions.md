@@ -267,3 +267,27 @@ Each has the option chosen for now.
    LGPL-2.1 with an exception). Chosen: STEP export runs only on the server worker, which
    ships the unmodified WASM; counsel to confirm notice and relinking obligations
    (LICENSE-AUDIT.md).
+
+## ADR-019 — Credit property tests: pure core plus database check
+
+**Decision:** the wallet rules live in a pure function (`packages/shared/src/credits.ts`)
+that the database service calls after locking the wallet row. The fast-check property
+test runs 10,000 random sequences of grant, reserve, commit, release, reservation expiry,
+grant expiry, and debit against the pure core (`FAST_CHECK_RUNS`, 10,000 by default and in
+CI). A second property test drives the real database service (25 sequences by default,
+`FAST_CHECK_DB_RUNS`) so the CHECK constraints, the ledger trigger, and the service agree.
+**Why:** 10,000 database-backed sequences take minutes; the pure core is where the logic is.
+**Grants:** credits are held in `CreditGrant` buckets so monthly plan credits can expire at
+period end while packs never expire. Spending takes the soonest-expiring bucket first.
+Expiry only takes credits not held by open reservations; the rest expire on a later sweep.
+
+## ADR-020 — Sessions, CSRF, anonymous visitors
+
+**Decision:** sessions are random 32-byte tokens in an `HttpOnly`, `SameSite=Lax` cookie;
+the database stores SHA-256 hashes. Mutating requests that carry cookies must send an
+`Origin` equal to `WEB_ORIGIN` or `API_ORIGIN` (`403 ORIGIN_MISMATCH`). API keys skip the
+check (no ambient credentials). Anonymous visitors get a random `sw_anon` cookie; rows
+store its hash, and sign-in claims them. Magic-link emails go through the outbox, so the
+token is present in the outbox payload until the email worker sends it (accepted risk;
+the outbox is not exposed by any route).
+**Rejected:** CSRF tokens (Origin checking covers fetch-based clients with less state).

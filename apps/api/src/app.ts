@@ -1,9 +1,15 @@
+import cookie from '@fastify/cookie';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { newId } from '@sw/shared';
 import type { AppContext } from './context';
 import { REDACT_PATHS } from './lib/redact';
+import { authPlugin } from './plugins/auth';
 import { errorHandling } from './plugins/errors';
+import { rateLimits } from './plugins/rate-limit';
 import { securityHeaders } from './plugins/security-headers';
+import { authRoutes } from './routes/auth';
+import { billingRoutes } from './routes/billing';
+import { developerRoutes } from './routes/developers';
 import { healthRoutes } from './routes/health';
 
 export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
@@ -21,6 +27,12 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
   });
   securityHeaders(app, { production: ctx.env.NODE_ENV === 'production' });
   errorHandling(app);
+  await app.register(cookie);
+  authPlugin(app, ctx);
+  await rateLimits(app, ctx);
   healthRoutes(app, ctx);
+  authRoutes(app, ctx);
+  developerRoutes(app, ctx);
+  billingRoutes(app, ctx);
   return app;
 }
