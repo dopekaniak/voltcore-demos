@@ -33,3 +33,21 @@ esbuild-wasm, and others listed by `pnpm licenses list`.
 ## Added per slice
 
 Entries below are added as dependencies land.
+
+### Slice 2 — Foundation
+
+| Package | License | Reason (see decisions) |
+| --- | --- | --- |
+| turbo, typescript, vitest, eslint, typescript-eslint, prettier, tsx, tsup | MIT / Apache-2.0 (typescript) | Tooling (ADR-018) |
+| zod | MIT | Contracts and env validation (ADR-011) |
+| uuid | MIT | UUIDv7 ids (ADR-014) |
+| prisma, @prisma/client | Apache-2.0 | ORM and migrations (stack) |
+| fastify, @fastify/cookie, @fastify/rate-limit | MIT | API (ADR-001) |
+| ioredis | MIT | Redis client |
+| bullmq | MIT | Job queues (ADR-004) |
+| fast-check | MIT | Property tests (ADR-005) |
+| yaml | ISC | openapi.yaml writer (ADR-011) |
+| fastapi, python-multipart | MIT / Apache-2.0 | Mesh service (ADR-002) |
+| uvicorn, httpx, numpy, scipy, networkx | BSD-3-Clause | Mesh service runtime and tests |
+| trimesh | MIT | Mesh analysis and repair (ADR-002) |
+| pytest | MIT | Python tests |

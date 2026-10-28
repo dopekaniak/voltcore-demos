@@ -1,0 +1,5 @@
+pnpm-lock.yaml
+**/migrations/**
+docs/opus-prompts/**
+openapi.yaml
+.venv

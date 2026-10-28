@@ -1,0 +1,33 @@
+{
+  "name": "@sw/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/testing.ts"
+  },
+  "scripts": {
+    "generate": "prisma generate",
+    "postinstall": "prisma generate",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "seed": "tsx src/seed.ts",
+    "test:prepare": "tsx src/test-prepare.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3",
+    "@sw/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@sw/config": "workspace:*",
+    "@sw/pricing": "workspace:*",
+    "prisma": "6.19.3",
+    "tsx": "4.23.15"
+  }
+}

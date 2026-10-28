@@ -1,0 +1,7 @@
+fastapi==0.120.4
+uvicorn==0.38.0
+numpy==2.3.4
+trimesh==4.9.0
+networkx==3.5
+scipy==1.16.3
+python-multipart==0.0.20

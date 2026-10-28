@@ -1,0 +1,9 @@
+{
+  "name": "@sw/mesh",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "test -x .venv/bin/uvicorn && .venv/bin/uvicorn app.main:app --port 8000 --reload || echo 'mesh: run pnpm mesh:setup first'",
+    "test": "test -x .venv/bin/pytest || (python3 -m venv .venv && .venv/bin/pip install -q -r requirements-dev.txt); .venv/bin/pytest -q"
+  }
+}

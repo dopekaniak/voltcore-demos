@@ -1,0 +1,24 @@
+{
+  "name": "@sw/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "openapi": "tsx scripts/openapi.ts"
+  },
+  "dependencies": {
+    "uuid": "11.1.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@sw/config": "workspace:*",
+    "fast-check": "4.10.2",
+    "tsx": "4.23.15",
+    "yaml": "2.9.1"
+  }
+}

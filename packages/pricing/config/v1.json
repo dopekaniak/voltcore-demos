@@ -1,0 +1,45 @@
+{
+  "pricing_version": 1,
+  "currency": "USD",
+  "materials": {
+    "PLA": { "cost_per_kg_minor": 2500, "density_mg_per_cm3": 1240, "label": "PLA" },
+    "PETG": { "cost_per_kg_minor": 3000, "density_mg_per_cm3": 1270, "label": "PETG" },
+    "ASA": { "cost_per_kg_minor": 3800, "density_mg_per_cm3": 1070, "label": "ASA" }
+  },
+  "colors": {
+    "PLA": ["black", "white", "gray", "orange", "blue"],
+    "PETG": ["black", "white", "clear"],
+    "ASA": ["black", "white"]
+  },
+  "layer_heights_um": [120, 200, 280],
+  "machine_rate_per_h_minor": 300,
+  "finish_cost_minor": { "standard": 0 },
+  "margin_bps": 6000,
+  "min_unit_price_minor": 500,
+  "setup_fee_minor": 300,
+  "quantity_discounts": [
+    { "min_qty": 1, "bps": 0 },
+    { "min_qty": 10, "bps": 500 },
+    { "min_qty": 50, "bps": 1000 },
+    { "min_qty": 100, "bps": 1500 },
+    { "min_qty": 250, "bps": 2000 }
+  ],
+  "shipping_minor": { "standard": 599, "express": 1499 },
+  "shipping_days": { "standard": 5, "express": 2 },
+  "tax_mode": "none",
+  "quote_ttl_minutes": 30,
+  "reprice_tolerance_bps": 200,
+  "build_volume_mm": [256, 256, 256],
+  "scale_pct": { "min": 1, "max": 1000 },
+  "quantity": { "min": 1, "max": 500 },
+  "infill_pct": { "min": 10, "max": 100 },
+  "lead_time": { "base_days": 3, "per_units": 50 },
+  "estimator": {
+    "shell_mm": 0.8,
+    "support_density": 0.1,
+    "line_width_mm": 0.45,
+    "speed_mm_s": 50,
+    "layer_change_s": 1.5,
+    "travel_factor": 1.2
+  }
+}
