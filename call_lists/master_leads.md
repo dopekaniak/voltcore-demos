@@ -104,6 +104,16 @@ Update the Status column as you call: To call, Called - no answer, Called - inte
 | 93 | E&G Landscape Services, LLC | Landscape maintenance | Huntersville | (980) 616-0496 | BBB A+ | Germain Gonzaga Cruz, owner per BBB | | Verified: BBB profile; Facebook only | To call |
 | 94 | Good Works Land Service, LLC | Stump grinding, land service | 7701 Untz Rd, Concord | (704) 918-5894 | BBB A+ | Evan Dalrymple, owner per BBB | | Verified: BBB profile; old business.site link is dead (404) | To call |
 | 95 | S & S Lawn Care | Lawn maintenance | 43733 Cypress Crossing Rd, New London | (336) 354-6774 | BBB A+ | Christopher L. Burris, owner per BBB | | Verified: BBB profile; no website or social found | To call |
+| 96 | Pristine Painting | Painting | Mooresville | (980) 362-9677 | BBB A+ | Carlos Gutierrez, owner per BBB | | Verified: BBB profile; Facebook, Instagram and Thumbtack only | To call |
+| 97 | East Coast Home Solutions, LLC | General contractor, fences | 170 Oak Brook Dr, Mooresville | (704) 253-9766 | BBB A+ | Richard Megenedy, president per BBB | | Verified: BBB profile; no website or social found | To call |
+| 98 | Kelley Fences | Fence contractor | 15101 Beatties Ford Rd, Huntersville | (704) 794-2922 | BBB A+ | Bryan Kelley, owner per BBB | | Verified: BBB profile; Facebook only | To call |
+| 99 | Giant Fence Company, LLC | Fence contractor | Huntersville (BBB category page and Thumbtack say Charlotte 28214) | (704) 930-5059 | HomeAdvisor 4.8 (22) | Jacob N. Smith, owner per BBB | | Verified: BBB profile; Facebook, Thumbtack, HomeAdvisor only | To call |
+| 100 | B.T. Painting | Painting | Concord | (704) 778-6093 | BBB A+ | Brian Talbot, owner per BBB | | Verified: BBB profile; no website or social found | To call |
+| 101 | Shane Brown Painting, Inc. | Painting, staining | 165 Kimball Loop, China Grove | (704) 857-3318 | BBB A+ | Shane Brown, president per BBB | | Verified: BBB profile; no website or social found | To call |
+| 102 | Copperfield Contractors, LLC | Painting contractor | 821 Chapman Farm Ln, Rockwell | (704) 855-9520 | BBB A+ | Lynn and Doug Martin, co-owners per BBB | | Verified: BBB profile; Facebook only | To call |
+| 103 | Massey Septic Service | Septic service | 13185 NC Hwy 801, Mount Ulla | (704) 278-3528 | BBB A+ | Fran Salter, president per BBB | | Verified: BBB profile; no website or social found | To call |
+| 104 | J.W. Tree Service | Tree service | 1984 Sigman St, Hickory | (704) 473-9301 | BBB A+ | Joshua Willis, owner per BBB | | Verified: BBB profile; Facebook only | To call |
+| 105 | Stowe Timber, LLC | Logging, timber buying | 636 Union New Hope Rd, Gastonia | 704-867-3364 | Not found | Michael Stowe per NC Forest Service | | Verified: NC Forest Service timber buyer list; no website found | To call |
 
 ## What the Gemini history shows
 - 63 daily runs produced 33 different businesses. Most days repeat the same 8 to 10 names in a new order, so the "10 fresh leads a day" was mostly the same list.
