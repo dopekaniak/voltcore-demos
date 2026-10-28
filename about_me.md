@@ -8,6 +8,7 @@
 
 ## Business Details
 - **Mailing address (for CAN-SPAM email footers):** 153 Claire Lane, Box 206, Mooresville NC 28117
+- **Business phone (Google Voice, manual calls and texts only):** (980) 458-2218. Shown as "Call or text" in every VoltCore email signature. Never use it for automated or bulk texting.
 
 ## Preferred Tech Stack
 - **IDEs & Agents:** Claude Code (Terminal), Cursor IDE, Google Antigravity, Google Cloud Shell
