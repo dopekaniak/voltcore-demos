@@ -13,18 +13,19 @@
   "dependencies": {
     "@sw/config": "workspace:*",
     "@sw/db": "workspace:*",
+    "@sw/forge-kit": "workspace:*",
+    "@sw/providers": "workspace:*",
     "@sw/shared": "workspace:*",
+    "@sw/storage": "workspace:*",
     "bullmq": "5.81.5",
     "ioredis": "5.11.1",
-    "nodemailer": "7.0.13",
-    "@sw/forge-kit": "workspace:*",
-    "@sw/storage": "workspace:*",
-    "@sw/providers": "workspace:*"
+    "nodemailer": "7.0.13"
   },
   "devDependencies": {
+    "@sw/api": "workspace:*",
     "@types/nodemailer": "^8.0.2",
+    "fflate": "0.8.3",
     "tsup": "8.5.1",
-    "tsx": "4.23.15",
-    "@sw/api": "workspace:*"
+    "tsx": "4.23.15"
   }
 }

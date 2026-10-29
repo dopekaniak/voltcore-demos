@@ -1,0 +1,165 @@
+{
+  "_note": "Golden fixtures for pricing v1. Engine changes must update these in the same change. Parts 1-3 are the worked examples in docs/pricing.md.",
+  "parts": [
+    {
+      "name": "worked-1 PLA bracket",
+      "input": {
+        "material": "PLA",
+        "filament_mg": 12000,
+        "support_mg": 0,
+        "print_time_s": 5400,
+        "quantity": 1
+      },
+      "shipping": "standard",
+      "expect": {
+        "unit_price_minor": 772,
+        "line_total_minor": 1072,
+        "total_minor": 1671
+      }
+    },
+    {
+      "name": "worked-2 PETG enclosures x12",
+      "input": {
+        "material": "PETG",
+        "filament_mg": 40000,
+        "support_mg": 6000,
+        "print_time_s": 14400,
+        "quantity": 12
+      },
+      "shipping": "standard",
+      "expect": {
+        "unit_price_minor": 2036,
+        "line_total_minor": 24732,
+        "total_minor": 25331
+      }
+    },
+    {
+      "name": "worked-3 ASA clips x100 (minimum price)",
+      "input": {
+        "material": "ASA",
+        "filament_mg": 2000,
+        "support_mg": 0,
+        "print_time_s": 900,
+        "quantity": 100
+      },
+      "shipping": "standard",
+      "expect": {
+        "unit_price_minor": 425,
+        "line_total_minor": 42800,
+        "total_minor": 43399
+      }
+    },
+    {
+      "name": "hand-checked PLA 100 g 10 h x50",
+      "input": {
+        "material": "PLA",
+        "filament_mg": 100000,
+        "support_mg": 0,
+        "print_time_s": 36000,
+        "quantity": 50
+      },
+      "shipping": "standard",
+      "expect": {
+        "unit_price_minor": 4709,
+        "line_total_minor": 235750,
+        "total_minor": 236349
+      }
+    },
+    {
+      "name": "PETG express single",
+      "input": {
+        "material": "PETG",
+        "filament_mg": 25500,
+        "support_mg": 3300,
+        "print_time_s": 7321,
+        "quantity": 1
+      },
+      "shipping": "express",
+      "expect": {
+        "unit_price_minor": 1117,
+        "line_total_minor": 1417,
+        "total_minor": 2916
+      }
+    },
+    {
+      "name": "ASA heavy supports x10",
+      "input": {
+        "material": "ASA",
+        "filament_mg": 61000,
+        "support_mg": 22000,
+        "print_time_s": 21600,
+        "quantity": 10
+      },
+      "shipping": "standard",
+      "expect": {
+        "unit_price_minor": 3185,
+        "line_total_minor": 32150,
+        "total_minor": 32749
+      }
+    },
+    {
+      "name": "PLA tiny x250 (top tier)",
+      "input": {
+        "material": "PLA",
+        "filament_mg": 800,
+        "support_mg": 0,
+        "print_time_s": 420,
+        "quantity": 250
+      },
+      "shipping": "standard",
+      "expect": {
+        "unit_price_minor": 400,
+        "line_total_minor": 100300,
+        "total_minor": 100899
+      }
+    },
+    {
+      "name": "PLA large x500 (max qty)",
+      "input": {
+        "material": "PLA",
+        "filament_mg": 350000,
+        "support_mg": 90000,
+        "print_time_s": 108000,
+        "quantity": 500
+      },
+      "shipping": "express",
+      "expect": {
+        "unit_price_minor": 12885,
+        "line_total_minor": 6442800,
+        "total_minor": 6444299
+      }
+    },
+    {
+      "name": "PETG rounding edge x9",
+      "input": {
+        "material": "PETG",
+        "filament_mg": 33333,
+        "support_mg": 1111,
+        "print_time_s": 9999,
+        "quantity": 9
+      },
+      "shipping": "standard",
+      "expect": {
+        "unit_price_minor": 1509,
+        "line_total_minor": 13881,
+        "total_minor": 14480
+      }
+    },
+    {
+      "name": "ASA zero mass (machine time only)",
+      "input": {
+        "material": "ASA",
+        "filament_mg": 0,
+        "support_mg": 0,
+        "print_time_s": 60,
+        "quantity": 1
+      },
+      "shipping": "standard",
+      "expect": {
+        "unit_price_minor": 500,
+        "line_total_minor": 800,
+        "total_minor": 1399
+      }
+    }
+  ]
+}

@@ -59,6 +59,9 @@ importers:
       '@sw/forge-kit':
         specifier: workspace:*
         version: link:../../packages/forge-kit
+      '@sw/pricing':
+        specifier: workspace:*
+        version: link:../../packages/pricing
       '@sw/providers':
         specifier: workspace:*
         version: link:../../packages/providers
@@ -102,6 +105,9 @@ importers:
       '@sw/forge-kit':
         specifier: workspace:*
         version: link:../../packages/forge-kit
+      '@sw/pricing':
+        specifier: workspace:*
+        version: link:../../packages/pricing
       '@sw/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -170,6 +176,9 @@ importers:
       '@types/nodemailer':
         specifier: ^8.0.2
         version: 8.0.2
+      fflate:
+        specifier: 0.8.3
+        version: 0.8.3
       tsup:
         specifier: 8.5.1
         version: 8.5.1(jiti@2.7.0)(postcss@8.5.32)(tsx@4.23.15)(typescript@5.9.3)(yaml@2.9.1)

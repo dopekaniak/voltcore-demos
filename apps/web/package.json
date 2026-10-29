@@ -15,7 +15,8 @@
     "@sw/ui": "workspace:*",
     "next": "15.5.28",
     "react": "19.2.9",
-    "react-dom": "19.2.9"
+    "react-dom": "19.2.9",
+    "@sw/pricing": "workspace:*"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.3.3",

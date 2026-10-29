@@ -9,6 +9,8 @@ import { rateLimits } from './plugins/rate-limit';
 import { securityHeaders } from './plugins/security-headers';
 import { assetRoutes } from './routes/assets';
 import { authRoutes } from './routes/auth';
+import { cartRoutes } from './routes/cart';
+import { printRoutes } from './routes/print';
 import { generateRoutes } from './routes/generate';
 import { internalRoutes } from './routes/internal';
 import { libraryRoutes } from './routes/library';
@@ -50,5 +52,7 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
   libraryRoutes(app, ctx);
   uploadRoutes(app, ctx);
   internalRoutes(app, ctx);
+  printRoutes(app, ctx);
+  cartRoutes(app, ctx);
   return app;
 }

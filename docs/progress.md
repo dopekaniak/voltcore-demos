@@ -143,3 +143,32 @@ including 9 Generate/webhook/upload integration tests against the real mesh serv
 Mocked: generation provider (`PROVIDER_MODE=mock`); background removal for image-to-3D is
 recorded but not performed; retexture and image-to-3D are mock-only (the live adapter
 returns `NOT_IMPLEMENTED` for them). Live Meshy calls are untested without `MESHY_API_KEY`.
+
+## Slice 7 — Print quote
+
+Shipped:
+- `packages/pricing`: Zod-validated config v1, integer pricing engine (BigInt micro-minor
+  intermediates, one round-half-up), quantity tiers, totals with shipping/tax/promo,
+  mixed-currency rejection, build-volume fit with suggested scale, scale and quantity
+  ranges, 2 % reprice tolerance, deterministic print estimator, settings validation, lead
+  time; 10 golden reference parts (3 worked examples from docs/pricing.md and one checked
+  by hand) and 82 tests.
+- API: `POST /v1/print/parts` (from upload, library version, or forge at params with
+  server-side checks), `GET|PATCH /v1/print/parts/:id` (settings → fresh quote),
+  `GET /v1/print/parts/:id/mesh`, `POST /v1/print/parts/:id/repair`, `POST /v1/print/quotes`,
+  `GET /v1/print/quotes/:id`, `POST /v1/print/quotes/:id/claim`, cart (`GET /v1/cart`,
+  `POST|PATCH|DELETE /v1/cart/items`, `DELETE /v1/cart`); `CHECKS_NOT_ACKNOWLEDGED`,
+  `QUOTE_CHANGED`, `QUOTE_EXPIRED`, `PART_TOO_LARGE` with suggested scale.
+- Worker: forge-to-print-part builds with checks, print-part repair (original kept),
+  reaper purges expired anonymous uploads and parts and expires quotes.
+- Web: Upload to print (dropzone, validation report, overhang overlay in red, automatic
+  repair with before/after, configure panel, live quote with ESTIMATE badge, line items,
+  shipping, tax note, total, lead time, expiry, add to cart), cart page.
+
+Checks: `pnpm lint` 0, `pnpm typecheck` 0, `pnpm test` 0 (pricing 82, worker 37 with 6
+print/cart integration tests incl. J5 tampering and zip-bomb rejection). `pnpm e2e` J3
+up to the cart passes; the rest of J3 (order creation) lands in slice 8.
+
+Mocked/limited: quotes are estimates (`SLICER_MODE=estimate`) and not orderable unless
+`ESTIMATE_ORDERS=allow-dev`; orientation "auto" is recorded but not applied; tax is 0
+with "tax calculated where applicable".

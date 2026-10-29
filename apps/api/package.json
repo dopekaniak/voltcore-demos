@@ -21,7 +21,8 @@
     "zod": "4.6.7",
     "@sw/forge-kit": "workspace:*",
     "@sw/storage": "workspace:*",
-    "@sw/providers": "workspace:*"
+    "@sw/providers": "workspace:*",
+    "@sw/pricing": "workspace:*"
   },
   "devDependencies": {
     "tsup": "8.5.1",

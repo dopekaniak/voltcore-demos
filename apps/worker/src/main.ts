@@ -47,8 +47,8 @@ async function loop(name: string, everyMs: number, fn: () => Promise<unknown>) {
 }
 void loop('outbox-relay', 500, () => relayOnce(db, publisher));
 void loop('reaper', 60_000, async () => {
-  const r = await reap(db);
-  if (r.released || r.expiredGrants || r.renewed) log('reaper', r);
+  const r = await reap(db, new Date(), ctx.storage);
+  if (r.released || r.expiredGrants || r.renewed || r.purged) log('reaper', r);
 });
 // Liveness endpoint for orchestration and the E2E harness.
 const health = createServer((_req, res) => {

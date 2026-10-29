@@ -154,6 +154,8 @@ export async function processForgeBuild(ctx: WorkerContext, jobId: string): Prom
 interface ForgeExportInput {
   format: 'stl' | '3mf' | 'step';
   params: Record<string, unknown>;
+  /** Set when the export feeds a print part: build, check, analyze, and attach. */
+  print_part_id?: string;
 }
 
 const EXPORT_META = {
@@ -167,6 +169,7 @@ export async function processForgeExport(ctx: WorkerContext, jobId: string): Pro
   const job = await claimJob(ctx.db, jobId, ctx.workerId);
   if (!job) return;
   const input = job.input as unknown as ForgeExportInput;
+  if (input.print_part_id) return exportForPrint(ctx, job.id, job.assetVersionId!, input);
   try {
     const source = await ctx.db.forgeSource.findUniqueOrThrow({ where: { assetVersionId: job.assetVersionId! }, include: { assetVersion: { include: { asset: true } } } });
     const schema = source.schema as unknown as Parameters<typeof validateParams>[0];
@@ -267,4 +270,38 @@ async function rebuildVersion(ctx: WorkerContext, job: ClaimedJob, input: ForgeB
     await tx.job.update({ where: { id: j.id }, data: { assetId, assetVersionId: version.id, forgeState: 'READY', output: { asset_id: assetId, version_id: version.id, number, mode: input.mode ?? 'version' } } });
     await tx.jobEvent.create({ data: { jobId: j.id, type: 'forge_state', data: { from: 'VERIFYING', to: 'READY' } } });
   });
+}
+
+/**
+ * "Send to print" from a forge (build prompt 3.3): rebuild at the chosen params in the
+ * sandbox, store the STL, run mesh analysis, and record whether checks fail. A part with
+ * failing checks cannot reach the cart until they are acknowledged.
+ */
+async function exportForPrint(ctx: WorkerContext, jobId: string, versionId: string, input: ForgeExportInput): Promise<void> {
+  const partId = input.print_part_id!;
+  try {
+    const source = await ctx.db.forgeSource.findUniqueOrThrow({ where: { assetVersionId: versionId } });
+    const schema = source.schema as unknown as Parameters<typeof validateParams>[0];
+    const { values } = validateParams(schema, input.params ?? {});
+    const { build } = await runSandboxed({ op: 'build', code: source.code, params: toPartParams(schema, values), profile: source.dfmProfile, stl: true }, limits(ctx));
+    const analysis = await ctx.mesh.analyze(build!.stl!, 'stl');
+    const failing = build!.report.checks.filter((c) => c.status === 'fail');
+    await succeedJob(ctx.db, jobId, { actualCredits: 0 }, async (tx, j) => {
+      const f = await storeFile(ctx, tx, { ownerId: j.ownerId, assetVersionId: null, role: 'STL', body: build!.stl!, contentType: 'model/stl', filename: 'forge.stl', keyPrefix: `print-parts/${partId}`, ext: 'stl' });
+      await tx.printPart.update({
+        where: { id: partId },
+        data: {
+          sourceFileId: f.id,
+          analysis: analysis as object,
+          validationReport: { analysis, checks: build!.report.checks, params: values } as object,
+          status: analysis.watertight && analysis.manifold ? 'READY' : 'NEEDS_REPAIR',
+          checksFailing: failing.length > 0,
+        },
+      });
+      await tx.job.update({ where: { id: j.id }, data: { output: { part_id: partId, checks_failing: failing.length > 0 } } });
+    });
+  } catch (e) {
+    await ctx.db.printPart.update({ where: { id: partId }, data: { status: 'REJECTED', validationReport: { error: (e as Error).message } } }).catch(() => undefined);
+    await failJob(ctx.db, jobId, { code: 'FORGE_BUILD_FAILED', message: (e as Error).message });
+  }
 }

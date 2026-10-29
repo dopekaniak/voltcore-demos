@@ -368,6 +368,30 @@ magazine rack) are left out. The list and its review process are in
 **Decision:** a relative `STORAGE_DIR` resolves against the workspace root, so the API and
 worker share one directory regardless of their working directories.
 
+## ADR-033 — Quotes are computed in the request
+
+**Decision:** in estimate mode a quote is a pure computation (estimator + pricing engine),
+so `POST /v1/print/quotes` and `PATCH /v1/print/parts/:id` price synchronously and store
+the quote; no `PRINT_QUOTE` job is queued. The job kind stays reserved for a real slicer
+run (ADR-002b). The browser debounces settings changes by 300 ms. Each new quote
+supersedes the part's previous active quote.
+
+## ADR-034 — Cart checks and repricing
+
+**Decision:** adding to the cart (and, in slice 8, checkout) re-validates the quote: owned,
+active, unexpired, part `READY` (parts that need repair cannot be ordered), failing forge
+checks acknowledged (`409 CHECKS_NOT_ACKNOWLEDGED`), and repriced from stored inputs; a
+change above 2 % returns `409 QUOTE_CHANGED` with a fresh quote. Client-sent amounts are
+dropped by the request schemas. A cart ships as one order: the most expensive shipping
+method among its items applies once.
+
+## ADR-035 — Anonymous print flow
+
+**Decision:** visitors get an `sw_anon` cookie; uploads, print parts, quotes, and their
+jobs are keyed to its hash and kept for 24 hours (the reaper deletes them). Signing in
+claims them; `POST /v1/print/quotes/:id/claim` does the same explicitly. Job status routes
+accept the anonymous owner so the page can follow a repair.
+
 ---
 
 ## Open questions

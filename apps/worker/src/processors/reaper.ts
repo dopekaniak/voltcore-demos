@@ -7,7 +7,7 @@ import { jobMachine, canTransition } from '@sw/shared';
  * - expire monthly plan credits past period end;
  * - roll Free subscriptions into a new period with fresh credits.
  */
-export async function reap(db: Db, now = new Date()): Promise<{ released: number; expiredGrants: number; renewed: number }> {
+export async function reap(db: Db, now = new Date(), storage?: { delete(key: string): Promise<void> }): Promise<{ released: number; expiredGrants: number; renewed: number; purged: number }> {
   let released = 0;
   const stale = await db.reservation.findMany({ where: { status: 'RESERVED', expiresAt: { lt: now } }, take: 500 });
   for (const r of stale) {
@@ -59,5 +59,16 @@ export async function reap(db: Db, now = new Date()): Promise<{ released: number
       renewed++;
     });
   }
-  return { released, expiredGrants, renewed };
+  // Anonymous uploads and parts are kept 24 h (build prompt 5.1).
+  let purged = 0;
+  const oldUploads = await db.upload.findMany({ where: { ownerId: null, expiresAt: { lt: now } }, take: 500 });
+  for (const u of oldUploads) {
+    await storage?.delete(u.storageKey).catch(() => undefined);
+    await db.upload.delete({ where: { id: u.id } });
+    purged++;
+  }
+  const r = await db.printPart.deleteMany({ where: { ownerId: null, expiresAt: { lt: now } } });
+  purged += r.count;
+  await db.quote.updateMany({ where: { status: 'ACTIVE', expiresAt: { lt: now } }, data: { status: 'EXPIRED' } });
+  return { released, expiredGrants, renewed, purged };
 }

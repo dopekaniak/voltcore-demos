@@ -6,6 +6,8 @@ import { storeFile } from './forge';
 export async function processMeshJob(ctx: WorkerContext, jobId: string): Promise<void> {
   const job = await claimJob(ctx.db, jobId, ctx.workerId);
   if (!job) return;
+  const pin = job.input as { print_part_id?: string };
+  if (pin.print_part_id) return repairPrintPart(ctx, job.id, pin.print_part_id);
   try {
     const src = await ctx.db.assetVersion.findUniqueOrThrow({ where: { id: job.assetVersionId! }, include: { files: true } });
     const f = src.files.find((x) => x.role === 'STL') ?? src.files.find((x) => x.role === 'PREVIEW_MESH') ?? src.files.find((x) => x.role === 'GLB') ?? src.files.find((x) => x.role === 'REPAIRED');
@@ -41,5 +43,33 @@ export async function processMeshJob(ctx: WorkerContext, jobId: string): Promise
     });
   } catch (e) {
     await failJob(ctx.db, job.id, { code: 'MESH_SERVICE_ERROR', message: (e as Error).message });
+  }
+}
+
+/** Repair a print part's mesh. The original stays; the part points at both. */
+async function repairPrintPart(ctx: WorkerContext, jobId: string, partId: string): Promise<void> {
+  try {
+    const part = await ctx.db.printPart.findUniqueOrThrow({ where: { id: partId } });
+    let key: string;
+    let fmt: 'stl' | 'obj' | '3mf' = 'stl';
+    if (part.uploadId) {
+      const up = await ctx.db.upload.findUniqueOrThrow({ where: { id: part.uploadId } });
+      key = up.storageKey;
+      fmt = up.filename.toLowerCase().split('.').pop() as typeof fmt;
+    } else {
+      key = (await ctx.db.assetFile.findUniqueOrThrow({ where: { id: part.sourceFileId! } })).storageKey;
+    }
+    const { file, report } = await ctx.mesh.repair(await ctx.storage.get(key), fmt, 'stl');
+    await succeedJob(ctx.db, jobId, { actualCredits: 0 }, async (tx, j) => {
+      const f = await storeFile(ctx, tx, { ownerId: part.ownerId, assetVersionId: null, role: 'REPAIRED', body: file, contentType: 'model/stl', filename: 'repaired.stl', keyPrefix: `print-parts/${part.id}`, ext: 'stl' });
+      await tx.printPart.update({
+        where: { id: part.id },
+        data: { repairedFileId: f.id, repairReport: report as object, useRepaired: true, status: report.after.watertight && report.after.manifold ? 'READY' : 'NEEDS_REPAIR' },
+      });
+      await tx.job.update({ where: { id: j.id }, data: { output: { part_id: part.id, actions: report.actions } } });
+    });
+  } catch (e) {
+    await ctx.db.printPart.updateMany({ where: { id: partId, status: 'REPAIRING' }, data: { status: 'NEEDS_REPAIR' } });
+    await failJob(ctx.db, jobId, { code: 'MESH_SERVICE_ERROR', message: (e as Error).message });
   }
 }

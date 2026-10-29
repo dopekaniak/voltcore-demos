@@ -18,17 +18,17 @@ export const jobSchema = z.object({
 });
 export type JobDto = z.infer<typeof jobSchema>;
 
-export const getJob = defineRoute({ method: 'GET', path: '/v1/jobs/:id', summary: 'Get a job', tag: 'jobs', auth: 'user', params: idParam, response: jobSchema });
+export const getJob = defineRoute({ method: 'GET', path: '/v1/jobs/:id', summary: 'Get a job', tag: 'jobs', auth: 'optional', params: idParam, response: jobSchema });
 export const jobEvents = defineRoute({
   method: 'GET',
   path: '/v1/jobs/:id/events',
   summary: 'Job events as Server-Sent Events; resume with Last-Event-ID',
   tag: 'jobs',
-  auth: 'user',
+  auth: 'optional',
   params: idParam,
   sse: true,
 });
-export const cancelJob = defineRoute({ method: 'POST', path: '/v1/jobs/:id/cancel', summary: 'Cancel a queued or running job (credits released)', tag: 'jobs', auth: 'user', params: idParam, response: jobSchema });
+export const cancelJob = defineRoute({ method: 'POST', path: '/v1/jobs/:id/cancel', summary: 'Cancel a queued or running job (credits released)', tag: 'jobs', auth: 'optional', params: idParam, response: jobSchema });
 export const retryJob = defineRoute({ method: 'POST', path: '/v1/jobs/:id/retry', summary: 'Retry a failed job as a new job', tag: 'jobs', auth: 'user', params: idParam, status: 202, idempotent: true, response: jobSchema });
 
 export const fileUrl = defineRoute({

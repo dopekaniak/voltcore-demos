@@ -1,4 +1,4 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { AppError, isTerminal, jobMachine, jobsApi, type JobStatus } from '@sw/shared';
 import { cancelJob, retryAsNewJob } from '@sw/db';
 import type { AppContext } from '../context';
@@ -8,22 +8,25 @@ import { requireUser, route } from '../lib/route';
 import { serializeJob } from '../lib/serialize';
 
 export function jobRoutes(app: FastifyInstance, ctx: AppContext): void {
-  async function ownJob(apiId: string, userId: string) {
+  /** A job is visible to its owner, or to the anonymous visitor who started it. */
+  async function ownJob(apiId: string, req: FastifyRequest) {
     const job = await ctx.db.job.findUnique({ where: { id: idOr404('job', apiId, 'Job') } });
-    if (!job || job.ownerId !== userId) throw new AppError('NOT_FOUND', 'Job not found');
+    const mine = job && ((req.auth.userId && job.ownerId === req.auth.userId) || (!job.ownerId && req.auth.anonId && job.anonId === req.auth.anonId));
+    if (!job || !mine) throw new AppError('NOT_FOUND', 'Job not found');
     return job;
   }
 
-  route(app, ctx, jobsApi.getJob, async ({ params }, req) => serializeJob(await ownJob(params.id, requireUser(req))));
+  route(app, ctx, jobsApi.getJob, async ({ params }, req) => serializeJob(await ownJob(params.id, req)));
 
   route(app, ctx, jobsApi.cancelJob, async ({ params }, req) => {
-    const userId = requireUser(req);
-    const job = await ownJob(params.id, userId);
-    return serializeJob(await cancelJob(ctx.db, job.id, userId));
+    const job = await ownJob(params.id, req);
+    if (!job.ownerId) throw new AppError('UNAUTHENTICATED', 'Sign in to cancel jobs');
+    return serializeJob(await cancelJob(ctx.db, job.id, job.ownerId));
   });
 
   route(app, ctx, jobsApi.retryJob, async ({ params }, req) => {
-    const job = await ownJob(params.id, requireUser(req));
+    requireUser(req);
+    const job = await ownJob(params.id, req);
     let reserve = job.reservedCredits;
     if (job.kind === 'FORGE_BUILD') reserve = (job.input as { prompt?: string }).prompt ? (await forgeCosts(ctx.db)).author : 0;
     const next = await ctx.db.$transaction((tx) => retryAsNewJob(tx, job, reserve, FORGE_BUILD_TIMEOUT_MS));
@@ -32,7 +35,7 @@ export function jobRoutes(app: FastifyInstance, ctx: AppContext): void {
 
   /** SSE: replays events after Last-Event-ID, then streams new ones until the job is final. */
   route(app, ctx, jobsApi.jobEvents, async ({ params }, req, reply) => {
-    const job = await ownJob(params.id, requireUser(req));
+    const job = await ownJob(params.id, req);
     const header = req.headers['last-event-id'];
     let after = BigInt(0);
     if (typeof header === 'string' && /^\d{1,19}$/.test(header)) after = BigInt(header);
