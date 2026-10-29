@@ -186,3 +186,10 @@ new error codes (`PART_NOT_PRINTABLE`, `LICENSE_FORBIDS_PRINT`, `LICENSE_MISSING
 
 Checks: `pnpm lint` 0, `pnpm typecheck` 0, `pnpm test` 0 (shared 36, worker 45 including the
 forged-cart-item `403 PART_NOT_PRINTABLE` test and the non-commercial license test).
+
+Fix after slice A: the slice A migration dropped the hand-written trigram index on asset
+titles (Prisma did not know about it). The index is now declared in the schema (GIN with
+`gin_trgm_ops`), restored by a follow-up migration, and `scripts/new-migration.sh` refuses
+any generated diff that drops hand-written SQL objects. The slice A commit was pushed with
+this one db test failing; this commit is green: `pnpm lint` 0, `pnpm typecheck` 0,
+`pnpm test` 0.
