@@ -661,6 +661,8 @@ model PrintPart {
   analysis               Json?
   settings               Json
   checksFailing          Boolean         @default(false) @map("checks_failing")
+  catalogPartId          String?         @map("catalog_part_id") @db.Uuid
+  fitAcknowledgedAt      DateTime?       @map("fit_acknowledged_at")
   checksAcknowledgedAt   DateTime?       @map("checks_acknowledged_at")
   expiresAt              DateTime?       @map("expires_at")
   createdAt              DateTime        @default(now()) @map("created_at")
@@ -980,4 +982,77 @@ model GenerationModel {
   sortOrder    Int     @default(0) @map("sort_order")
 
   @@map("generation_models")
+}
+
+// ───────────── Module 4/5: licenses, catalog parts (addendum slice A) ─────────────
+
+model LicenseTerms {
+  id                  String  @id @default(uuid(7)) @db.Uuid
+  code                String  @unique
+  name                String
+  text                String
+  attributionTemplate String  @map("attribution_template")
+  allowsCommercial    Boolean @map("allows_commercial")
+  allowsDerivatives   Boolean @map("allows_derivatives")
+  allowsPrintOrder    Boolean @map("allows_print_order")
+  /// Personal printing by the downloader only (ALL-RIGHTS-RESERVED).
+  personalPrintOnly   Boolean @default(false) @map("personal_print_only")
+  isCustom            Boolean @default(false) @map("is_custom")
+  ownerId             String? @map("owner_id") @db.Uuid
+  createdAt           DateTime @default(now()) @map("created_at")
+  modelLicenses       ModelLicense[]
+
+  @@map("license_terms")
+}
+
+model ModelLicense {
+  id              String       @id @default(uuid(7)) @db.Uuid
+  assetId         String       @unique @map("asset_id") @db.Uuid
+  licenseId       String       @map("license_id") @db.Uuid
+  attributionText String       @map("attribution_text")
+  sourceUrl       String?      @map("source_url")
+  verifiedBy      String?      @map("verified_by") @db.Uuid
+  verifiedAt      DateTime?    @map("verified_at")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+  license         LicenseTerms @relation(fields: [licenseId], references: [id])
+
+  @@map("model_licenses")
+}
+
+enum SafetyClass {
+  NONE
+  COSMETIC
+  ENCLOSURE
+  SAFETY_CRITICAL
+}
+
+enum CatalogStatus {
+  DRAFT
+  REVIEW
+  LIVE
+  PAUSED
+  REMOVED
+  REJECTED
+}
+
+/// A catalog part (vehicle fitment library). Safety class is enforced on the server.
+model Part {
+  id                 String        @id @default(uuid(7)) @db.Uuid
+  ownerId            String        @map("owner_id") @db.Uuid
+  assetId            String?       @map("asset_id") @db.Uuid
+  title              String
+  description        String        @default("")
+  partNumberText     String?       @map("part_number_text")
+  category           String
+  safetyClass        SafetyClass   @default(NONE) @map("safety_class")
+  licenseId          String?       @map("license_id") @db.Uuid
+  status             CatalogStatus @default(DRAFT)
+  printOrderAllowed  Boolean       @default(false) @map("print_order_allowed")
+  allowedMaterials   String[]      @map("allowed_materials")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+
+  @@index([status, category])
+  @@map("parts")
 }
