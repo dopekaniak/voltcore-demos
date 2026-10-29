@@ -27,6 +27,8 @@ export interface WorkbenchProps {
   versionNumber?: number;
   starterKey?: string;
   stepCost?: number;
+  /** Rendered above the workbench; receives the current values. */
+  header?: (values: ParamValues | null, dirty: boolean) => React.ReactNode;
 }
 
 const slug = (s: string) => s.replace(/[^A-Za-z0-9-]+/g, '-').replace(/^-|-$/g, '').toLowerCase() || 'forge';
@@ -166,7 +168,10 @@ export function ForgeWorkbench(p: WorkbenchProps) {
     router.push(`/print?${q}`);
   }
 
+  const dirty = Boolean(values && p.initialParams && JSON.stringify(values) !== JSON.stringify(validateParams(schema ?? {}, p.initialParams).values));
   return (
+    <>
+    {p.header ? p.header(values, dirty) : null}
     <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
@@ -231,5 +236,6 @@ export function ForgeWorkbench(p: WorkbenchProps) {
         <pre className="max-h-[60vh] overflow-auto rounded bg-[var(--sw-surface)] p-3 font-mono text-xs text-[var(--sw-text)]">{p.code}</pre>
       </Dialog>
     </div>
+    </>
   );
 }

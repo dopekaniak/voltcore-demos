@@ -7,6 +7,7 @@ import { authPlugin } from './plugins/auth';
 import { errorHandling } from './plugins/errors';
 import { rateLimits } from './plugins/rate-limit';
 import { securityHeaders } from './plugins/security-headers';
+import { assetRoutes } from './routes/assets';
 import { authRoutes } from './routes/auth';
 import { billingRoutes } from './routes/billing';
 import { developerRoutes } from './routes/developers';
@@ -40,5 +41,6 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
   forgeRoutes(app, ctx);
   jobRoutes(app, ctx);
   fileRoutes(app, ctx);
+  assetRoutes(app, ctx);
   return app;
 }

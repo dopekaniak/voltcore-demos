@@ -57,43 +57,71 @@ export interface Job {
   committed_credits: number;
 }
 
-/** Follow a job with SSE until it ends; falls back to polling if SSE fails. */
+/**
+ * Follow a job with SSE until it ends. Progress comes from the event payloads, so a job
+ * costs one GET at the start and the final state arrives with the `end` event (the API
+ * rate-limits signed-in users to 60 requests a minute). Falls back to slow polling.
+ */
 export function followJob(jobId: string, onUpdate: (job: Job) => void): () => void {
   let stopped = false;
   let es: EventSource | null = null;
+  let current: Job | null = null;
+  const final = (j: Job) => ['SUCCEEDED', 'FAILED', 'CANCELED'].includes(j.status);
+  const emit = (patch: Partial<Job>) => {
+    if (!current || stopped) return;
+    current = { ...current, ...patch };
+    onUpdate(current);
+  };
   const poll = async () => {
     while (!stopped) {
       try {
         const j = await api<Job>(`/v1/jobs/${jobId}`);
+        current = j;
         onUpdate(j);
-        if (['SUCCEEDED', 'FAILED', 'CANCELED'].includes(j.status)) return;
+        if (final(j)) return;
       } catch {
         /* keep polling */
       }
-      await new Promise((r) => setTimeout(r, 1000));
+      await new Promise((r) => setTimeout(r, 3000));
     }
   };
-  try {
-    es = new EventSource(`/api/v1/jobs/${jobId}/events`);
-    const refresh = () => void api<Job>(`/v1/jobs/${jobId}`).then((j) => !stopped && onUpdate(j)).catch(() => undefined);
-    es.onmessage = refresh;
-    for (const type of ['status', 'progress', 'forge_state', 'created']) es.addEventListener(type, refresh);
-    es.addEventListener('end', (e) => {
-      try {
-        const j = JSON.parse((e as MessageEvent).data) as Job;
-        if (j) onUpdate(j);
-      } finally {
+  void api<Job>(`/v1/jobs/${jobId}`)
+    .then((j) => {
+      if (stopped) return;
+      current = j;
+      onUpdate(j);
+      if (final(j)) return;
+      es = new EventSource(`/api/v1/jobs/${jobId}/events`);
+      const read = (e: Event) => JSON.parse((e as MessageEvent).data) as { to?: Job['status'] | null; progress?: number | null; data?: { to?: string } | null };
+      es.addEventListener('status', (e) => {
+        const d = read(e);
+        // Final states arrive with the full job (and its output) in the `end` event.
+        if (d.to && ['SUCCEEDED', 'FAILED', 'CANCELED'].includes(d.to)) return;
+        emit({ ...(d.to ? { status: d.to } : {}), ...(typeof d.progress === 'number' ? { progress: d.progress } : {}) });
+      });
+      es.addEventListener('progress', (e) => {
+        const d = read(e);
+        if (typeof d.progress === 'number') emit({ progress: d.progress });
+      });
+      es.addEventListener('forge_state', (e) => {
+        const d = read(e);
+        if (d.data?.to) emit({ forge_state: d.data.to });
+      });
+      es.addEventListener('end', (e) => {
         es?.close();
-      }
-    });
-    es.onerror = () => {
-      es?.close();
-      es = null;
-      void poll();
-    };
-  } catch {
-    void poll();
-  }
+        const j2 = JSON.parse((e as MessageEvent).data) as Job | null;
+        if (j2 && !stopped) {
+          current = j2;
+          onUpdate(j2);
+        }
+      });
+      es.onerror = () => {
+        es?.close();
+        es = null;
+        if (!stopped && current && !final(current)) void poll();
+      };
+    })
+    .catch(() => void poll());
   return () => {
     stopped = true;
     es?.close();

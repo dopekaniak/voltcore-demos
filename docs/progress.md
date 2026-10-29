@@ -92,3 +92,18 @@ pricing 2, storage 3, forge-kit 68, api 26, worker 18, mesh 2). `pnpm e2e`: J1, 
 
 Mocked: forge author (`FORGE_AUTHOR=mock`). Library, Generate, and Print pages are
 placeholders until slices 6 and 7.
+
+## Slice 5 — Forge checks and sharing
+
+Shipped: checks panel with pass/warn/fail rows and plain-language messages (browser,
+live at current parameters) and server-side checks stored per version; "Send to print"
+disabled until failing checks are acknowledged (UI; the server-side gate lands with print
+parts in slice 7); versions (save settings as a new version, version picker, old
+versions stay readable via `?version=`); forking (`POST /v1/forges/:id/fork`, works for
+your own forges and unlisted/public ones); sharing (`PATCH /v1/assets/:id` visibility,
+audited); soft delete (`DELETE /v1/assets/:id`). Versions and forks rebuild in the
+sandbox on the server (ADR-027). The job follower now uses SSE payloads instead of a GET
+per event.
+
+Checks: `pnpm lint` 0, `pnpm typecheck` 0, `pnpm test` 0 (worker 22 with 4 new
+version/fork/visibility tests). `pnpm e2e`: 5 passed (J1, J1b, clamp, versions+fork, J2).

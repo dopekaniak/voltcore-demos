@@ -72,7 +72,7 @@ export const createForge = defineRoute({
   response: z.object({ job: jobSchema }),
 });
 
-export const getForge = defineRoute({ method: 'GET', path: '/v1/forges/:id', summary: 'Get a forge (latest version)', tag: 'forge', auth: 'optional', params: idParam, response: forgeSchema });
+export const getForge = defineRoute({ method: 'GET', path: '/v1/forges/:id', summary: 'Get a forge (latest version, or ?version=ver_…)', tag: 'forge', auth: 'optional', params: idParam, query: z.object({ version: z.string().optional() }), response: forgeSchema });
 export const listForgeVersions = defineRoute({
   method: 'GET',
   path: '/v1/forges/:id/versions',
@@ -110,3 +110,33 @@ export const createForgeExport = defineRoute({
   body: z.object({ format: z.enum(['stl', '3mf', 'step']), params: z.record(z.string(), z.unknown()).default({}), version_id: z.string().optional() }),
   response: z.object({ job: jobSchema, clamped: z.array(clampSchema) }),
 });
+
+export const saveForgeVersion = defineRoute({
+  method: 'POST',
+  path: '/v1/forges/:id/versions',
+  summary: 'Save parameter values as a new version (rebuilt and checked on the server)',
+  tag: 'forge',
+  auth: 'user',
+  scope: 'forge:write',
+  idempotent: true,
+  status: 202,
+  params: idParam,
+  body: z.object({ params: z.record(z.string(), z.unknown()), version_id: z.string().optional() }),
+  response: z.object({ job: jobSchema, clamped: z.array(clampSchema) }),
+});
+
+export const forkForge = defineRoute({
+  method: 'POST',
+  path: '/v1/forges/:id/fork',
+  summary: 'Fork a forge you can see into a new forge you own',
+  tag: 'forge',
+  auth: 'user',
+  scope: 'forge:write',
+  idempotent: true,
+  status: 202,
+  params: idParam,
+  body: z.object({ version_id: z.string().optional(), params: z.record(z.string(), z.unknown()).optional() }),
+  response: z.object({ job: jobSchema }),
+});
+
+export const forgeQuery = z.object({ version: z.string().optional() });

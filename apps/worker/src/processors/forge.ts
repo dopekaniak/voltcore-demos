@@ -14,6 +14,10 @@ interface ForgeBuildInput {
   prompt?: string;
   starter_key?: string;
   profile?: string;
+  /** Rebuild stored code at new params: a new version of the same forge, or a fork. */
+  base_version_id?: string;
+  params?: Record<string, unknown>;
+  mode?: 'version' | 'fork';
 }
 
 function titleFrom(prompt: string, fallback: string): string {
@@ -55,6 +59,7 @@ export async function processForgeBuild(ctx: WorkerContext, jobId: string): Prom
   const job = await claimJob(ctx.db, jobId, ctx.workerId);
   if (!job) return;
   const input = job.input as unknown as ForgeBuildInput;
+  if (input.base_version_id) return rebuildVersion(ctx, job, input);
   const profile = input.profile ?? DEFAULT_PROFILE;
   let previous: { code: string; error: string } | undefined;
   let lastError = 'unknown error';
@@ -188,4 +193,78 @@ export async function processForgeExport(ctx: WorkerContext, jobId: string): Pro
     const code = e instanceof SandboxError ? (e.code === 'FORGE_BUILD_TIMEOUT' ? 'FORGE_BUILD_TIMEOUT' : 'FORGE_BUILD_FAILED') : 'FORGE_BUILD_FAILED';
     await failJob(ctx.db, job.id, { code, message: (e as Error).message });
   }
+}
+
+type ClaimedJob = NonNullable<Awaited<ReturnType<typeof claimJob>>>;
+
+/**
+ * Save settings as a new version, or fork (ADR-027): rebuild the stored code at new params
+ * in the sandbox, compute checks and a thumbnail, and write the version. No author runs,
+ * so there is no repair attempt: a build failure fails the job.
+ */
+async function rebuildVersion(ctx: WorkerContext, job: ClaimedJob, input: ForgeBuildInput): Promise<void> {
+  const base = await ctx.db.assetVersion.findUnique({ where: { id: input.base_version_id! }, include: { forgeSource: true, asset: true, files: true } });
+  if (!base?.forgeSource) return void (await failJob(ctx.db, job.id, { code: 'NOT_FOUND', message: 'The base version no longer exists' }));
+  const src = base.forgeSource;
+  const schema = src.schema as unknown as Parameters<typeof validateParams>[0];
+  const { values } = validateParams(schema, input.params ?? ((base.params as Record<string, unknown>) ?? {}));
+  await forgeState(ctx.db, job, 'AUTHORING', { reused_code: true });
+  await forgeState(ctx.db, job, 'STATIC_CHECK');
+  await forgeState(ctx.db, job, 'BUILDING');
+  await jobProgress(ctx.db, job.id, 30, { phase: 'building' });
+  let build: BuildOutput;
+  try {
+    build = (await runSandboxed({ op: 'build', code: src.code, params: toPartParams(schema, values), profile: src.dfmProfile, stl: true, thumbnail: true }, limits(ctx))).build!;
+  } catch (e) {
+    return void (await failJob(ctx.db, job.id, { code: 'FORGE_BUILD_FAILED', message: e instanceof SandboxError ? e.message : String(e) }));
+  }
+  await forgeState(ctx.db, job, 'VERIFYING');
+  await succeedJob(ctx.db, job.id, { actualCredits: 0 }, async (tx, j) => {
+    let assetId = base.assetId;
+    let number: number;
+    if (input.mode === 'fork') {
+      const fork = await tx.asset.create({
+        data: { ownerId: j.ownerId!, kind: 'FORGE', title: `${base.asset.title} (fork)`.slice(0, 120), prompt: base.asset.prompt, forkedFromId: base.assetId, license: base.asset.license },
+      });
+      assetId = fork.id;
+      number = 1;
+    } else {
+      const last = await tx.assetVersion.findFirst({ where: { assetId }, orderBy: { number: 'desc' } });
+      number = (last?.number ?? 0) + 1;
+    }
+    const version = await tx.assetVersion.create({
+      data: {
+        assetId,
+        number,
+        stage: 'FORGE',
+        jobId: j.id,
+        parentVersionId: base.id,
+        params: values,
+        bboxMm: build.report.bbox,
+        triangles: build.report.subparts.reduce((n, s) => n + s.triangles, 0),
+        isWatertight: build.report.subparts.every((s) => s.watertight),
+        analysis: build.report as unknown as Prisma.InputJsonValue,
+      },
+    });
+    await tx.forgeSource.create({
+      data: {
+        assetVersionId: version.id,
+        code: src.code,
+        schema: src.schema as Prisma.InputJsonValue,
+        defaults: src.defaults as Prisma.InputJsonValue,
+        author: src.author,
+        authorVersion: src.authorVersion,
+        templateKey: src.templateKey,
+        dfmProfile: src.dfmProfile,
+        checks: build.report.checks as unknown as Prisma.InputJsonValue,
+        buildState: 'READY',
+      },
+    });
+    const prefix = `assets/${assetId}/${version.id}`;
+    if (build.stl) await storeFile(ctx, tx, { ownerId: j.ownerId, assetVersionId: version.id, role: 'PREVIEW_MESH', body: build.stl, contentType: 'model/stl', filename: 'preview.stl', keyPrefix: prefix, ext: 'stl' });
+    if (build.thumbnail) await storeFile(ctx, tx, { ownerId: j.ownerId, assetVersionId: version.id, role: 'THUMBNAIL', body: build.thumbnail, contentType: 'image/png', filename: 'thumbnail.png', keyPrefix: prefix, ext: 'png' });
+    await tx.asset.update({ where: { id: assetId }, data: { currentVersionId: version.id } });
+    await tx.job.update({ where: { id: j.id }, data: { assetId, assetVersionId: version.id, forgeState: 'READY', output: { asset_id: assetId, version_id: version.id, number, mode: input.mode ?? 'version' } } });
+    await tx.jobEvent.create({ data: { jobId: j.id, type: 'forge_state', data: { from: 'VERIFYING', to: 'READY' } } });
+  });
 }

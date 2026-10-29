@@ -50,9 +50,50 @@ export function forgeRoutes(app: FastifyInstance, ctx: AppContext): void {
     return v;
   }
 
-  route(app, ctx, forgeApi.getForge, async ({ params }, req) => {
+  route(app, ctx, forgeApi.getForge, async ({ params, query }, req) => {
     const { asset, isOwner } = await readableAsset(ctx.db, req, idOr404('forge', params.id, 'Forge'), 'FORGE');
-    return serializeForge(asset, await loadVersion(asset.id), isOwner);
+    return serializeForge(asset, await loadVersion(asset.id, query.version), isOwner);
+  });
+
+  route(app, ctx, forgeApi.saveForgeVersion, async ({ params, body, idempotencyKey }, req) => {
+    const asset = await ownedAsset(ctx.db, req, idOr404('forge', params.id, 'Forge'), 'FORGE');
+    const v = await loadVersion(asset.id, body.version_id);
+    const schema = v.forgeSource!.schema as unknown as ParamSchema;
+    const r = validateParams(schema, body.params);
+    const { job } = await ctx.db.$transaction((tx) =>
+      createJob(tx, {
+        ownerId: asset.ownerId,
+        kind: 'FORGE_BUILD',
+        idempotencyKey: idempotencyKey!,
+        input: { base_version_id: v.id, params: r.values, mode: 'version' },
+        reserveCredits: 0,
+        timeoutMs: FORGE_BUILD_TIMEOUT_MS,
+        assetId: asset.id,
+        assetVersionId: v.id,
+        maxAttempts: 1,
+      }),
+    );
+    return { job: serializeJob(job), clamped: r.clamped.map((c) => ({ ...c, message: clampMessage(c, schema[c.key]) })) };
+  });
+
+  route(app, ctx, forgeApi.forkForge, async ({ params, body, idempotencyKey }, req) => {
+    const userId = requireUser(req);
+    const { asset } = await readableAsset(ctx.db, req, idOr404('forge', params.id, 'Forge'), 'FORGE');
+    const v = await loadVersion(asset.id, body.version_id);
+    const schema = v.forgeSource!.schema as unknown as ParamSchema;
+    const values = validateParams(schema, body.params ?? ((v.params as Record<string, unknown>) ?? {})).values;
+    const { job } = await ctx.db.$transaction((tx) =>
+      createJob(tx, {
+        ownerId: userId,
+        kind: 'FORGE_BUILD',
+        idempotencyKey: idempotencyKey!,
+        input: { base_version_id: v.id, params: values, mode: 'fork' },
+        reserveCredits: 0,
+        timeoutMs: FORGE_BUILD_TIMEOUT_MS,
+        maxAttempts: 1,
+      }),
+    );
+    return { job: serializeJob(job) };
   });
 
   route(app, ctx, forgeApi.listForgeVersions, async ({ params }, req) => {

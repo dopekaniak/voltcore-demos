@@ -313,6 +313,24 @@ should not be pulled into `packages/shared`. The S3 driver is written against th
 v3 documentation but has not been run against MinIO here (Docker was unavailable); the fs
 driver is the default and is covered by tests.
 
+## ADR-026 — Order of the addenda
+
+**Decision:** the base work order continues with slices 5–7. The customizer and fitment
+addendum (Modules 4 and 5, slices A–F) goes after slice 7, because it says "after Slice 6 and
+before Slice 8" and Module 5 depends on slice 7. Then base slices 8–10. Then the design
+copilot (Module 6, M6-A to M6-F), industry parity (Module 7, M7-A to M7-E), and the free STL
+community library (Module 8, M8-A to M8-E), each in its own listed slice order.
+**Rejected:** starting the copilot before the print pipeline exists (its checks gate
+"Send to print", which needs slice 7).
+
+## ADR-027 — Forge versions and forks
+
+**Decision:** a forge version is model code plus saved parameter values. Saving settings
+creates a new version on the same forge; forking creates a new forge owned by the caller
+with `forked_from` set. Both run as a `FORGE_BUILD` job that reuses the stored code (no
+author, no credits), so checks and thumbnails for every version are computed on the
+server in the sandbox. Old versions stay readable. Code editing is read-only in Release 1.
+
 ---
 
 ## Open questions
