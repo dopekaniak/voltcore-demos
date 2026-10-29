@@ -1,0 +1,15 @@
+{
+  "name": "@sw/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "@sw/db": "workspace:*",
+    "@sw/config": "workspace:*",
+    "@axe-core/playwright": "4.14.0"
+  }
+}

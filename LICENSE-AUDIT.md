@@ -57,3 +57,19 @@ Entries below are added as dependencies land.
 | Package | License | Reason |
 | --- | --- | --- |
 | nodemailer | MIT-0 | SMTP email to Mailpit and production relays (ADR-017) |
+
+### Slice 4 — Forge core
+
+| Package | License | Reason |
+| --- | --- | --- |
+| partforge | MIT | Forge geometry (ADR-003) |
+| acorn, acorn-walk | MIT | Static check of model code (ADR-008) |
+| three | MIT | Shared viewer |
+| next, react, react-dom | MIT | Web app (stack) |
+| tailwindcss, @tailwindcss/postcss, postcss | MIT | Styling (stack) |
+| vite | MIT | Forge runtime build (partforge requires a Vite consumer) |
+| @aws-sdk/client-s3, @aws-sdk/s3-request-presigner | Apache-2.0 | S3/MinIO storage driver (ADR-025) |
+| happy-dom | MIT | partforge peer for headless tests |
+| eslint-plugin-react-hooks | MIT | Lint |
+| @playwright/test | Apache-2.0 | E2E tests (dev only) |
+| @axe-core/playwright | MPL-2.0 | Accessibility tests (dev only, not shipped) |

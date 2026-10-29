@@ -21,6 +21,8 @@ export const envSchema = z
     API_ORIGIN: z.string().url().default('http://localhost:4000'),
     FORGE_RUNTIME_ORIGIN: z.string().url().default('http://localhost:3002'),
     API_PORT: z.coerce.number().int().positive().default(4000),
+    /** Base for signed file URLs (fs driver). Defaults to WEB_ORIGIN + /api (the web app proxies /api). */
+    PUBLIC_FILES_BASE: z.string().url().optional(),
     TERMS_VERSION: z.string().default('2026-10-draft'),
 
     MESH_URL: z.string().url().default('http://localhost:8000'),
@@ -100,7 +102,7 @@ export const envSchema = z
     }
   });
 
-export type Env = z.infer<typeof envSchema>;
+export type Env = Omit<z.infer<typeof envSchema>, 'PUBLIC_FILES_BASE'> & { PUBLIC_FILES_BASE: string };
 
 export class EnvError extends Error {
   constructor(public readonly problems: string[]) {
@@ -123,5 +125,5 @@ export function loadEnv(source: Record<string, string | undefined> = process.env
     });
     throw new EnvError(problems);
   }
-  return result.data;
+  return { ...result.data, PUBLIC_FILES_BASE: result.data.PUBLIC_FILES_BASE ?? `${result.data.WEB_ORIGIN}/api` };
 }

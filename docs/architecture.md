@@ -54,13 +54,15 @@ flowchart LR
 | `apps/api` | Fastify 5. REST API for the web app and the public developer API under `/v1`; `/internal/*` signature-checked webhooks; `/admin/*` role-gated, audited routes. Serves signed file URLs for the fs storage driver. |
 | `apps/worker` | Node 22 BullMQ processors: `generation`, `forge-build`, `mesh-analysis`, `print-quote`, `email`, `reaper`, plus the outbox relay. |
 | `apps/mesh` | Python FastAPI service (internal only): analyze, repair, convert (STL/OBJ/3MF/GLB), remesh, and the print estimator inputs. No slicer (rule 6). |
-| `apps/forge-runtime` | Vite app that hosts the browser forge sandbox: a relay page loaded in a sandboxed cross-origin iframe, and the Web Worker that evaluates model code with partforge. partforge requires a Vite consumer, which is why this is its own app (ADR-008). |
+| `apps/forge-runtime` | Vite app that hosts the browser forge sandbox: a relay page loaded in a sandboxed cross-origin iframe, and the Web Worker that evaluates model code with partforge. partforge requires a Vite consumer, which is why this is its own app (ADR-008). `dev` runs a watch build served with the production CSP (ADR-024). |
 | `packages/db` | Prisma 6 schema, migrations, seeds, owner-scoped repositories, SQL for triggers and partial/trigram indexes. |
 | `packages/shared` | Zod schemas (single source for API contracts and `openapi.yaml`), error codes, ID prefixes (UUIDv7), state machines, money utilities. |
 | `packages/forge-kit` | Thin wrapper over `partforge`: model-code contract, schema extraction, parameter validation and clamping, static import check, sandbox runners (Node child process and browser worker), DFM checks, starter forges, `MockAuthor`. |
 | `packages/pricing` | Pure pricing and print-estimate functions, versioned JSON config, golden fixtures. Runs in the browser (estimates) and on the server (authoritative). |
 | `packages/providers` | `ModelProvider` interface, `MockProvider`, `MeshyProvider` (live), `PrintPartner` interface and `MockPartner`, `MockCarrier`. |
 | `packages/ui` | Design tokens and shared components, including the three.js viewer used for forges, generated models, and print previews. |
+| `packages/storage` | Storage drivers: `fs` (local disk with HMAC-signed URLs served by the API's `/files/*` route) and `s3` (MinIO / S3 presigned URLs). |
+| `e2e` | Playwright journeys (J1–J8) against the running stack. `pnpm e2e`. |
 | `packages/config` | Shared tsconfig, ESLint flat config, Prettier config, and the Zod environment schema. |
 
 ## Request and job flow
@@ -106,6 +108,15 @@ sequenceDiagram
 
 Forge build states: `DRAFT → AUTHORING → STATIC_CHECK → BUILDING → VERIFYING → READY`, any
 failure after the single repair attempt → `FAILED`.
+
+## Forge preview protocol (browser)
+
+The forge page creates a hidden iframe on `FORGE_RUNTIME_ORIGIN` and talks to it with
+`postMessage` (origins checked on both sides): `load {code}` → `loaded {parameters, defaults}`;
+`build {params}` → `meshes` (transferable typed arrays); `inspect {params}` → `report`
+(plain-language checks); `export {format: stl|3mf, params}` → `files`. The relay serializes
+requests, coalesces queued builds, and restarts the worker after a 20 s timeout. Parameter
+changes rebuild 250 ms after the last change; the last good mesh stays visible.
 
 ## Storage
 

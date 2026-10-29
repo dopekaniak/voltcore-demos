@@ -1,0 +1,67 @@
+/*
+ * Shapewright design tokens. One accent (orange), neutral grays, semantic colors.
+ * Light and dark themes; `prefers-color-scheme` by default, overridden by data-theme.
+ * Contrast pairs used for text meet WCAG 2.2 AA (4.5:1) in both themes.
+ */
+:root {
+  --sw-accent: #c2410c;          /* 5.2:1 on white */
+  --sw-accent-strong: #9a3412;
+  --sw-accent-contrast: #ffffff;
+  --sw-bg: #ffffff;
+  --sw-surface: #f6f6f7;
+  --sw-surface-2: #ececee;
+  --sw-border: #d4d4d8;
+  --sw-text: #18181b;
+  --sw-text-muted: #52525b;      /* 7.7:1 on white */
+  --sw-pass: #15803d;            /* 5.0:1 */
+  --sw-warn: #a16207;            /* 4.9:1 */
+  --sw-fail: #b91c1c;            /* 6.5:1 */
+  --sw-info: #1d4ed8;
+  --sw-focus: #2563eb;
+  --sw-viewer-bg: #eef0f3;
+  --sw-mesh: #d9611c;
+  --sw-grid: #b8bcc4;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --sw-accent: #fb923c;        /* 8.0:1 on #111113 */
+    --sw-accent-strong: #fdba74;
+    --sw-accent-contrast: #1c0a00;
+    --sw-bg: #111113;
+    --sw-surface: #1b1b1f;
+    --sw-surface-2: #26262b;
+    --sw-border: #3f3f46;
+    --sw-text: #f4f4f5;
+    --sw-text-muted: #a1a1aa;    /* 7.4:1 */
+    --sw-pass: #4ade80;
+    --sw-warn: #facc15;
+    --sw-fail: #f87171;
+    --sw-info: #93c5fd;
+    --sw-focus: #93c5fd;
+    --sw-viewer-bg: #1d1f24;
+    --sw-mesh: #f08a4b;
+    --sw-grid: #4b4f58;
+    color-scheme: dark;
+  }
+}
+:root[data-theme='dark'] {
+  --sw-accent: #fb923c;
+  --sw-accent-strong: #fdba74;
+  --sw-accent-contrast: #1c0a00;
+  --sw-bg: #111113;
+  --sw-surface: #1b1b1f;
+  --sw-surface-2: #26262b;
+  --sw-border: #3f3f46;
+  --sw-text: #f4f4f5;
+  --sw-text-muted: #a1a1aa;
+  --sw-pass: #4ade80;
+  --sw-warn: #facc15;
+  --sw-fail: #f87171;
+  --sw-info: #93c5fd;
+  --sw-focus: #93c5fd;
+  --sw-viewer-bg: #1d1f24;
+  --sw-mesh: #f08a4b;
+  --sw-grid: #4b4f58;
+  color-scheme: dark;
+}

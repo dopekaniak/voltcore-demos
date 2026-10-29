@@ -1,0 +1,27 @@
+{
+  "name": "@sw/forge-kit",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./browser": "./src/browser/index.ts",
+    "./node": "./src/sandbox/index.ts",
+    "./examples": "./examples/index.js",
+    "./browser/worker": "./src/browser/worker.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@sw/shared": "workspace:*",
+    "acorn": "8.19.0",
+    "acorn-walk": "8.3.5",
+    "partforge": "0.166.0"
+  },
+  "devDependencies": {
+    "@sw/config": "workspace:*",
+    "happy-dom": "20.14.6"
+  }
+}

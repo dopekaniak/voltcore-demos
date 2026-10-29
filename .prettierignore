@@ -3,3 +3,4 @@ pnpm-lock.yaml
 docs/opus-prompts/**
 openapi.yaml
 .venv
+.next

@@ -83,10 +83,10 @@ at the end tracks status per slice.
 
 | Item | Test | Slice |
 | --- | --- | --- |
-| Forge sandbox | `packages/forge-kit/test/sandbox.test.ts` | 4 |
+| Forge sandbox | `packages/forge-kit/test/sandbox.test.ts`, `static-check.test.ts`, browser check in `e2e` | 4 (done) |
 | Uploads | `apps/api/test/uploads.test.ts`, `apps/mesh/tests` | 7 |
-| Signed URLs, 404 on private | `apps/api/test/files.test.ts` | 6 |
-| IDOR | `apps/api/test/idor.test.ts` | 3 (keys, webhooks), extended each slice |
+| Signed URLs, 404 on private | `packages/storage/test`, `apps/worker/test/flow.forge.test.ts` | 4 (forges), 6 |
+| IDOR | `apps/api/test/idor.test.ts` (keys, webhooks), `apps/worker/test/flow.forge.test.ts` (forge, files, jobs) | 3, 4, extended each slice |
 | Repo owner scope | `packages/db/test/repo-scope.test.ts` | 3 (done) |
 | Money checks | `apps/api/test/checkout.test.ts` | 8 |
 | Webhook dedupe and ordering | `apps/api/test/webhooks.test.ts`, `packages/providers/test` | 6, 8 |

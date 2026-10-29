@@ -18,10 +18,16 @@
     "@sw/shared": "workspace:*",
     "fastify": "5.12.7",
     "ioredis": "5.11.1",
-    "zod": "4.6.7"
+    "zod": "4.6.7",
+    "@sw/forge-kit": "workspace:*",
+    "@sw/storage": "workspace:*"
   },
   "devDependencies": {
     "tsup": "8.5.1",
     "tsx": "4.23.15"
+  },
+  "exports": {
+    "./app": "./src/app.ts",
+    "./testing": "./test/helpers.ts"
   }
 }

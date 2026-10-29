@@ -10,6 +10,9 @@ import { securityHeaders } from './plugins/security-headers';
 import { authRoutes } from './routes/auth';
 import { billingRoutes } from './routes/billing';
 import { developerRoutes } from './routes/developers';
+import { fileRoutes } from './routes/files';
+import { forgeRoutes } from './routes/forges';
+import { jobRoutes } from './routes/jobs';
 import { healthRoutes } from './routes/health';
 
 export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
@@ -34,5 +37,8 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
   authRoutes(app, ctx);
   developerRoutes(app, ctx);
   billingRoutes(app, ctx);
+  forgeRoutes(app, ctx);
+  jobRoutes(app, ctx);
+  fileRoutes(app, ctx);
   return app;
 }

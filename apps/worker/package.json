@@ -16,11 +16,14 @@
     "@sw/shared": "workspace:*",
     "bullmq": "5.81.5",
     "ioredis": "5.11.1",
-    "nodemailer": "7.0.13"
+    "nodemailer": "7.0.13",
+    "@sw/forge-kit": "workspace:*",
+    "@sw/storage": "workspace:*"
   },
   "devDependencies": {
     "@types/nodemailer": "^8.0.2",
     "tsup": "8.5.1",
-    "tsx": "4.23.15"
+    "tsx": "4.23.15",
+    "@sw/api": "workspace:*"
   }
 }

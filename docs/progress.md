@@ -52,3 +52,43 @@ Checks: `pnpm lint` 0, `pnpm typecheck` 0, `pnpm test` 0 (config 7, shared 26 in
 the 10,000-run credit property test, db 34, pricing 2, worker 6, api 26, mesh 2).
 
 Mocked: email is logged (`MAIL_DRIVER=log`) unless SMTP/Mailpit is configured.
+
+## Slice 4 — Forge core
+
+Shipped:
+- `packages/forge-kit`: partforge-based model contract (ADR-007), schema extraction from
+  partforge control sections, parameter validation and clamping with plain-language
+  messages, AST static check with an import allowlist and denylist (ADR-008, ADR-021),
+  import rewriting for sandbox evaluation, DFM profile `fdm-0.4mm-nozzle` and check rows
+  ("Wall is 0.8 mm; the printer minimum is 1.2 mm"), `FormAuthor` interface and
+  `MockAuthor` (ADR-023), four original starter forges (cable clip, box with snap-fit lid,
+  planter, filleted box), the server sandbox runner (permission-model child process, RSS
+  watchdog, 20 s kill, network stubs), and the browser worker.
+- `apps/forge-runtime`: sandboxed cross-origin iframe relay + Web Worker, strict CSP,
+  20 s timeout with worker restart, build coalescing.
+- `packages/storage`: fs driver with HMAC-signed URLs (5 min GET / 15 min PUT) and an S3
+  driver.
+- Job engine in `@sw/db`: create (reservation + outbox in one transaction), claim,
+  progress, forge build states, succeed (commit), fail/retry (release), cancel (release),
+  retry-as-new; developer webhook fan-out on job success/failure.
+- Worker: FORGE_BUILD agent loop with one repair attempt; FORGE_EXPORT for STL, 3MF, and
+  STEP (OCCT) with 7-day expiry; thumbnails rendered in the sandbox.
+- API: `GET /v1/forges/starters[/:key]`, `POST /v1/forges`, `GET /v1/forges/:id`,
+  `GET /v1/forges/:id/versions`, `PATCH /v1/forges/:id/params`, `POST /v1/forges/:id/exports`,
+  `GET /v1/jobs/:id`, `GET /v1/jobs/:id/events` (SSE with `Last-Event-ID`),
+  `POST /v1/jobs/:id/cancel|retry`, `GET /v1/assets/:id/files/:file_id/url`, `/files/*`;
+  generic `Idempotency-Key` replay with `409 IDEMPOTENCY_KEY_REUSED`.
+- `packages/ui`: tokens (light/dark), brand components, the shared three.js viewer (orbit,
+  pan, zoom, F/R/arrow keys, wireframe, bounding box readout, 10 mm grid, overhang tint).
+- `apps/web`: shell with Create menu, credit badge, account menu, theme cookie, mobile
+  bottom tabs; home (prompt, examples, starters), sign-in and callback, forge build
+  progress, forge page (viewer, parameters, checks, STL/3MF in-browser export, STEP server
+  export, code viewer, Send-to-print gate), starter preview, billing, developers, status,
+  404/500, legal drafts. All copy in `src/lib/messages.ts`. CSP with nonces.
+
+Checks: `pnpm lint` 0, `pnpm typecheck` 0, `pnpm test` 0 (config 7, shared 26, db 34,
+pricing 2, storage 3, forge-kit 68, api 26, worker 18, mesh 2). `pnpm e2e`: J1, J1b
+(starter without account), clamp message, J2 — 4 passed. `pnpm --filter @sw/web build` 0.
+
+Mocked: forge author (`FORGE_AUTHOR=mock`). Library, Generate, and Print pages are
+placeholders until slices 6 and 7.

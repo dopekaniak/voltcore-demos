@@ -20,13 +20,14 @@
     "db:test:prepare": "pnpm --filter @sw/db test:prepare",
     "openapi": "pnpm --filter @sw/shared openapi",
     "mesh:setup": "python3 -m venv apps/mesh/.venv && apps/mesh/.venv/bin/pip install -q -r apps/mesh/requirements-dev.txt",
-    "e2e": "pnpm --filter @sw/e2e test"
+    "e2e": "PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH:-/opt/pw-browsers} pnpm --filter @sw/e2e e2e"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",
     "@types/node": "22.20.5",
     "eslint": "9.39.5",
     "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-react-hooks": "5.2.0",
     "globals": "17.13.0",
     "prettier": "3.9.10",
     "turbo": "2.11.10",
@@ -35,6 +36,13 @@
     "vitest": "4.1.12"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["@prisma/client", "@prisma/engines", "prisma", "esbuild", "sharp", "msgpackr-extract"]
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "esbuild",
+      "sharp",
+      "msgpackr-extract"
+    ]
   }
 }

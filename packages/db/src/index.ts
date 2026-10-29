@@ -25,3 +25,5 @@ export * from './users';
 export { makeRepos, type Repos } from './repos/index';
 export * from './outbox';
 export * from './audit';
+export * from './jobs';
+export * from './events';

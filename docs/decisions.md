@@ -166,8 +166,8 @@ the code directory and `node_modules`, no fs write, no child processes, no worke
 no native addons), `--max-old-space-size` as the memory cap, network globals removed before
 the model loads, `net`/`tls`/`dns` connect functions replaced with throwing stubs, and a
 SIGKILL at 20 s. Production runs the forge-build worker container with no egress.
-**Static check (both sides):** an AST walk (acorn) rejects any import outside `partforge`
-and its subpaths, dynamic `import()`, `require`, `eval`, `Function`, `process`,
+**Static check (both sides):** an AST walk (acorn) rejects any import outside the allowlist
+(`partforge/geometry` and `partforge/derive`, the pure subpaths; see ADR-021), dynamic `import()`, `require`, `eval`, `Function`, `process`,
 `globalThis`, `fetch`, `XMLHttpRequest`, `WebSocket`, `importScripts`, `__proto__`, and
 `constructor` member access.
 **Rejected:** Node `vm` contexts (not a security boundary), running model code in the
@@ -249,25 +249,6 @@ Turborepo 2, TypeScript 5.9 strict with `noUncheckedIndexedAccess` and
 `exactOptionalPropertyTypes`, Vitest 3, ESLint 9 flat config, Playwright using the Chromium
 build installed on the machine.
 
----
-
-## Open questions
-
-Each has the option chosen for now.
-
-1. **Trademark clearance for "Shapewright".** Chosen: use it internally; clear before launch.
-2. **Meshy webhook authenticity.** No signature is documented. Chosen: never trust the body;
-   fetch the task by ID. Revisit if Meshy publishes a signing scheme.
-3. **Estimate-mode ordering.** Chosen: blocked in production, `allow-dev` for demos (ADR-010).
-   Needs a product decision on whether ops-reviewed manual quotes may be ordered before a
-   real slicer exists.
-4. **Tax.** Chosen: no tax collection until Stripe Tax is configured (ADR-016).
-5. **LGPL components in the forge stack.** partforge's STEP path loads OpenCASCADE compiled
-   to WASM (`replicad-opencascadejs`, which declares MIT, while OpenCASCADE itself is
-   LGPL-2.1 with an exception). Chosen: STEP export runs only on the server worker, which
-   ships the unmodified WASM; counsel to confirm notice and relinking obligations
-   (LICENSE-AUDIT.md).
-
 ## ADR-019 — Credit property tests: pure core plus database check
 
 **Decision:** the wallet rules live in a pure function (`packages/shared/src/credits.ts`)
@@ -291,3 +272,66 @@ store its hash, and sign-in claims them. Magic-link emails go through the outbox
 token is present in the outbox payload until the email worker sends it (accepted risk;
 the outbox is not exposed by any route).
 **Rejected:** CSRF tokens (Origin checking covers fetch-based clients with less state).
+
+## ADR-021 — Model import allowlist is a subset of `partforge`
+
+**Decision:** model code may import only `partforge/geometry` and `partforge/derive`. The
+root `partforge` entry pulls in the DOM viewer and three.js, `partforge/testing` boots Node
+kernels, and `partforge/worker` runs the worker loop; none of them belong inside a model.
+The rule "imports only from partforge and its subpaths" still holds. Before evaluation,
+allowlisted imports are rewritten to a frozen module table the sandbox provides, because
+code loaded from `data:`/`blob:` URLs cannot resolve bare specifiers.
+
+## ADR-022 — Forge credit costs and free starters
+
+**Decision:** authoring a forge from a prompt reserves 10 credits (committed on success,
+released on failure); saving a starter forge is free; server STEP exports cost 2 credits;
+STL/3MF exports and all slider previews are free because they run in the browser. Costs
+live in seed data (`FeatureFlag forge.costs`).
+
+## ADR-023 — Mock author behaviour
+
+**Decision:** `MockAuthor` picks the best-matching starter by keyword and writes any
+dimensions it can read from the prompt into the starter's `defaults` ("40 mm cable clip
+for a 6 mm cable" → width 40, cable 6). Out-of-range dimensions are passed through on
+purpose so the platform's clamping and checks are exercised (for example "0.8 mm walls"
+gives a forge with a failing wall check). Two test markers make the repair path
+deterministic: `[[broken]]` breaks the first attempt only, `[[broken-always]]` breaks both.
+**Rejected:** random failures (flaky tests).
+
+## ADR-024 — Forge runtime in development
+
+**Decision:** `pnpm --filter @sw/forge-runtime dev` runs `vite build --watch` and serves
+`dist/` with the same CSP as production. Vite's dev server injects its HMR client into
+worker modules, which fails in a worker (`document` is undefined).
+
+## ADR-025 — Storage package
+
+**Decision:** storage drivers live in `packages/storage` (not in the build prompt's package
+list) because both the API and the worker need them and they carry the AWS SDK, which
+should not be pulled into `packages/shared`. The S3 driver is written against the AWS SDK
+v3 documentation but has not been run against MinIO here (Docker was unavailable); the fs
+driver is the default and is covered by tests.
+
+---
+
+## Open questions
+
+Each has the option chosen for now.
+
+1. **Trademark clearance for "Shapewright".** Chosen: use it internally; clear before launch.
+2. **Meshy webhook authenticity.** No signature is documented. Chosen: never trust the body;
+   fetch the task by ID. Revisit if Meshy publishes a signing scheme.
+3. **Estimate-mode ordering.** Chosen: blocked in production, `allow-dev` for demos (ADR-010).
+   Needs a product decision on whether ops-reviewed manual quotes may be ordered before a
+   real slicer exists.
+4. **Tax.** Chosen: no tax collection until Stripe Tax is configured (ADR-016).
+5. **LGPL components in the forge stack.** partforge's STEP path loads OpenCASCADE compiled
+   to WASM (`replicad-opencascadejs`, which declares MIT, while OpenCASCADE itself is
+   LGPL-2.1 with an exception). Chosen: STEP export runs only on the server worker, which
+   ships the unmodified WASM; counsel to confirm notice and relinking obligations
+   (LICENSE-AUDIT.md).
+6. **Server sandbox memory cap.** WASM memory is outside V8's heap limit, so the cap is an
+   RSS watchdog (kill above `FORGE_BUILD_MEMORY_MB`) plus `--max-old-space-size`. An
+   address-space limit (RLIMIT_AS) breaks WASM's virtual reservations. Chosen: watchdog +
+   no egress for the worker container. Revisit with cgroup limits per build in production.

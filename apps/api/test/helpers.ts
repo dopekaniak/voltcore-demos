@@ -1,6 +1,7 @@
 import { Redis } from 'ioredis';
 import { loadEnv, type Env } from '@sw/config';
 import { createDb, makeRepos } from '@sw/db';
+import { storageFromEnv } from '@sw/storage';
 import { buildApp } from '../src/app';
 import type { AppContext } from '../src/context';
 
@@ -8,7 +9,7 @@ export async function makeTestApp(overrides: Partial<Env> = {}) {
   const env = { ...loadEnv({ ...process.env, LOG_LEVEL: 'silent' }), ...overrides };
   const db = createDb(env.DATABASE_URL);
   const redis = new Redis(env.REDIS_URL, { maxRetriesPerRequest: 1, lazyConnect: false });
-  const ctx: AppContext = { env, db, repos: makeRepos(db), redis, now: () => new Date(), version: 'test', rateLimitNamespace: `sw-rl-test-${crypto.randomUUID()}:` };
+  const ctx: AppContext = { env, db, repos: makeRepos(db), redis, storage: storageFromEnv(env), now: () => new Date(), version: 'test', rateLimitNamespace: `sw-rl-test-${crypto.randomUUID()}:` };
   const app = await buildApp(ctx);
   return {
     app,
