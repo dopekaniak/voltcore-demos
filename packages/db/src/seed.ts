@@ -1,6 +1,6 @@
 import { PRICING_CONFIGS } from '@sw/pricing';
 import { createDb } from './index';
-import { CREDIT_PACKS, FORGE_COSTS, GENERATION_MODELS, MATERIALS, PARTNERS, PLANS } from './seed-data';
+import { CREDIT_PACKS, FORGE_COSTS, GENERATION_MODELS, LICENSES, MATERIALS, PARTNERS, PLANS } from './seed-data';
 
 /** Idempotent seed: safe to run repeatedly. */
 export async function seed(url?: string): Promise<void> {
@@ -32,6 +32,7 @@ export async function seed(url?: string): Promise<void> {
       const data = { ...m, capabilities: m.capabilities as object, costs: m.costs as object };
       await db.generationModel.upsert({ where: { code: m.code }, update: data, create: data });
     }
+    for (const l of LICENSES) await db.licenseTerms.upsert({ where: { code: l.code }, update: { ...l }, create: { ...l } });
     await db.featureFlag.upsert({
       where: { key: 'forge.costs' },
       update: { data: FORGE_COSTS, enabled: true },

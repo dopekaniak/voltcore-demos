@@ -172,3 +172,17 @@ up to the cart passes; the rest of J3 (order creation) lands in slice 8.
 Mocked/limited: quotes are estimates (`SLICER_MODE=estimate`) and not orderable unless
 `ESTIMATE_ORDERS=allow-dev`; orientation "auto" is recorded but not applied; tax is 0
 with "tax calculated where applicable".
+
+## Addendum slice A — Licenses and safety classes
+
+Shipped: `LicenseTerms`, `ModelLicense`, catalog `Part` with `safety_class`, print-part
+links to catalog parts with fit acknowledgement; `GET /v1/licenses`,
+`PUT /v1/assets/:id/license` (including custom license text), `POST /v1/parts`,
+`GET /v1/parts/:id`, `POST /v1/parts/:id/print-quotes` (fit disclaimer required),
+`POST /admin/parts/:id/safety-class` (TOTP admin, reason, audited); server gates in the
+cart and library print paths; automatic safety classification; library item state machine;
+new error codes (`PART_NOT_PRINTABLE`, `LICENSE_FORBIDS_PRINT`, `LICENSE_MISSING`,
+`FITMENT_UNVERIFIED`, `DESIGN_NOT_APPROVED`, `CUSTOMIZER_INPUT_INVALID`, …).
+
+Checks: `pnpm lint` 0, `pnpm typecheck` 0, `pnpm test` 0 (shared 36, worker 45 including the
+forged-cart-item `403 PART_NOT_PRINTABLE` test and the non-commercial license test).

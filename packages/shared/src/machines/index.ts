@@ -77,3 +77,14 @@ export const reservationMachine = defineMachine('reservation', {
   EXPIRED: [],
 });
 export type ReservationStatus = (typeof reservationMachine.states)[number];
+
+/** Library item (Module 4): DRAFT → REVIEW → LIVE → PAUSED | REMOVED; REVIEW → REJECTED → DRAFT. */
+export const libraryItemMachine = defineMachine('libraryItem', {
+  DRAFT: ['REVIEW'],
+  REVIEW: ['LIVE', 'REJECTED'],
+  REJECTED: ['DRAFT'],
+  LIVE: ['PAUSED', 'REMOVED'],
+  PAUSED: ['LIVE', 'REMOVED'],
+  REMOVED: [],
+});
+export type LibraryItemStatus = (typeof libraryItemMachine.states)[number];

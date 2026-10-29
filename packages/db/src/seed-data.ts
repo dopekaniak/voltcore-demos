@@ -71,3 +71,17 @@ export const GENERATION_MODELS = [
 
 /** Forge credit costs. Previews in the browser are free; authoring and exports cost. */
 export const FORGE_COSTS = { author: 10, step_export: 2 } as const;
+
+/**
+ * License catalog (addendum rule 2). Texts are short summaries with the canonical URL;
+ * the full legal text lives at the URL. Non-commercial and no-derivative terms block
+ * print orders and remixes respectively.
+ */
+export const LICENSES = [
+  { code: 'CC0-1.0', name: 'CC0 1.0 Public Domain Dedication', text: 'No rights reserved. https://creativecommons.org/publicdomain/zero/1.0/', attributionTemplate: '{title} by {author} (CC0)', allowsCommercial: true, allowsDerivatives: true, allowsPrintOrder: true },
+  { code: 'CC-BY-4.0', name: 'Creative Commons Attribution 4.0', text: 'Share and adapt with attribution. https://creativecommons.org/licenses/by/4.0/', attributionTemplate: '{title} by {author}, licensed CC BY 4.0', allowsCommercial: true, allowsDerivatives: true, allowsPrintOrder: true },
+  { code: 'CC-BY-SA-4.0', name: 'Creative Commons Attribution-ShareAlike 4.0', text: 'Share and adapt with attribution; adaptations use the same license. https://creativecommons.org/licenses/by-sa/4.0/', attributionTemplate: '{title} by {author}, licensed CC BY-SA 4.0', allowsCommercial: true, allowsDerivatives: true, allowsPrintOrder: true },
+  { code: 'CC-BY-NC-4.0', name: 'Creative Commons Attribution-NonCommercial 4.0', text: 'Share and adapt with attribution, non-commercial use only. https://creativecommons.org/licenses/by-nc/4.0/', attributionTemplate: '{title} by {author}, licensed CC BY-NC 4.0', allowsCommercial: false, allowsDerivatives: true, allowsPrintOrder: false },
+  { code: 'CC-BY-ND-4.0', name: 'Creative Commons Attribution-NoDerivatives 4.0', text: 'Share with attribution; no adaptations. https://creativecommons.org/licenses/by-nd/4.0/', attributionTemplate: '{title} by {author}, licensed CC BY-ND 4.0', allowsCommercial: true, allowsDerivatives: false, allowsPrintOrder: true },
+  { code: 'ALL-RIGHTS-RESERVED', name: 'All rights reserved', text: 'Download for personal printing only. No resale, no redistribution, no derivatives.', attributionTemplate: '{title} by {author}, all rights reserved', allowsCommercial: false, allowsDerivatives: false, allowsPrintOrder: false, personalPrintOnly: true },
+] as const;

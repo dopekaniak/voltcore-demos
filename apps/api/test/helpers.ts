@@ -65,3 +65,16 @@ export function bearer(t: TestApp, key: string) {
   return (method: 'GET' | 'POST' | 'PATCH' | 'DELETE', url: string, payload?: unknown, headers: Record<string, string> = {}) =>
     t.app.inject({ method, url, headers: { authorization: `Bearer ${key}`, ...headers }, ...(payload !== undefined ? { payload: payload as object } : {}) });
 }
+
+/** Sign in as an admin with a TOTP-verified session. */
+export async function signInAdmin(t: TestApp) {
+  const s = await signIn(t);
+  const { fromApiId } = await import('@sw/shared');
+  const { totpCode } = await import('@sw/shared/node');
+  await t.ctx.db.user.update({ where: { id: fromApiId('user', s.userId)! }, data: { role: 'ADMIN' } });
+  const call = as(t, s.cookie);
+  const { secret } = (await call('POST', '/v1/auth/totp/setup')).json();
+  const ok = await call('POST', '/v1/auth/totp/verify', { code: totpCode(secret, Date.now()) });
+  if (ok.statusCode !== 200) throw new Error(`totp failed: ${ok.body}`);
+  return s;
+}

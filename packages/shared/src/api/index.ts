@@ -7,4 +7,5 @@ export * as generateApi from './generate';
 export * as uploadsApi from './uploads';
 export * as libraryApi from './library';
 export * as printApi from './print';
+export * as catalogApi from './catalog';
 export type { JobDto } from './jobs';

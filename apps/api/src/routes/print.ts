@@ -5,6 +5,7 @@ import { createJob, type PrintPart } from '@sw/db';
 import { validateParams, type ParamSchema } from '@sw/forge-kit';
 import type { AppContext } from '../context';
 import { idOr404, readableAsset } from '../lib/access';
+import { assertAssetNotSafetyCritical } from '../lib/catalog';
 import { mergeSettings, serializeQuote, storeQuote } from '../lib/quote';
 import { requireUser, route } from '../lib/route';
 import { iso, serializeJob } from '../lib/serialize';
@@ -71,6 +72,7 @@ export function printRoutes(app: FastifyInstance, ctx: AppContext): void {
       if (!v) throw new AppError('NOT_FOUND', 'Version not found');
       const { asset } = await readableAsset(ctx.db, req, v.assetId);
       if (!userId) throw new AppError('UNAUTHENTICATED', 'Sign in to print library models');
+      await assertAssetNotSafetyCritical(ctx.db, asset.id);
       const file = v.files.find((f) => f.role === 'STL') ?? v.files.find((f) => f.role === 'PREVIEW_MESH');
       if (!file) throw new AppError('INVALID_STATE', 'This version has no printable mesh');
       const analysis = await ctx.mesh.analyze(await ctx.storage.get(file.storageKey), 'stl');

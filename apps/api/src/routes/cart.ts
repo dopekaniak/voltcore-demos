@@ -4,6 +4,7 @@ import { quoteChanged, pricingConfig } from '@sw/pricing';
 import type { Quote } from '@sw/db';
 import type { AppContext } from '../context';
 import { idOr404 } from '../lib/access';
+import { assertAssetNotSafetyCritical, assertCatalogPrintable } from '../lib/catalog';
 import { mergeSettings, priceFor, serializeQuote, storeQuote } from '../lib/quote';
 import { requireUser, route } from '../lib/route';
 
@@ -23,6 +24,12 @@ export function cartRoutes(app: FastifyInstance, ctx: AppContext): void {
     if (q.status !== 'ACTIVE') throw new AppError('QUOTE_EXPIRED', 'This quote is no longer active; get a new one');
     if (q.expiresAt <= ctx.now()) throw new AppError('QUOTE_EXPIRED', 'This quote expired; get a new one');
     const part = q.printPart;
+    // Safety class and license gates run on every path to an order, not only in the UI.
+    await assertCatalogPrintable(ctx.db, part.catalogPartId, part.fitAcknowledgedAt);
+    if (part.assetVersionId) {
+      const v = await ctx.db.assetVersion.findUnique({ where: { id: part.assetVersionId } });
+      if (v) await assertAssetNotSafetyCritical(ctx.db, v.assetId);
+    }
     if (part.status !== 'READY') throw new AppError('PART_NOT_READY', part.status === 'NEEDS_REPAIR' ? 'Repair the part before ordering it' : 'The part is not ready');
     if (part.checksFailing && !part.checksAcknowledgedAt) throw new AppError('CHECKS_NOT_ACKNOWLEDGED', 'Acknowledge the failing print checks first');
     const settings = mergeSettings(part, (q.inputs as { settings: Record<string, unknown> }).settings);

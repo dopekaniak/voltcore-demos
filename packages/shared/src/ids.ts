@@ -20,6 +20,12 @@ export const ID_PREFIX = {
   address: 'adr_',
   refund: 'rfd_',
   event: 'evt_',
+  catalogPart: 'cpt_',
+  vehicle: 'veh_',
+  request: 'rqt_',
+  customizer: 'cus_',
+  collection: 'col_',
+  model: 'mdl_',
 } as const;
 
 export type IdKind = keyof typeof ID_PREFIX;

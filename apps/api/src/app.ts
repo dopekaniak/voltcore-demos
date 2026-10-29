@@ -10,6 +10,7 @@ import { securityHeaders } from './plugins/security-headers';
 import { assetRoutes } from './routes/assets';
 import { authRoutes } from './routes/auth';
 import { cartRoutes } from './routes/cart';
+import { catalogRoutes } from './routes/catalog';
 import { printRoutes } from './routes/print';
 import { generateRoutes } from './routes/generate';
 import { internalRoutes } from './routes/internal';
@@ -54,5 +55,6 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
   internalRoutes(app, ctx);
   printRoutes(app, ctx);
   cartRoutes(app, ctx);
+  catalogRoutes(app, ctx);
   return app;
 }
