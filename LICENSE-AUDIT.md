@@ -73,3 +73,11 @@ Entries below are added as dependencies land.
 | eslint-plugin-react-hooks | MIT | Lint |
 | @playwright/test | Apache-2.0 | E2E tests (dev only) |
 | @axe-core/playwright | MPL-2.0 | Accessibility tests (dev only, not shipped) |
+
+### Slice 6 — Generate
+
+| Package | License | Reason |
+| --- | --- | --- |
+| manifold3d (Python) | Apache-2.0 | Boolean unions for sample meshes and analysis tests |
+| fast-simplification | MIT | Remesh (decimation) in the mesh service |
+| lxml | BSD-3-Clause | 3MF reading in trimesh |

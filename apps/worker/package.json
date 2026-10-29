@@ -18,7 +18,8 @@
     "ioredis": "5.11.1",
     "nodemailer": "7.0.13",
     "@sw/forge-kit": "workspace:*",
-    "@sw/storage": "workspace:*"
+    "@sw/storage": "workspace:*",
+    "@sw/providers": "workspace:*"
   },
   "devDependencies": {
     "@types/nodemailer": "^8.0.2",

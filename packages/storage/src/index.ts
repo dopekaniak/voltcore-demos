@@ -1,6 +1,7 @@
 import { createReadStream } from 'node:fs';
 import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
-import { dirname, resolve, sep } from 'node:path';
+import { existsSync } from 'node:fs';
+import { dirname, isAbsolute, join, resolve, sep } from 'node:path';
 import type { Readable } from 'node:stream';
 import { CopyObjectCommand, DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -169,5 +170,20 @@ export function storageFromEnv(env: {
   if (env.STORAGE_DRIVER === 's3') {
     return s3Storage({ endpoint: env.S3_ENDPOINT!, region: env.S3_REGION, bucket: env.S3_BUCKET!, accessKeyId: env.S3_ACCESS_KEY!, secretAccessKey: env.S3_SECRET_KEY! });
   }
-  return fsStorage({ dir: env.STORAGE_DIR, secret: env.APP_SECRET, publicBase: env.PUBLIC_FILES_BASE });
+  return fsStorage({ dir: resolveStorageDir(env.STORAGE_DIR), secret: env.APP_SECRET, publicBase: env.PUBLIC_FILES_BASE });
+}
+
+/**
+ * Relative STORAGE_DIR values resolve against the workspace root (the folder holding
+ * pnpm-workspace.yaml), so the API and the worker share one directory whatever their cwd.
+ */
+export function resolveStorageDir(dir: string, from = process.cwd()): string {
+  if (isAbsolute(dir)) return dir;
+  let cur = from;
+  for (;;) {
+    if (existsSync(join(cur, 'pnpm-workspace.yaml'))) return resolve(cur, dir);
+    const up = dirname(cur);
+    if (up === cur) return resolve(from, dir);
+    cur = up;
+  }
 }

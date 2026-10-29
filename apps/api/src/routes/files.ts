@@ -29,7 +29,7 @@ export function fileRoutes(app: FastifyInstance, ctx: AppContext): void {
     if ((await fs.size(key)) === null) throw new AppError('NOT_FOUND', 'Not found');
     reply.header('Content-Type', q.ct ?? 'application/octet-stream');
     reply.header('Cache-Control', 'private, no-store');
-    reply.header('Content-Security-Policy', "default-src 'none'; sandbox");
+    reply.header('Content-Security-Policy', "default-src 'none'");
     if (q.name) reply.header('Content-Disposition', `attachment; filename="${q.name.replace(/[^A-Za-z0-9._-]/g, '_')}"`);
     return reply.send(fs.openRead(key));
   });

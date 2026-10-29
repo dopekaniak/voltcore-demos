@@ -40,7 +40,8 @@ export function jobRoutes(app: FastifyInstance, ctx: AppContext): void {
     const res = reply.raw;
     res.writeHead(200, {
       'Content-Type': 'text/event-stream; charset=utf-8',
-      'Cache-Control': 'no-store',
+      // no-transform stops proxies (including the web app's rewrite) from compressing, and so buffering, the stream.
+      'Cache-Control': 'no-store, no-transform',
       Connection: 'keep-alive',
       'X-Accel-Buffering': 'no',
       'X-Request-Id': req.id,
@@ -49,12 +50,18 @@ export function jobRoutes(app: FastifyInstance, ctx: AppContext): void {
     let closed = false;
     req.raw.on('close', () => (closed = true));
     const started = Date.now();
+    let lastWrite = Date.now();
     while (!closed && Date.now() - started < 10 * 60_000) {
+      if (Date.now() - lastWrite > 15_000) {
+        res.write(': keep-alive\n\n');
+        lastWrite = Date.now();
+      }
       const events = await ctx.db.jobEvent.findMany({ where: { jobId: job.id, seq: { gt: after } }, orderBy: { seq: 'asc' }, take: 100 });
       for (const e of events) {
         after = e.seq;
         const data = { type: e.type, from: e.fromStatus, to: e.toStatus, progress: e.progress, data: e.data, at: e.createdAt.toISOString() };
         res.write(`id: ${e.seq}\nevent: ${e.type}\ndata: ${JSON.stringify(data)}\n\n`);
+        lastWrite = Date.now();
       }
       const current = await ctx.db.job.findUnique({ where: { id: job.id } });
       if (!current || isTerminal(jobMachine, current.status as JobStatus)) {

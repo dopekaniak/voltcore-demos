@@ -1,0 +1,13 @@
+{
+  "name": "@sw/providers",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": { "@sw/shared": "workspace:*" },
+  "devDependencies": { "@sw/config": "workspace:*" }
+}

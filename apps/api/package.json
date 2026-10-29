@@ -20,7 +20,8 @@
     "ioredis": "5.11.1",
     "zod": "4.6.7",
     "@sw/forge-kit": "workspace:*",
-    "@sw/storage": "workspace:*"
+    "@sw/storage": "workspace:*",
+    "@sw/providers": "workspace:*"
   },
   "devDependencies": {
     "tsup": "8.5.1",

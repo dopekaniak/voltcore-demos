@@ -9,6 +9,10 @@ import { rateLimits } from './plugins/rate-limit';
 import { securityHeaders } from './plugins/security-headers';
 import { assetRoutes } from './routes/assets';
 import { authRoutes } from './routes/auth';
+import { generateRoutes } from './routes/generate';
+import { internalRoutes } from './routes/internal';
+import { libraryRoutes } from './routes/library';
+import { uploadRoutes } from './routes/uploads';
 import { billingRoutes } from './routes/billing';
 import { developerRoutes } from './routes/developers';
 import { fileRoutes } from './routes/files';
@@ -42,5 +46,9 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
   jobRoutes(app, ctx);
   fileRoutes(app, ctx);
   assetRoutes(app, ctx);
+  generateRoutes(app, ctx);
+  libraryRoutes(app, ctx);
+  uploadRoutes(app, ctx);
+  internalRoutes(app, ctx);
   return app;
 }

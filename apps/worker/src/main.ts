@@ -5,7 +5,9 @@ import { createDb } from '@sw/db';
 import { MockAuthor } from '@sw/forge-kit/node';
 import { storageFromEnv } from '@sw/storage';
 import type { WorkerContext } from './context';
-import { dispatchForge } from './dispatch';
+import { dispatchForge, dispatchGeneration, dispatchMesh } from './dispatch';
+import { providerRegistry } from '@sw/providers';
+import { MeshClient } from '@sw/shared/node';
 import { createMailer } from './mailer';
 import { processEmail, type EmailPayload } from './processors/email';
 import { reap } from './processors/reaper';
@@ -22,9 +24,11 @@ function log(msg: string, extra: object = {}) {
   return console.log(JSON.stringify({ level: 'info', msg, ...extra }));
 }
 
-const ctx: WorkerContext = { env, db, storage: storageFromEnv(env), author: new MockAuthor(), workerId: `${hostname()}:${process.pid}`, log };
+const ctx: WorkerContext = { env, db, storage: storageFromEnv(env), author: new MockAuthor(), mesh: new MeshClient({ url: env.MESH_URL, token: env.MESH_SERVICE_TOKEN }), providers: providerRegistry(env), workerId: `${hostname()}:${process.pid}`, log };
 
 const workers = [
+  startWorker('generation', conn, async (job) => dispatchGeneration(ctx, job.data as { jobId: string; poll?: boolean }), 8),
+  startWorker('mesh-analysis', conn, async (job) => dispatchMesh(ctx, (job.data as { jobId: string }).jobId), 2),
   startWorker('forge-build', conn, async (job) => dispatchForge(ctx, (job.data as { jobId: string }).jobId), 2),
   startWorker('email', conn, async (job) => processEmail(mailer, job.data as EmailPayload)),
   startWorker('webhook-delivery', conn, async (job) => processWebhookDelivery(db, env, (job.data as { deliveryId: string }).deliveryId)),

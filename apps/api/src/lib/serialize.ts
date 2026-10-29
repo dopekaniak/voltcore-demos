@@ -128,3 +128,51 @@ export function serializeForge(
     created_at: a.createdAt.toISOString(),
   };
 }
+
+export function serializeFile(f: AssetFile) {
+  return { id: toApiId('file', f.id), role: f.role, filename: f.filename, content_type: f.contentType, bytes: f.bytes, expires_at: iso(f.expiresAt) };
+}
+
+export function serializeVersion(v: AssetVersion & { files: AssetFile[] }) {
+  return {
+    id: toApiId('version', v.id),
+    number: v.number,
+    stage: v.stage,
+    provider: v.provider,
+    model: v.modelCode,
+    triangles: v.triangles,
+    bbox_mm: (v.bboxMm ?? null) as number[] | null,
+    is_watertight: v.isWatertight,
+    analysis: (v.analysis ?? null) as Record<string, unknown> | null,
+    parent_version_id: v.parentVersionId ? toApiId('version', v.parentVersionId) : null,
+    job_id: v.jobId ? toApiId('job', v.jobId) : null,
+    files: v.files.filter((f) => !f.expiresAt || f.expiresAt > new Date()).map(serializeFile),
+    created_at: v.createdAt.toISOString(),
+  };
+}
+
+export function serializeAssetSummary(a: Asset, current: (AssetVersion & { files: AssetFile[] }) | null) {
+  const thumb = current?.files.find((f) => f.role === 'THUMBNAIL');
+  return {
+    id: a.kind === 'FORGE' ? toApiId('forge', a.id) : toApiId('asset', a.id),
+    kind: a.kind,
+    title: a.title,
+    prompt: a.prompt,
+    visibility: a.visibility,
+    current_version: current ? serializeVersion(current) : null,
+    thumbnail_file_id: thumb ? toApiId('file', thumb.id) : null,
+    created_at: a.createdAt.toISOString(),
+  };
+}
+
+export function serializeUpload(u: { id: string; status: string; purpose: string; filename: string; bytes: number; rejectReason: string | null; expiresAt: Date }) {
+  return {
+    id: toApiId('upload', u.id),
+    status: u.status as 'PENDING',
+    purpose: u.purpose.toLowerCase() as 'print' | 'image',
+    filename: u.filename,
+    bytes: u.bytes,
+    reject_reason: u.rejectReason,
+    expires_at: u.expiresAt.toISOString(),
+  };
+}

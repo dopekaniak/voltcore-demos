@@ -6,6 +6,7 @@ import { clampMessage, extractSchema, toPartParams, validateParams, type ForgeCh
 import { Alert, Badge, Button, Dialog } from '@sw/ui';
 import type { ViewerMesh } from '@sw/ui';
 import { api, ApiError, downloadBytes, followJob, type Job } from '@/lib/api';
+import { downloadFile } from '@/lib/files';
 import { useForgeRuntime } from '@/lib/forge-runtime';
 import { t } from '@/lib/messages';
 import { useSession } from '@/lib/session';
@@ -133,13 +134,7 @@ export function ForgeWorkbench(p: WorkbenchProps) {
         });
       });
       if (done.status !== 'SUCCEEDED') throw new Error(done.error?.message ?? t.common.error);
-      const link = await api<{ url: string; filename: string }>(`/v1/assets/${p.assetId}/files/${done.output!.file_id}/url`);
-      const a = document.createElement('a');
-      a.href = link.url;
-      a.download = link.filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      await downloadFile(p.assetId!, String(done.output!.file_id));
       setNotice({ tone: 'pass', text: t.forge.exported });
       void refresh();
     } catch (e) {

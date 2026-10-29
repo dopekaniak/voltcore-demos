@@ -107,3 +107,39 @@ per event.
 
 Checks: `pnpm lint` 0, `pnpm typecheck` 0, `pnpm test` 0 (worker 22 with 4 new
 version/fork/visibility tests). `pnpm e2e`: 5 passed (J1, J1b, clamp, versions+fork, J2).
+
+## Slice 6 — Generate
+
+Shipped:
+- `apps/mesh`: analyze (watertight, manifold, winding, flipped normals, degenerate faces,
+  overhang area, units guess, build-volume fit, "printable at current scale"), repair (new
+  mesh, never in place; hole filling of any size), convert (STL/OBJ/3MF/GLB with Y-up/Z-up
+  handling), remesh (decimation), deterministic sample meshes; safe loading with format
+  allowlist, magic bytes, zip-bomb limits (500 MB, 5,000 entries, ratio), triangle cap.
+- `packages/providers`: `ModelProvider` contract, stateless deterministic `MockProvider`
+  (8–25 s latency, failure marker, signed webhooks, duplicate/out-of-order replays), Meshy
+  live adapter for text-to-3D preview and refine with fetch-back webhooks (ADR-006),
+  forward-only state rule.
+- API: `GET /v1/models`, `GET /v1/estimates`, `POST /v1/generations/text-to-3d` (preview,
+  refine gated on a succeeded preview), `image-to-3d`, `retexture`, `remesh`;
+  `POST /v1/uploads` (presigned PUT bound to type and length) and `/complete` (quarantine →
+  scan → move); `GET /v1/assets`, `GET /v1/assets/:id`, repair for printing;
+  `POST /internal/providers/:key/webhook` (raw body, signature check where one exists,
+  dedupe on event key, fetch-back); prompt moderation (`PROHIBITED_ITEM`).
+- Worker: generation processor (create task, scheduled and webhook-triggered polls with a
+  lease, download, convert, analyze, version, commit; failures released, cancels refunded),
+  mesh processor (repair and remesh into new versions).
+- Web: Generate studio (prompt, style, topology, polycount, model, live cost, preview and
+  refine cards with progress, GLB viewer and download), Library (grid/list, kind filter,
+  search, bulk download and delete), asset page (versions, printability report, repair,
+  file downloads).
+- Fixes found by E2E: SSE buffering behind the rewrite (ADR-030), shared storage directory
+  (ADR-032), downloads via fetched blobs.
+
+Checks: `pnpm lint` 0, `pnpm typecheck` 0, `pnpm test` 0 (mesh 17, providers 12, worker 31
+including 9 Generate/webhook/upload integration tests against the real mesh service).
+`pnpm e2e`: 8 passed (J1, J1b, clamp, versions, J2, J4, J4b, library).
+
+Mocked: generation provider (`PROVIDER_MODE=mock`); background removal for image-to-3D is
+recorded but not performed; retexture and image-to-3D are mock-only (the live adapter
+returns `NOT_IMPLEMENTED` for them). Live Meshy calls are untested without `MESHY_API_KEY`.
