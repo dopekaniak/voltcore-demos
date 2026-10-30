@@ -70,7 +70,7 @@ async function run(msg) {
     const first = lint.errors[0];
     throw Object.assign(new Error(`${first.rule}: ${first.message} ${first.hint}`), { code: 'FORGE_LINT', details: lint.errors.slice(0, 5) });
   }
-  const { inspectPart, defaultView, featureBoxes } = await import('../runtime/inspect.js');
+  const { inspectPart, defaultView, featureBoxes, sectionPart } = await import('../runtime/inspect.js');
   const view = defaultView(part);
   const params = { ...(part.defaults ?? {}), ...(msg.params ?? {}) };
 
@@ -83,6 +83,21 @@ async function run(msg) {
   const { bootManifoldKernel, renderViewImages } = await import('partforge/testing');
   const k = await bootManifoldKernel({ quality: 'print' });
   if (msg.op === 'export') return { file: toB64(await exportWith(k, part, view, params, msg.format)) };
+
+  if (msg.op === 'section') {
+    let box = msg.box ?? null;
+    if (msg.featureKey) {
+      if (!part.__swFeatures || !msg.featureParts) throw Object.assign(new Error('the model has no named features'), { code: 'FORGE_NOT_FEATURED' });
+      const row = featureBoxes(k, part, part.__swFeatures, msg.featureParts, params).find((f) => f.key === msg.featureKey);
+      if (!row) throw Object.assign(new Error(`the model has no feature "${msg.featureKey}"`), { code: 'FEATURE_NOT_FOUND' });
+      if (!row.bbox) throw Object.assign(new Error(`the "${msg.featureKey}" feature is switched off at these settings`), { code: 'SECTION_EMPTY' });
+      box = row.bbox;
+    }
+    if (!box) throw new Error('a section needs a feature or a box');
+    const sec = sectionPart(k, part, params, box);
+    const report = inspectPart(k, sec, {}, msg.profile);
+    return { report, box, file: toB64(await exportWith(k, sec, 'section', {}, 'stl')) };
+  }
 
   // op === 'build': schema data, checks, preview STL, thumbnail.
   const report = inspectPart(k, part, params, msg.profile);

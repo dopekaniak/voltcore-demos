@@ -272,3 +272,36 @@ export function featureBoxes(kernel, part, features, featureParts, params = {}) 
   }
   return out;
 }
+
+/**
+ * Test section (Module 6, section 6): the view's solids cut to a box (a feature's bounds or
+ * a slab between two planes), wrapped as a one-piece part so the same checks and export
+ * pipeline run on it.
+ */
+export function sectionPart(kernel, part, params, box) {
+  const view = defaultView(part);
+  const p = { ...(part.defaults ?? {}), ...params };
+  const d = resolveDerived(part, p);
+  // Built fresh on every call: the kernel frees solids after each pass.
+  const cutWith = (k) => {
+    let whole = null;
+    for (const name of subpartsFor(part, view, p)) {
+      const sub = part.parts[name];
+      let s = sub.build(k, p, d);
+      const place = !Array.isArray(sub.views) ? sub.views?.[view] : null;
+      if (typeof place === 'function') s = place(s, p, d);
+      whole = whole ? whole.union(s) : s;
+    }
+    if (!whole) throw new Error('the view has no solids at these settings');
+    return whole.intersect(k.box({ min: box.min, max: box.max }));
+  };
+  if (cutWith(kernel).volume() <= 1e-6) throw Object.assign(new Error('the section is empty: nothing of the part is inside it'), { code: 'SECTION_EMPTY' });
+  return {
+    meta: { title: `${part.meta?.title ?? 'Part'} test section`, units: 'mm' },
+    parameters: [],
+    defaults: {},
+    parts: { section: { label: 'Test section', views: { section: true }, export: { name: 'test-section' }, build: (k) => cutWith(k) } },
+    views: { section: { label: 'Test section' } },
+    verify: { process: part.verify?.process ?? 'fdm-pla', accept: ['supports'], expect: { section: { watertight: true } } },
+  };
+}

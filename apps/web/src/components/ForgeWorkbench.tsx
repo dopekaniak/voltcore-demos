@@ -2,6 +2,7 @@
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { planExportFormats } from '@sw/shared';
 import { clampMessage, dfmFromPrinter, type ForgeReport, extractSchema, toPartParams, unconfirmedAssumed, validateParams, type Dimensions, type ForgeCheck, type ParamSchema, type ParamValues } from '@sw/forge-kit/browser';
 import { Alert, Badge, Button, Dialog } from '@sw/ui';
 import type { ViewerHit, ViewerMesh } from '@sw/ui';
@@ -84,6 +85,8 @@ export function ForgeWorkbench(p: WorkbenchProps) {
   const [report, setReport] = useState<ForgeReport | null>(null);
   const [shown, setShown] = useState<{ id: string; location: number[] | null; overhang: boolean } | null>(null);
   const [features, setFeatures] = useState<Feature[]>([]);
+  const [sectionKey, setSectionKey] = useState('');
+  const formats = planExportFormats(me?.plan ?? 'free');
   useEffect(() => {
     if (!p.forgeId) return;
     api<{ data: Feature[] }>(`/v1/forges/${p.forgeId}/features${p.versionId ? `?version=${p.versionId}` : ''}`).then((r) => setFeatures(r.data)).catch(() => undefined);
@@ -161,6 +164,8 @@ export function ForgeWorkbench(p: WorkbenchProps) {
         const name = parts.length > 1 ? `${slug(p.title)}-${slug(part.name)}.${format}` : `${slug(p.title)}.${format}`;
         downloadBytes(part.data, name, format === 'stl' ? 'model/stl' : 'model/3mf');
       }
+      // Record the export and its terms (the file itself never leaves the browser).
+      if (me && p.forgeId) void api(`/v1/forges/${p.forgeId}/export-records`, { method: 'POST', body: { format, ...(p.versionId ? { version_id: p.versionId } : {}) } }).catch(() => undefined);
       setNotice({ tone: 'pass', text: t.forge.exported });
     } catch (e) {
       setNotice({ tone: 'fail', text: (e as Error).message });
@@ -189,6 +194,30 @@ export function ForgeWorkbench(p: WorkbenchProps) {
       void refresh();
     } catch (e) {
       setNotice({ tone: 'fail', text: e instanceof ApiError ? e.message : (e as Error).message });
+    } finally {
+      setExporting(null);
+    }
+  }
+
+  async function testSection() {
+    if (!p.forgeId || !sectionKey) return;
+    setExporting('section');
+    setNotice(null);
+    try {
+      const { job } = await api<{ job: Job }>(`/v1/forges/${p.forgeId}/test-sections`, { method: 'POST', body: { feature_key: sectionKey, ...(p.versionId ? { version_id: p.versionId } : {}) }, idempotent: true });
+      const done = await new Promise<Job>((resolve) => {
+        const stop = followJob(job.id, (j) => {
+          if (['SUCCEEDED', 'FAILED', 'CANCELED'].includes(j.status)) {
+            stop();
+            resolve(j);
+          }
+        });
+      });
+      if (done.status !== 'SUCCEEDED') throw new Error(done.error?.message ?? t.common.error);
+      await downloadFile(p.assetId!, String(done.output!.file_id));
+      setNotice({ tone: 'pass', text: t.forge.testSectionDone(p.versionNumber ?? 1) });
+    } catch (e) {
+      setNotice({ tone: 'fail', text: (e as Error).message });
     } finally {
       setExporting(null);
     }
@@ -272,14 +301,34 @@ export function ForgeWorkbench(p: WorkbenchProps) {
             <Button variant="secondary" onClick={() => exportLocal('stl')} loading={exporting === 'stl'} disabled={!meshes || exporting !== null || assumed.length > 0} data-testid="export-stl">
               {t.forge.exportStl}
             </Button>
-            <Button variant="secondary" onClick={() => exportLocal('3mf')} loading={exporting === '3mf'} disabled={!meshes || exporting !== null || assumed.length > 0}>
+            <Button variant="secondary" onClick={() => exportLocal('3mf')} loading={exporting === '3mf'} disabled={!meshes || exporting !== null || assumed.length > 0 || (Boolean(me) && !formats.includes('3mf'))}>
               {t.forge.export3mf}
             </Button>
-            <Button variant="secondary" onClick={exportStep} loading={exporting === 'step'} disabled={!p.forgeId || !meshes || exporting !== null || assumed.length > 0}>
+            <Button variant="secondary" onClick={exportStep} loading={exporting === 'step'} disabled={!p.forgeId || !meshes || exporting !== null || assumed.length > 0 || !formats.includes('step')}>
               {t.forge.exportStep}
             </Button>
           </div>
           <p className="text-xs text-[var(--sw-text-muted)]">{p.forgeId ? t.forge.stepNote(p.stepCost ?? 2) : t.forge.stepSignIn}</p>
+          {me ? <p className="text-xs text-[var(--sw-text-muted)]" data-testid="plan-formats">{t.forge.planFormats(me.plan)}</p> : null}
+          {p.forgeId && features.length ? (
+            <div className="space-y-1 rounded border border-[var(--sw-border)] p-2">
+              <p className="text-sm font-medium text-[var(--sw-text)]">{t.forge.testSection}</p>
+              <p className="text-xs text-[var(--sw-text-muted)]">{t.forge.testSectionHelp}</p>
+              <div className="flex flex-wrap gap-2">
+                <select value={sectionKey} onChange={(e) => setSectionKey(e.target.value)} aria-label={t.forge.testSection} className="h-9 rounded border border-[var(--sw-border)] bg-[var(--sw-bg)] px-2 text-sm" data-testid="section-feature">
+                  <option value="">—</option>
+                  {features.filter((f) => f.bbox_mm).map((f) => (
+                    <option key={f.key} value={f.key}>
+                      {f.key.replace(/_/g, ' ')}
+                    </option>
+                  ))}
+                </select>
+                <Button variant="secondary" onClick={testSection} loading={exporting === 'section'} disabled={!sectionKey || exporting !== null || assumed.length > 0} data-testid="section-export">
+                  {t.forge.testSectionGo}
+                </Button>
+              </div>
+            </div>
+          ) : null}
           {notice ? <Alert tone={notice.tone} title={notice.text} /> : null}
         </section>
       </div>

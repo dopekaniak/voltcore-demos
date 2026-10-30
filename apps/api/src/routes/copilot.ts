@@ -2,13 +2,28 @@ import type { FastifyInstance } from 'fastify';
 import type { FastifyRequest } from 'fastify';
 import { AppError, copilotApi, moderateText, newId, toApiId } from '@sw/shared';
 import { calibrate, dfmFromPrinter, CalibrationError, measure, mmKeys, resolveSelection, validateParams, type Dimensions, type FeatureBox, type Line, type ParamSchema } from '@sw/forge-kit';
-import { createJob, credits, Prisma, type Calibration, type CopilotEdit, type ForgeFeature } from '@sw/db';
+import { createJob, credits, Prisma, type Calibration, type CopilotEdit, type ExportRecord, type ForgeFeature } from '@sw/db';
 import type { AppContext } from '../context';
 import { idOr404, ownedAsset, readableAsset } from '../lib/access';
 import { FORGE_BUILD_TIMEOUT_MS, forgeCosts } from '../lib/costs';
 import { requireUser, route } from '../lib/route';
 import { serializeJob } from '../lib/serialize';
-import { printerFor, serializePrinter, type PrinterDto } from '../lib/dimensions';
+import { assertDimensionsConfirmed, printerFor, serializePrinter, type PrinterDto } from '../lib/dimensions';
+import { assertFormatAllowed, recordExport } from '../lib/exports';
+
+function serializeExportRecord(r: ExportRecord) {
+  return {
+    id: toApiId('exportRecord', r.id),
+    version_id: toApiId('version', r.assetVersionId),
+    format: r.format,
+    plan_code_at_export: r.planCodeAtExport,
+    is_test_section: r.isTestSection,
+    source: r.source as 'server' | 'browser',
+    file_id: r.fileId ? toApiId('file', r.fileId) : null,
+    license_snapshot: r.licenseSnapshot as Record<string, unknown>,
+    created_at: r.createdAt.toISOString(),
+  };
+}
 
 function serializeCalibration(c: Calibration) {
   return {
@@ -364,5 +379,59 @@ export function copilotRoutes(app: FastifyInstance, ctx: AppContext): void {
       }),
     );
     return { status: 'pending' as const, printer, checks: [], estimates: [], send_to_print_blocked: false, job: serializeJob(job) };
+  });
+
+  // ───────────── Test sections and export records ─────────────
+
+  route(app, ctx, copilotApi.createTestSection, async ({ params, body, idempotencyKey }, req) => {
+    const asset = await ownedAsset(ctx.db, req, idOr404('forge', params.id, 'Forge'), 'FORGE');
+    const v = await version(asset.id, body.version_id);
+    if (body.feature_key && !v.forgeFeatures.some((f) => f.featureKey === body.feature_key)) {
+      throw v.forgeFeatures.length ? new AppError('VALIDATION_FAILED', `This forge has no feature "${body.feature_key}"`) : new AppError('FORGE_NOT_FEATURED', 'This forge has no named features; cut a section with a plane instead.');
+    }
+    let box: { min: number[]; max: number[] } | undefined;
+    if (body.plane) {
+      const lo = Math.min(body.plane.from_mm, body.plane.to_mm);
+      const hi = Math.max(body.plane.from_mm, body.plane.to_mm);
+      if (hi - lo < 0.4) throw new AppError('VALIDATION_FAILED', 'Make the slab at least 0.4 mm thick');
+      const i = { x: 0, y: 1, z: 2 }[body.plane.axis];
+      box = { min: [-1e4, -1e4, -1e4], max: [1e4, 1e4, 1e4] };
+      box.min[i] = lo;
+      box.max[i] = hi;
+    }
+    assertDimensionsConfirmed(v.forgeSource!, (v.params as Record<string, never>) ?? {}, (v.params as Record<string, never>) ?? {});
+    return ctx.db.$transaction(async (tx) => {
+      const r = await createJob(tx, {
+        ownerId: asset.ownerId,
+        kind: 'FORGE_EXPORT',
+        idempotencyKey: idempotencyKey!,
+        input: { format: 'stl', params: {}, section: { ...(body.feature_key ? { feature_key: body.feature_key } : {}), ...(box ? { box } : {}) } },
+        reserveCredits: 0,
+        timeoutMs: FORGE_BUILD_TIMEOUT_MS,
+        assetId: asset.id,
+        assetVersionId: v.id,
+        maxAttempts: 1,
+      });
+      const rec = r.created
+        ? await recordExport(tx, { req, ownerId: asset.ownerId, assetId: asset.id, assetLicense: asset.license, assetVersionId: v.id, format: 'stl', isTestSection: true, jobId: r.job.id, now: ctx.now() })
+        : await tx.exportRecord.findUniqueOrThrow({ where: { jobId: r.job.id } });
+      return { job: serializeJob(r.job), export_record_id: toApiId('exportRecord', rec.id) };
+    });
+  });
+
+  route(app, ctx, copilotApi.listExportRecords, async ({ params }, req) => {
+    const asset = await ownedAsset(ctx.db, req, idOr404('forge', params.id, 'Forge'), 'FORGE');
+    const rows = await ctx.db.exportRecord.findMany({ where: { ownerId: asset.ownerId, assetVersionId: { in: (await ctx.db.assetVersion.findMany({ where: { assetId: asset.id }, select: { id: true } })).map((x) => x.id) } }, orderBy: { createdAt: 'desc' }, take: 100 });
+    return { data: rows.map(serializeExportRecord) };
+  });
+
+  route(app, ctx, copilotApi.createBrowserExportRecord, async ({ params, body }, req, reply) => {
+    const userId = requireUser(req);
+    const { asset } = await readableAsset(ctx.db, req, idOr404('forge', params.id, 'Forge'), 'FORGE');
+    const v = await version(asset.id, body.version_id);
+    assertFormatAllowed(req, body.format);
+    const rec = await ctx.db.$transaction((tx) => recordExport(tx, { req, ownerId: userId, assetId: asset.id, assetLicense: asset.license, assetVersionId: v.id, format: body.format, source: 'browser', now: ctx.now() }));
+    reply.status(201);
+    return serializeExportRecord(rec);
   });
 }

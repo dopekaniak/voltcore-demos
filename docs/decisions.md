@@ -501,6 +501,19 @@ bending σ = 6FL/(bt²) on a feature's bounding box with nominal strength halved
 adhesion. Each shows its formula, inputs, and assumptions, carries the code
 `ESTIMATE_NOT_CERTIFIED`, and the text "Estimate, not a certified load test."
 
+## ADR-042 — Test sections and export records (slice M6-E)
+
+**Decision:** `POST /v1/forges/:id/test-sections` cuts the version's view to a box — a named
+feature's bounds, or a slab between two planes — in the sandbox (`op: 'section'`), wraps it
+as a one-piece part, runs the same checks, and stores `<title>-test-section.stl` with job
+output `is_test_section`, `parent_version_id`, and the box. The forge page labels the
+download as a test section of version N, not the full part. Sections are free. Every
+export stores an `ExportRecord`: version, format, plan at export, and a license snapshot
+(terms version, ownership statement, model license, and, on paid plans only, the
+commercial-use grant). Exports built in the browser post a record too (the file stays in
+the browser). Formats by plan: free STL; Creator STL and 3MF; Studio adds STEP, marked beta
+(open question 13). Customizer exports keep their own `CustomizerExport` rows.
+
 ## Open questions
 
 Each has the option chosen for now.

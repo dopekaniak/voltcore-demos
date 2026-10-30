@@ -553,6 +553,26 @@ model ForgeCheckRun {
   @@map("forge_check_runs")
 }
 
+/// One export of a forge version, with the plan and license terms at that moment.
+model ExportRecord {
+  id               String   @id @default(uuid(7)) @db.Uuid
+  ownerId          String   @map("owner_id") @db.Uuid
+  assetVersionId   String   @map("asset_version_id") @db.Uuid
+  format           String
+  planCodeAtExport String   @map("plan_code_at_export")
+  licenseSnapshot  Json     @map("license_snapshot")
+  isTestSection    Boolean  @default(false) @map("is_test_section")
+  /// server (worker-built file) or browser (built and downloaded in the browser)
+  source           String   @default("server")
+  jobId            String?  @unique @map("job_id") @db.Uuid
+  fileId           String?  @map("file_id") @db.Uuid
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([assetVersionId, createdAt])
+  @@index([ownerId, createdAt])
+  @@map("export_records")
+}
+
 /// Photo calibration: a line across a known edge and its real length (USER_MEASURED).
 model Calibration {
   id            String   @id @default(uuid(7)) @db.Uuid

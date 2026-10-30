@@ -330,3 +330,79 @@ describe('photo calibration, dimension sources, and printer profiles (M6-C)', ()
     expect(g.json().printer.bed_mm).toEqual([300, 250, 200]);
   });
 });
+
+describe('test sections and export records (M6-E)', () => {
+  async function upgrade(email: string, code: string) {
+    const u = await w.db.user.findUniqueOrThrow({ where: { email } });
+    const plan = await w.db.plan.findUniqueOrThrow({ where: { code } });
+    await w.db.subscription.updateMany({ where: { ownerId: u.id }, data: { planId: plan.id } });
+  }
+
+  it('a snap-fit ridge test section matches the feature bounds within 0.05 mm, is labeled, and links to its version', async () => {
+    const s = await signIn(t);
+    const call = as(t, s.cookie);
+    const id = await newForge(s.cookie, 'box-with-lid');
+    const ridge = (await call('GET', `/v1/forges/${id}/features`)).json().data.find((f: { key: string }) => f.key === 'ridge');
+    const r = await call('POST', `/v1/forges/${id}/test-sections`, { feature_key: 'ridge' }, { 'idempotency-key': key() });
+    expect(r.statusCode).toBe(202);
+    await run(r.json().job.id);
+    const job = (await call('GET', `/v1/jobs/${r.json().job.id}`)).json();
+    expect(job.status).toBe('SUCCEEDED');
+    expect(job.output).toMatchObject({ is_test_section: true, feature_key: 'ridge' });
+    const forge = (await call('GET', `/v1/forges/${id}`)).json();
+    expect(job.output.parent_version_id).toBe(forge.version.id);
+    const link = (await call('GET', `/v1/assets/${forge.asset_id}/files/${job.output.file_id}/url`)).json();
+    const path = new URL(link.url);
+    const file = await t.app.inject({ method: 'GET', url: path.pathname.replace(/^\/api/, '') + path.search });
+    expect(file.headers['content-disposition']).toContain('test-section.stl');
+    const buf = file.rawPayload;
+    const n = buf.readUInt32LE(80);
+    const min = [Infinity, Infinity, Infinity];
+    const max = [-Infinity, -Infinity, -Infinity];
+    for (let i = 0; i < n; i++) for (let v = 0; v < 3; v++) for (let a = 0; a < 3; a++) {
+      const x = buf.readFloatLE(84 + i * 50 + 12 + v * 12 + a * 4);
+      min[a] = Math.min(min[a]!, x);
+      max[a] = Math.max(max[a]!, x);
+    }
+    for (let a = 0; a < 3; a++) {
+      expect(Math.abs(min[a]! - ridge.bbox_mm.min[a])).toBeLessThanOrEqual(0.05);
+      expect(Math.abs(max[a]! - ridge.bbox_mm.max[a])).toBeLessThanOrEqual(0.05);
+    }
+    const recs = (await call('GET', `/v1/forges/${id}/export-records`)).json().data;
+    expect(recs[0]).toMatchObject({ is_test_section: true, format: 'stl', version_id: forge.version.id, file_id: job.output.file_id });
+    expect(recs[0].license_snapshot.is_test_section).toBe(true);
+  });
+
+  it('a free-plan export has no commercial-use terms in its snapshot; a paid-plan export does', async () => {
+    const free = await signIn(t);
+    const idFree = await newForge(free.cookie, 'planter');
+    await as(t, free.cookie)('POST', `/v1/forges/${idFree}/exports`, { format: 'stl' }, { 'idempotency-key': key() });
+    const fr = (await as(t, free.cookie)('GET', `/v1/forges/${idFree}/export-records`)).json().data[0];
+    expect(fr.plan_code_at_export).toBe('free');
+    expect(fr.license_snapshot).not.toHaveProperty('commercial_use_terms');
+    expect(JSON.stringify(fr.license_snapshot)).not.toMatch(/commercial/i);
+    expect(fr.license_snapshot.ownership).toMatch(/You own/);
+    // 3MF and STEP are not on the free plan.
+    expect((await as(t, free.cookie)('POST', `/v1/forges/${idFree}/exports`, { format: '3mf' }, { 'idempotency-key': key() })).statusCode).toBe(402);
+
+    const paid = await signIn(t);
+    await upgrade(paid.email, 'creator');
+    const idPaid = await newForge(paid.cookie, 'planter');
+    expect((await as(t, paid.cookie)('POST', `/v1/forges/${idPaid}/exports`, { format: '3mf' }, { 'idempotency-key': key() })).statusCode).toBe(202);
+    expect((await as(t, paid.cookie)('POST', `/v1/forges/${idPaid}/exports`, { format: 'step' }, { 'idempotency-key': key() })).statusCode).toBe(402);
+    const browser = await as(t, paid.cookie)('POST', `/v1/forges/${idPaid}/export-records`, { format: 'stl' });
+    expect(browser.statusCode).toBe(201);
+    expect(browser.json()).toMatchObject({ source: 'browser', plan_code_at_export: 'creator' });
+    const pr = (await as(t, paid.cookie)('GET', `/v1/forges/${idPaid}/export-records`)).json().data;
+    expect(pr).toHaveLength(2);
+    for (const r of pr) expect(r.license_snapshot.commercial_use_terms).toMatch(/commercial use/);
+  });
+
+  it('a plane slab section is refused when it misses the part', async () => {
+    const s = await signIn(t);
+    const id = await newForge(s.cookie);
+    const r = await as(t, s.cookie)('POST', `/v1/forges/${id}/test-sections`, { plane: { axis: 'z', from_mm: 500, to_mm: 510 } }, { 'idempotency-key': key() });
+    await run(r.json().job.id);
+    expect((await as(t, s.cookie)('GET', `/v1/jobs/${r.json().job.id}`)).json().error.code).toBe('SECTION_EMPTY');
+  });
+});

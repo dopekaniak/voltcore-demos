@@ -54,3 +54,14 @@ test('M6: engineering estimates show the formula and the estimate label', async 
   await expect(page.getByTestId('estimate').nth(1)).toContainText('σ = 6 F L / (b t²)');
   for (const label of await page.getByTestId('estimate-label').all()) await expect(label).toHaveText('Estimate, not a certified load test.');
 });
+
+test('M6: cut a snap-fit test section and download it, labeled as a test section', async ({ page }) => {
+  await signIn(page);
+  await forgeFromPrompt(page, 'a box 80 mm wide, 50 mm deep and 30 mm tall with a snap-fit lid');
+  await expect(page.getByTestId('plan-formats')).toContainText('free plan exports STL for personal use');
+  await page.getByTestId('section-feature').selectOption('ridge');
+  const download = page.waitForEvent('download', { timeout: 90_000 });
+  await page.getByTestId('section-export').click();
+  expect((await download).suggestedFilename()).toMatch(/test-section\.stl$/);
+  await expect(page.getByText('It is not the full part.')).toBeVisible();
+});

@@ -267,3 +267,15 @@ estimates panel on the forge page.
 Checks: `pnpm lint` 0, `pnpm typecheck` 0, `pnpm test` 0 (forge-kit estimates 4, worker
 server checks flow incl. the 200 mm part flipping from pass to fail on a 180 mm bed, mesh
 slice-check 3). `pnpm e2e` J6 estimates journey passes.
+
+## Module 6, slice M6-E — Test sections and export records
+
+Shipped: sandbox section op; `POST /v1/forges/:id/test-sections` (feature or plane);
+`ExportRecord` with license snapshots on server and browser exports;
+`GET/POST /v1/forges/:id/export-records`; export formats gated by plan (STEP beta on
+Studio); test-section picker and labeled download on the forge page; plan terms note.
+
+Checks: `pnpm lint` 0, `pnpm typecheck` 0, `pnpm test` 0 (forge-kit sections 3 including
+the 0.05 mm snap-fit bounds; worker copilot flow 20 including the free vs paid snapshot).
+`pnpm e2e` J6 test-section journey passes. One J6 journey (assumed sizes) timed out once
+under load and passed on rerun.

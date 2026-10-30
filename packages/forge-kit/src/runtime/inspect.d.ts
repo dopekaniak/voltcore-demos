@@ -13,3 +13,4 @@ export interface FeatureBoxRow {
   bbox: { min: [number, number, number]; max: [number, number, number] } | null;
 }
 export function featureBoxes(kernel: unknown, part: unknown, features: Record<string, unknown>, featureParts: Record<string, string | null>, params?: Record<string, unknown>): FeatureBoxRow[];
+export function sectionPart(kernel: unknown, part: unknown, params: Record<string, unknown>, box: { min: number[]; max: number[] }): unknown;

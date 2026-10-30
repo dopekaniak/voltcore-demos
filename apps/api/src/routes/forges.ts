@@ -8,6 +8,7 @@ import { idOr404, ownedAsset, readableAsset } from '../lib/access';
 import { FORGE_BUILD_TIMEOUT_MS, FORGE_EXPORT_TIMEOUT_MS, forgeCosts } from '../lib/costs';
 import { requireUser, route } from '../lib/route';
 import { assertDimensionsConfirmed, printerFor } from '../lib/dimensions';
+import { assertFormatAllowed, recordExport } from '../lib/exports';
 import { serializeForge, serializeForgeVersion, serializeJob } from '../lib/serialize';
 
 export function forgeRoutes(app: FastifyInstance, ctx: AppContext): void {
@@ -135,9 +136,10 @@ export function forgeRoutes(app: FastifyInstance, ctx: AppContext): void {
     const schema = v.forgeSource!.schema as unknown as ParamSchema;
     const r = validateParams(schema, body.params);
     assertDimensionsConfirmed(v.forgeSource!, validateParams(schema, (v.params as Record<string, unknown>) ?? {}).values, r.values);
+    assertFormatAllowed(req, body.format);
     const costs = await forgeCosts(ctx.db);
-    const { job } = await ctx.db.$transaction((tx) =>
-      createJob(tx, {
+    const { job } = await ctx.db.$transaction(async (tx) => {
+      const created = await createJob(tx, {
         ownerId: asset.ownerId,
         kind: 'FORGE_EXPORT',
         idempotencyKey: idempotencyKey!,
@@ -147,8 +149,10 @@ export function forgeRoutes(app: FastifyInstance, ctx: AppContext): void {
         assetId: asset.id,
         assetVersionId: v.id,
         maxAttempts: 2,
-      }),
-    );
+      });
+      if (created.created) await recordExport(tx, { req, ownerId: asset.ownerId, assetId: asset.id, assetLicense: asset.license, assetVersionId: v.id, format: body.format, jobId: created.job.id, now: ctx.now() });
+      return created;
+    });
     return { job: serializeJob(job), clamped: r.clamped.map((c) => ({ ...c, message: clampMessage(c, schema[c.key]) })) };
   });
 }

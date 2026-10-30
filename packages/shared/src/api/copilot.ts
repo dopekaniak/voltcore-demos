@@ -237,3 +237,59 @@ export const getForgeChecks = defineRoute({
     job: jobSchema.nullable(),
   }),
 });
+
+// ───────────── Test sections and export records ─────────────
+
+export const createTestSection = defineRoute({
+  method: 'POST',
+  path: '/v1/forges/:id/test-sections',
+  summary: 'Cut a small test section (a feature, or a slab between two planes) and export it as STL',
+  tag: 'copilot',
+  auth: 'user',
+  scope: 'forge:write',
+  idempotent: true,
+  status: 202,
+  params: idParam,
+  body: z
+    .object({
+      version_id: z.string().optional(),
+      feature_key: z.string().max(40).optional(),
+      plane: z.object({ axis: z.enum(['x', 'y', 'z']), from_mm: z.number().finite(), to_mm: z.number().finite() }).optional(),
+    })
+    .refine((b) => Boolean(b.feature_key) !== Boolean(b.plane), { message: 'Give a feature_key or a plane, not both' }),
+  response: z.object({ job: jobSchema, export_record_id: z.string() }),
+});
+
+export const exportRecordSchema = z.object({
+  id: z.string(),
+  version_id: z.string(),
+  format: z.string(),
+  plan_code_at_export: z.string(),
+  is_test_section: z.boolean(),
+  source: z.enum(['server', 'browser']),
+  file_id: z.string().nullable(),
+  license_snapshot: z.record(z.string(), z.unknown()),
+  created_at: z.string(),
+});
+
+export const listExportRecords = defineRoute({
+  method: 'GET',
+  path: '/v1/forges/:id/export-records',
+  summary: 'Exports of this forge with their plan and license terms, newest first',
+  tag: 'copilot',
+  auth: 'user',
+  params: idParam,
+  response: z.object({ data: z.array(exportRecordSchema) }),
+});
+
+export const createBrowserExportRecord = defineRoute({
+  method: 'POST',
+  path: '/v1/forges/:id/export-records',
+  summary: 'Record an export built and downloaded in the browser (free; stores the terms)',
+  tag: 'copilot',
+  auth: 'user',
+  status: 201,
+  params: idParam,
+  body: z.object({ format: z.enum(['stl', '3mf']), version_id: z.string().optional() }),
+  response: exportRecordSchema,
+});

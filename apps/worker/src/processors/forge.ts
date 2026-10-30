@@ -198,6 +198,8 @@ interface ForgeExportInput {
   relief_upload_id?: string;
   /** Printability checks under a printer profile (cached per version and profile). */
   checks_profile?: unknown;
+  /** A test section: a feature's bounds or a slab between two planes. */
+  section?: { feature_key?: string; box?: { min: number[]; max: number[] } };
   profile_key?: string;
 }
 
@@ -215,6 +217,7 @@ export async function processForgeExport(ctx: WorkerContext, jobId: string): Pro
   if (input.print_part_id) return exportForPrint(ctx, job.id, job.assetVersionId!, input);
   if (input.customizer_id) return exportCustomizer(ctx, job.id, input);
   if (input.checks_profile) return runForgeChecks(ctx, job, input as never);
+  if (input.section) return exportTestSection(ctx, job, input.section);
   try {
     const source = await ctx.db.forgeSource.findUniqueOrThrow({ where: { assetVersionId: job.assetVersionId! }, include: { assetVersion: { include: { asset: true } } } });
     const schema = source.schema as unknown as Parameters<typeof validateParams>[0];
@@ -236,6 +239,7 @@ export async function processForgeExport(ctx: WorkerContext, jobId: string): Pro
         expiresAt: new Date(Date.now() + EXPORT_TTL_MS),
       });
       await tx.job.update({ where: { id: j.id }, data: { output: { file_id: f.id, format: input.format, bytes: f.bytes, params: values } } });
+      await tx.exportRecord.updateMany({ where: { jobId: j.id }, data: { fileId: f.id } });
     });
   } catch (e) {
     const code = e instanceof SandboxError ? (e.code === 'FORGE_BUILD_TIMEOUT' ? 'FORGE_BUILD_TIMEOUT' : 'FORGE_BUILD_FAILED') : 'FORGE_BUILD_FAILED';
@@ -244,6 +248,46 @@ export async function processForgeExport(ctx: WorkerContext, jobId: string): Pro
 }
 
 type ClaimedJob = NonNullable<Awaited<ReturnType<typeof claimJob>>>;
+
+/**
+ * Test section (Module 6, section 6): cut a feature (or a slab) out of the version, check it
+ * the same way, and store it as `<title>-test-section.stl`, linked to the parent version.
+ * Free: it is cut from an existing version (open question 11).
+ */
+async function exportTestSection(ctx: WorkerContext, job: ClaimedJob, section: NonNullable<ForgeExportInput['section']>): Promise<void> {
+  try {
+    const source = await ctx.db.forgeSource.findUniqueOrThrow({ where: { assetVersionId: job.assetVersionId! }, include: { assetVersion: { include: { asset: true } } } });
+    const schema = source.schema as unknown as Parameters<typeof validateParams>[0];
+    const { values } = validateParams(schema, (source.assetVersion.params as Record<string, unknown>) ?? {});
+    await jobProgress(ctx.db, job.id, 30, { phase: 'cutting the test section' });
+    const r = await runSandboxed(
+      { op: 'section', code: source.code, params: toPartParams(schema, values), profile: source.dfmProfile, ...(section.feature_key ? { featureKey: section.feature_key } : {}), ...(section.box ? { box: section.box } : {}) },
+      limits(ctx),
+    );
+    const base = source.assetVersion.asset.title.replace(/[^A-Za-z0-9-]+/g, '-').replace(/^-|-$/g, '').toLowerCase() || 'forge';
+    await succeedJob(ctx.db, job.id, { actualCredits: 0 }, async (tx, j) => {
+      const f = await storeFile(ctx, tx, {
+        ownerId: j.ownerId,
+        assetVersionId: job.assetVersionId,
+        role: 'STL',
+        body: r.file!,
+        contentType: 'model/stl',
+        filename: `${base}-test-section.stl`,
+        keyPrefix: `exports/${source.assetVersion.assetId}`,
+        ext: 'stl',
+        expiresAt: new Date(Date.now() + EXPORT_TTL_MS),
+      });
+      await tx.job.update({
+        where: { id: j.id },
+        data: { output: { file_id: f.id, format: 'stl', bytes: f.bytes, is_test_section: true, parent_version_id: job.assetVersionId, feature_key: section.feature_key ?? null, box_mm: r.section!.box, checks: r.section!.report.checks } as unknown as Prisma.InputJsonValue },
+      });
+      await tx.exportRecord.updateMany({ where: { jobId: j.id }, data: { fileId: f.id } });
+    });
+  } catch (e) {
+    const code = e instanceof SandboxError ? (e.details as { code?: string } | null)?.code ?? 'FORGE_BUILD_FAILED' : 'FORGE_BUILD_FAILED';
+    await failJob(ctx.db, job.id, { code: ['SECTION_EMPTY', 'FEATURE_NOT_FOUND', 'FORGE_NOT_FEATURED'].includes(code) ? code : 'FORGE_BUILD_FAILED', message: (e as Error).message });
+  }
+}
 
 /**
  * Save settings as a new version, or fork (ADR-027): rebuild the stored code at new params

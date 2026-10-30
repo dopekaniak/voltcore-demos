@@ -7,3 +7,4 @@ export * from './api/index';
 export * from './moderation';
 export * from './licensing';
 export * from './image';
+export * from './export-terms';

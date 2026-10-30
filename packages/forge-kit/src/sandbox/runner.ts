@@ -14,7 +14,8 @@ export interface SandboxLimits {
 
 export type SandboxRequest =
   | { op: 'build'; code: string; params?: Record<string, unknown>; profile?: string | DfmProfile; stl?: boolean; thumbnail?: boolean }
-  | { op: 'export'; code: string; params?: Record<string, unknown>; format: 'stl' | '3mf' | 'step' };
+  | { op: 'export'; code: string; params?: Record<string, unknown>; format: 'stl' | '3mf' | 'step' }
+  | { op: 'section'; code: string; params?: Record<string, unknown>; profile?: string | DfmProfile; featureKey?: string; box?: { min: number[]; max: number[] } };
 
 export interface BuildOutput {
   meta: { title?: string } | null;
@@ -69,7 +70,7 @@ export async function runSandboxed(
   req: SandboxRequest,
   limits: SandboxLimits,
   opts: { skipStaticCheck?: boolean } = {},
-): Promise<{ build?: BuildOutput; file?: Buffer }> {
+): Promise<{ build?: BuildOutput; file?: Buffer; section?: { report: ForgeReport; box: { min: number[]; max: number[] } } }> {
   if (!opts.skipStaticCheck) {
     const check = staticCheck(req.code);
     if (!check.ok) {
@@ -115,6 +116,7 @@ export async function runSandboxed(
         if (!m.ok) return reject(new SandboxError('FORGE_BUILD_FAILED', m.error?.message ?? 'build failed', m.error));
         const r = m.result ?? {};
         if (req.op === 'export') return resolvePromise({ file: Buffer.from(String(r.file), 'base64') });
+        if (req.op === 'section') return resolvePromise({ file: Buffer.from(String(r.file), 'base64'), section: { report: r.report as ForgeReport, box: r.box as { min: number[]; max: number[] } } });
         const build: BuildOutput = {
           meta: (r.meta as BuildOutput['meta']) ?? null,
           parameters: r.parameters,
@@ -137,7 +139,7 @@ export async function runSandboxed(
       );
     });
     child.on('error', (e) => finish(() => reject(new SandboxError('SANDBOX_CRASHED', e.message))));
-    const featureParts = req.op === 'build' ? featurePartsOf(req.code) : null;
+    const featureParts = req.op === 'build' || req.op === 'section' ? featurePartsOf(req.code) : null;
     child.send({ ...req, code, ...(featureParts ? { featureParts } : {}) });
   });
 }

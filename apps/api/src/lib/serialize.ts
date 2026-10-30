@@ -50,6 +50,8 @@ import type { Asset, AssetFile, AssetVersion, ForgeSource, Job } from '@sw/db';
 const ID_KEYS: Record<string, Parameters<typeof toApiId>[0]> = {
   asset_id: 'asset',
   version_id: 'version',
+  parent_version_id: 'version',
+  copilot_edit_id: 'copilotEdit',
   file_id: 'file',
   job_id: 'job',
   part_id: 'part',
