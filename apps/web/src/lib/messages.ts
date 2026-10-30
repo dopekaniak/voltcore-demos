@@ -297,6 +297,12 @@ export const t = {
   orders: { title: 'Orders', empty: 'No orders yet.', emptyLead: 'Send a model to print to place your first order.' },
   billing: {
     title: 'Billing',
+    plansTitle: 'What each plan lets you do',
+    planUse: [
+      { name: 'Free', use: 'Personal use only. You own your designs.', formats: 'STL exports. 100 credits a month (reset monthly).' },
+      { name: 'Creator', use: 'Commercial use of your designs and prints. You own your designs.', formats: 'STL and 3MF exports.' },
+      { name: 'Studio', use: 'Commercial use of your designs and prints. You own your designs.', formats: 'STL, 3MF, and STEP (beta) exports.' },
+    ],
     balance: 'Credit balance',
     available: 'Available',
     reserved: 'Held for running jobs',

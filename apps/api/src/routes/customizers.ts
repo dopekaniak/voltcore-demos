@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
-import { AppError, customizerApi, moderateText, toApiId } from '@sw/shared';
+import { AppError, customizerApi, toApiId } from '@sw/shared';
+import { moderateOrRefuse } from '../lib/moderation';
 import { validateCustomizerInputs, type InputRule, type ParamSchema } from '@sw/forge-kit';
 import { createJob, type Customizer } from '@sw/db';
 import type { AppContext } from '../context';
@@ -45,11 +46,11 @@ export function customizerRoutes(app: FastifyInstance, ctx: AppContext): void {
     const l = c.licenseId ? await ctx.db.licenseTerms.findUnique({ where: { id: c.licenseId } }) : null;
     return l ? { code: l.code, name: l.name, attribution: l.attributionTemplate.replace('{title}', c.title).replace('{author}', 'Shapewright') } : null;
   }
-  function validate(c: Customizer, inputs: Record<string, unknown>) {
+  async function validate(req: FastifyRequest, c: Customizer, inputs: Record<string, unknown>) {
     const v = validateCustomizerInputs(c.schema as unknown as ParamSchema, c.inputRules as Record<string, InputRule>, inputs);
     if (v.invalid.length) throw new AppError('CUSTOMIZER_INPUT_INVALID', v.invalid.map((i) => i.message).join(' '), { invalid: v.invalid });
-    for (const [k, val] of Object.entries(v.values)) {
-      if (typeof val === 'string' && !moderateText(val).ok) throw new AppError('PROHIBITED_ITEM', 'That text is not allowed.', { key: k });
+    for (const val of Object.values(v.values)) {
+      if (typeof val === 'string') await moderateOrRefuse(ctx, req, val, 'customizer', 'That text is not allowed.');
     }
     return v;
   }
@@ -75,8 +76,8 @@ export function customizerRoutes(app: FastifyInstance, ctx: AppContext): void {
     };
   });
 
-  route(app, ctx, customizerApi.previewCustomizer, async ({ params, body }) => {
-    const v = validate(await load(params.id), body.inputs);
+  route(app, ctx, customizerApi.previewCustomizer, async ({ params, body }, req) => {
+    const v = await validate(req, await load(params.id), body.inputs);
     return { values: v.values, clamped: v.clamped };
   });
 
@@ -101,7 +102,7 @@ export function customizerRoutes(app: FastifyInstance, ctx: AppContext): void {
   route(app, ctx, customizerApi.exportCustomizer, async ({ params, body, idempotencyKey }, req) => {
     const userId = requireUser(req);
     const c = await load(params.id);
-    const v = validate(c, body.inputs);
+    const v = await validate(req, c, body.inputs);
     const a = await allowance(req, c);
     if (!a.formats.includes(body.format)) throw new AppError('PAYMENT_REQUIRED', `${body.format.toUpperCase()} exports need a paid plan`);
     if (body.image_upload_id) await imageGrid(c, userId, body.image_upload_id); // validates ownership and content now

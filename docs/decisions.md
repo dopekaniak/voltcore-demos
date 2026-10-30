@@ -514,6 +514,17 @@ commercial-use grant). Exports built in the browser post a record too (the file 
 the browser). Formats by plan: free STL; Creator STL and 3MF; Studio adds STEP, marked beta
 (open question 13). Customizer exports keep their own `CustomizerExport` rows.
 
+## ADR-043 — Content policy on three paths (slice M6-F)
+
+**Decision:** text (all free-text inputs), images (every image upload), and copilot edits
+(each proposal before it is shown) are checked on the server and refused with
+`PROHIBITED_ITEM` and a neutral reason. Images go through an `ImageClassifier` interface
+(`IMAGE_CLASSIFIER`); a flagged image is held in quarantine as `FLAGGED` with an open
+`ModerationCase` for a person to uphold or release (reason required, audited). Every
+refusal is logged in `ContentRefusal` with a keyed hash of the user (HMAC with the app
+secret), never the raw id. Admins get a weekly summary endpoint. With enforcement in place
+the `copilot.photo_calibration` flag is now on in seed data.
+
 ## Open questions
 
 Each has the option chosen for now.
@@ -538,9 +549,11 @@ Each has the option chosen for now.
    by the downloader only) pending a product decision.
 8. **Designer verification for custom design requests.** Chosen: designers must be
    reviewed contributors before they can claim requests (slice F).
-9. **Image moderation for customizer photos.** No image classifier is chosen. Chosen: type,
-   size, and pixel-count checks only, plus the upload notice in `docs/policy-content.md`;
-   reports are handled by the takedown process. Revisit before public launch.
+9. **Image classifier for prohibited items.** No model is chosen. Chosen: the classifier
+   interface and moderation queue are built, with a mock that recognises only a test
+   marker; type, size, pixel-count, and metadata checks run on every image, and reports go
+   through takedowns. Before enabling a real classifier, measure its false-positive rate on
+   a labeled launch image set we build ourselves.
 10. **Free plan starter credits: monthly or one-time.** Chosen: monthly (the existing Free
     plan grant resets each period, ADR-017); the copilot edit cost (3) is in seed data.
 11. **Test sections and credits.** Chosen: free, since they are cut from an existing version.

@@ -293,3 +293,43 @@ export const createBrowserExportRecord = defineRoute({
   body: z.object({ format: z.enum(['stl', '3mf']), version_id: z.string().optional() }),
   response: exportRecordSchema,
 });
+
+// ───────────── Content policy review (admin) ─────────────
+
+export const adminRefusalSummary = defineRoute({
+  method: 'GET',
+  path: '/admin/refusals',
+  summary: 'Refusals in the last N days by path, surface, and category (weekly review)',
+  tag: 'admin',
+  auth: 'admin',
+  query: z.object({ days: z.coerce.number().int().min(1).max(90).default(7) }),
+  response: z.object({
+    since: z.string(),
+    total: z.number().int(),
+    distinct_users: z.number().int(),
+    by: z.array(z.object({ path: z.string(), surface: z.string(), category: z.string(), count: z.number().int() })),
+  }),
+});
+
+export const moderationCaseSchema = z.object({ id: z.string(), kind: z.string(), subject_id: z.string(), reason: z.string(), status: z.enum(['OPEN', 'UPHELD', 'RELEASED']), created_at: z.string() });
+
+export const adminListModerationCases = defineRoute({
+  method: 'GET',
+  path: '/admin/moderation-cases',
+  summary: 'Held content waiting for review',
+  tag: 'admin',
+  auth: 'admin',
+  query: z.object({ status: z.enum(['OPEN', 'UPHELD', 'RELEASED']).default('OPEN') }),
+  response: z.object({ data: z.array(moderationCaseSchema) }),
+});
+
+export const adminDecideModerationCase = defineRoute({
+  method: 'POST',
+  path: '/admin/moderation-cases/:id/decide',
+  summary: 'Uphold (delete) or release held content; reason required, audited',
+  tag: 'admin',
+  auth: 'admin',
+  params: idParam,
+  body: z.object({ decision: z.enum(['UPHELD', 'RELEASED']), reason: z.string().trim().min(5).max(500) }),
+  response: moderationCaseSchema,
+});

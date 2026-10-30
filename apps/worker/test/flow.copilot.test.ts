@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { as, makeTestApp, ORIGIN, signIn } from '@sw/api/testing';
+import { as, makeTestApp, ORIGIN, signIn, signInAdmin } from '@sw/api/testing';
 import { fromApiId } from '@sw/shared';
 import { fsStorage } from '@sw/storage';
 import { dispatchForge } from '../src/dispatch';
@@ -404,5 +404,73 @@ describe('test sections and export records (M6-E)', () => {
     const r = await as(t, s.cookie)('POST', `/v1/forges/${id}/test-sections`, { plane: { axis: 'z', from_mm: 500, to_mm: 510 } }, { 'idempotency-key': key() });
     await run(r.json().job.id);
     expect((await as(t, s.cookie)('GET', `/v1/jobs/${r.json().job.id}`)).json().error.code).toBe('SECTION_EMPTY');
+  });
+});
+
+describe('content policy on three paths (M6-F)', () => {
+  const photo = readFileSync(new URL('./fixtures/fan-photo.jpg', import.meta.url));
+  async function upload(cookie: string, body: Buffer) {
+    const res = await t.app.inject({ method: 'POST', url: '/v1/uploads', headers: { origin: ORIGIN, cookie }, payload: { filename: 'p.jpg', content_type: 'image/jpeg', bytes: body.length, purpose: 'image' } });
+    const created = res.json();
+    const u = new URL(created.put.url);
+    await t.app.inject({ method: 'PUT', url: u.pathname.replace(/^\/api/, '') + u.search, headers: { 'content-type': 'image/jpeg' }, payload: body });
+    return { id: created.upload.id as string, done: await t.app.inject({ method: 'POST', url: `/v1/uploads/${created.upload.id}/complete`, headers: { origin: ORIGIN, cookie } }) };
+  }
+
+  it('a prohibited prompt, a prohibited image, and a prohibited edit each return PROHIBITED_ITEM and are logged with a hashed user', async () => {
+    const s = await signIn(t);
+    const call = as(t, s.cookie);
+    const uid = fromApiId('user', s.userId)!;
+    const before = await w.db.contentRefusal.count();
+
+    // 1. Text: describing a prohibited item.
+    const p = await call('POST', '/v1/forges', { prompt: 'a lower receiver for an AR-15' }, { 'idempotency-key': key() });
+    expect(p.statusCode).toBe(422);
+    expect(p.json().error.code).toBe('PROHIBITED_ITEM');
+    expect(p.json().error.message).not.toMatch(/instead|try/i);
+
+    // 2. Image: the classifier flags it; it is held for review, not dropped or used.
+    const img = await upload(s.cookie, Buffer.concat([photo, Buffer.from('SW-TEST-PROHIBITED')]));
+    expect(img.done.statusCode).toBe(422);
+    expect(img.done.json().error.code).toBe('PROHIBITED_ITEM');
+    const row = await w.db.upload.findUnique({ where: { id: fromApiId('upload', img.id)! } });
+    expect(row!.status).toBe('FLAGGED');
+    expect(row!.storageKey.startsWith('quarantine/')).toBe(true);
+    const held = await w.db.moderationCase.findFirst({ where: { subjectId: row!.id } });
+    expect(held).toMatchObject({ kind: 'IMAGE', status: 'OPEN' });
+    expect((await call('POST', '/v1/calibrations', { photo_upload_id: img.id, line_px: [[0, 0], [100, 0]], real_length_mm: 10 })).statusCode).toBe(409);
+
+    // 3. Edit: the proposal names a prohibited item and is refused before anyone sees it.
+    const id = await newForge(s.cookie);
+    const e = await call('POST', `/v1/forges/${id}/copilot-edits`, { message: 'tidy the rim [[prohibited-result]]' }, { 'idempotency-key': key() });
+    await run(e.json().job.id);
+    const edit = (await call('GET', `/v1/copilot-edits/${e.json().edit.id}`)).json();
+    expect(edit.status).toBe('FAILED');
+    expect(edit.diff).toBeNull();
+    expect((await call('GET', `/v1/jobs/${e.json().job.id}`)).json().error.code).toBe('PROHIBITED_ITEM');
+
+    const logs = await w.db.contentRefusal.findMany({ orderBy: { createdAt: 'desc' }, take: 3 });
+    expect(await w.db.contentRefusal.count()).toBe(before + 3);
+    expect(logs.map((l) => l.path).sort()).toEqual(['edit', 'image', 'text']);
+    for (const l of logs) {
+      expect(l.userHash).toMatch(/^[0-9a-f]{32}$/);
+      expect(l.userHash).not.toContain(uid.replace(/-/g, ''));
+    }
+    expect(new Set(logs.map((l) => l.userHash)).size).toBe(1);
+  });
+
+  it('admins review held images and see the weekly refusal summary', async () => {
+    const s = await signIn(t);
+    await upload(s.cookie, Buffer.concat([photo, Buffer.from('SW-TEST-PROHIBITED')]));
+    const admin = await signInAdmin(t);
+    const call = as(t, admin.cookie);
+    const cases = (await call('GET', '/admin/moderation-cases')).json().data;
+    expect(cases.length).toBeGreaterThan(0);
+    const d = await call('POST', `/admin/moderation-cases/${cases[0].id}/decide`, { decision: 'UPHELD', reason: 'shows a firearm part' });
+    expect(d.json().status).toBe('UPHELD');
+    const sum = (await call('GET', '/admin/refusals?days=7')).json();
+    expect(sum.total).toBeGreaterThan(0);
+    expect(sum.by.some((r: { path: string }) => r.path === 'image')).toBe(true);
+    expect((await as(t, s.cookie)('GET', '/admin/refusals')).statusCode).toBe(403);
   });
 });

@@ -1,8 +1,10 @@
 import type { FastifyInstance } from 'fastify';
 import type { FastifyRequest } from 'fastify';
-import { AppError, copilotApi, moderateText, newId, toApiId } from '@sw/shared';
+import { AppError, copilotApi, imageInfo, newId, stripImageMetadata, toApiId } from '@sw/shared';
+import { sha256Hex } from '@sw/shared/node';
+import { moderateOrRefuse } from '../lib/moderation';
 import { calibrate, dfmFromPrinter, CalibrationError, measure, mmKeys, resolveSelection, validateParams, type Dimensions, type FeatureBox, type Line, type ParamSchema } from '@sw/forge-kit';
-import { createJob, credits, Prisma, type Calibration, type CopilotEdit, type ExportRecord, type ForgeFeature } from '@sw/db';
+import { audit, createJob, credits, Prisma, type ModerationCase, type Calibration, type CopilotEdit, type ExportRecord, type ForgeFeature } from '@sw/db';
 import type { AppContext } from '../context';
 import { idOr404, ownedAsset, readableAsset } from '../lib/access';
 import { FORGE_BUILD_TIMEOUT_MS, forgeCosts } from '../lib/costs';
@@ -129,8 +131,7 @@ export function copilotRoutes(app: FastifyInstance, ctx: AppContext): void {
    */
   async function propose(req: FastifyRequest, assetId: string, versionId: string, message: string, targetKey: string | null, idempotencyKey: string) {
     const userId = requireUser(req);
-    const m = moderateText(message);
-    if (!m.ok) throw new AppError('PROHIBITED_ITEM', 'This change describes an item we do not make or print.', { term: m.term });
+    await moderateOrRefuse(ctx, req, message, 'copilot', 'This change describes an item we do not make or print.');
     const cost = (await forgeCosts(ctx.db)).copilot_edit;
     return ctx.db.$transaction(async (tx) => {
       const editId = newId();
@@ -433,5 +434,51 @@ export function copilotRoutes(app: FastifyInstance, ctx: AppContext): void {
     const rec = await ctx.db.$transaction((tx) => recordExport(tx, { req, ownerId: userId, assetId: asset.id, assetLicense: asset.license, assetVersionId: v.id, format: body.format, source: 'browser', now: ctx.now() }));
     reply.status(201);
     return serializeExportRecord(rec);
+  });
+
+  // ───────────── Content policy review (admin) ─────────────
+
+  const serializeCase = (m: ModerationCase) => ({ id: toApiId('moderationCase', m.id), kind: m.kind, subject_id: toApiId('upload', m.subjectId), reason: m.reason, status: m.status, created_at: m.createdAt.toISOString() });
+
+  route(app, ctx, copilotApi.adminRefusalSummary, async ({ query }) => {
+    const since = new Date(ctx.now().getTime() - query.days * 86_400_000);
+    const rows = await ctx.db.contentRefusal.groupBy({ by: ['path', 'surface', 'category'], where: { createdAt: { gte: since } }, _count: { _all: true }, orderBy: { _count: { id: 'desc' } } });
+    const users = await ctx.db.contentRefusal.findMany({ where: { createdAt: { gte: since } }, distinct: ['userHash'], select: { userHash: true } });
+    return {
+      since: since.toISOString(),
+      total: rows.reduce((n, r) => n + r._count._all, 0),
+      distinct_users: users.length,
+      by: rows.map((r) => ({ path: r.path, surface: r.surface, category: r.category, count: r._count._all })),
+    };
+  });
+
+  route(app, ctx, copilotApi.adminListModerationCases, async ({ query }) => {
+    const rows = await ctx.db.moderationCase.findMany({ where: { status: query.status }, orderBy: { createdAt: 'asc' }, take: 100 });
+    return { data: rows.map(serializeCase) };
+  });
+
+  route(app, ctx, copilotApi.adminDecideModerationCase, async ({ params, body }, req) => {
+    const m = await ctx.db.moderationCase.findUnique({ where: { id: idOr404('moderationCase', params.id, 'Case') } });
+    if (!m) throw new AppError('NOT_FOUND', 'Case not found');
+    if (m.status !== 'OPEN') throw new AppError('INVALID_STATE', 'This case is already decided');
+    const up = m.kind === 'IMAGE' ? await ctx.db.upload.findUnique({ where: { id: m.subjectId } }) : null;
+    if (up && body.decision === 'UPHELD') {
+      await ctx.storage.delete(up.storageKey).catch(() => undefined);
+      await ctx.db.upload.update({ where: { id: up.id }, data: { status: 'REJECTED', rejectReason: 'removed under the content policy' } });
+    } else if (up && body.decision === 'RELEASED') {
+      const raw = await ctx.storage.get(up.storageKey);
+      const clean = Buffer.from(stripImageMetadata(raw).data);
+      const info = imageInfo(clean);
+      const key = up.storageKey.replace(/^quarantine\//, 'files/');
+      await ctx.storage.put(key, clean, up.contentType);
+      await ctx.storage.delete(up.storageKey).catch(() => undefined);
+      await ctx.db.upload.update({ where: { id: up.id }, data: { status: 'CLEAN', storageKey: key, sha256: sha256Hex(clean), bytes: clean.length, rejectReason: null, imageWidth: info?.width ?? null, imageHeight: info?.height ?? null } });
+    }
+    const done = await ctx.db.$transaction(async (tx) => {
+      const d = await tx.moderationCase.update({ where: { id: m.id }, data: { status: body.decision, decidedBy: req.auth.userId, decidedAt: ctx.now(), decisionNote: body.reason } });
+      await audit(tx, { actorId: req.auth.userId, action: 'moderation.decide', targetType: 'moderation_case', targetId: m.id, reason: body.reason, data: { decision: body.decision, kind: m.kind }, ip: req.ip, requestId: req.id });
+      return d;
+    });
+    return serializeCase(done);
   });
 }

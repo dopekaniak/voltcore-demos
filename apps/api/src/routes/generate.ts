@@ -1,5 +1,6 @@
-import type { FastifyInstance } from 'fastify';
-import { AppError, generateApi, moderateText } from '@sw/shared';
+import type { FastifyInstance, FastifyRequest } from 'fastify';
+import { AppError, generateApi } from '@sw/shared';
+import { moderateOrRefuse } from '../lib/moderation';
 import { createJob, type GenerationModel } from '@sw/db';
 import type { AppContext } from '../context';
 import { idOr404, ownedAsset } from '../lib/access';
@@ -26,10 +27,7 @@ export function generateRoutes(app: FastifyInstance, ctx: AppContext): void {
     return c;
   };
   const can = (m: GenerationModel, cap: string) => Boolean((m.capabilities as Record<string, unknown>)[cap]);
-  const moderate = (text: string) => {
-    const r = moderateText(text);
-    if (!r.ok) throw new AppError('PROHIBITED_ITEM', 'This request describes an item we do not make or print.', { term: r.term });
-  };
+  const moderate = (text: string, req: FastifyRequest) => moderateOrRefuse(ctx, req, text, 'generate');
 
   route(app, ctx, generateApi.listModels, async () => ({
     data: (await availableModels()).map((m) => ({ code: m.code, name: m.name, provider: m.providerKey, capabilities: m.capabilities as Record<string, unknown>, costs: m.costs as Record<string, number> })),
@@ -43,7 +41,7 @@ export function generateRoutes(app: FastifyInstance, ctx: AppContext): void {
   route(app, ctx, generateApi.textTo3d, async ({ body, idempotencyKey }, req) => {
     const userId = requireUser(req);
     if (body.mode === 'preview') {
-      moderate(body.prompt);
+      await moderate(body.prompt, req);
       const m = await modelFor(body.model);
       if (!can(m, 'textTo3D')) throw new AppError('VALIDATION_FAILED', `${m.name} cannot do text to 3D`);
       const { job } = await ctx.db.$transaction((tx) =>
@@ -63,7 +61,7 @@ export function generateRoutes(app: FastifyInstance, ctx: AppContext): void {
     const preview = await ctx.db.job.findUnique({ where: { id: idOr404('job', body.preview_job_id, 'Preview') } });
     if (!preview || preview.ownerId !== userId || preview.kind !== 'GENERATE') throw new AppError('NOT_FOUND', 'Preview not found');
     if (preview.status !== 'SUCCEEDED' || !preview.assetVersionId) throw new AppError('PREVIEW_NOT_READY', 'Refine is available once the preview has succeeded');
-    if (body.texture_prompt) moderate(body.texture_prompt);
+    if (body.texture_prompt) await moderate(body.texture_prompt, req);
     const m = await modelFor(preview.modelCode ?? undefined);
     if (!can(m, 'refine')) throw new AppError('VALIDATION_FAILED', `${m.name} cannot refine`);
     const { job } = await ctx.db.$transaction((tx) =>
@@ -90,7 +88,7 @@ export function generateRoutes(app: FastifyInstance, ctx: AppContext): void {
     const uploads = await ctx.db.upload.findMany({ where: { id: { in: ids }, ownerId: userId } });
     if (uploads.length !== ids.length || uploads.some((u) => u.purpose !== 'IMAGE')) throw new AppError('NOT_FOUND', 'Upload not found');
     if (uploads.some((u) => u.status !== 'CLEAN')) throw new AppError('INVALID_STATE', 'Finish uploading the images first');
-    if (body.title) moderate(body.title);
+    if (body.title) await moderate(body.title, req);
     const m = await modelFor(body.model);
     if (!can(m, 'imageTo3D')) throw new AppError('VALIDATION_FAILED', `${m.name} cannot do image to 3D`);
     const { job } = await ctx.db.$transaction((tx) =>
@@ -117,7 +115,7 @@ export function generateRoutes(app: FastifyInstance, ctx: AppContext): void {
 
   route(app, ctx, generateApi.retexture, async ({ body, idempotencyKey }, req) => {
     const userId = requireUser(req);
-    moderate(body.prompt);
+    await moderate(body.prompt, req);
     const { v, asset } = await ownedVersion(req, body.asset_version_id);
     const m = await modelFor(body.model);
     if (!can(m, 'retexture')) throw new AppError('VALIDATION_FAILED', `${m.name} cannot retexture`);

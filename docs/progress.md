@@ -279,3 +279,21 @@ Checks: `pnpm lint` 0, `pnpm typecheck` 0, `pnpm test` 0 (forge-kit sections 3 i
 the 0.05 mm snap-fit bounds; worker copilot flow 20 including the free vs paid snapshot).
 `pnpm e2e` J6 test-section journey passes. One J6 journey (assumed sizes) timed out once
 under load and passed on rerun.
+
+## Module 6, slice M6-F — Content policy
+
+Shipped: refusal logging with hashed users on every text path (forge descriptions,
+Generate, copilot messages, customizer text); image classifier interface with a mock, a
+`FLAGGED` upload state, and a moderation queue; copilot proposals checked before they are
+shown; `GET /admin/refusals`, `GET /admin/moderation-cases`,
+`POST /admin/moderation-cases/:id/decide`; `docs/policy-content.md` (list, enforcement,
+weekly review); Terms draft with ownership, commercial use, and estimate wording; plan use
+on the billing page; photo calibration switched on.
+
+Checks: `pnpm lint` 0, `pnpm typecheck` 0, `pnpm test` 0 (worker copilot flow 22 including
+the prohibited prompt, image, and edit test and the admin review).
+
+Mocked: the image classifier (test marker only).
+`pnpm e2e`: all 16 journeys pass after a clean restart (`scripts/dev-down.sh`, then
+`scripts/dev-up.sh`). An earlier run failed J3 because a stale API process from an older
+start was still serving with `ESTIMATE_ORDERS=block`; `dev-down.sh` now stops leftovers.

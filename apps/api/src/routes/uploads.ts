@@ -1,6 +1,8 @@
 import type { FastifyInstance } from 'fastify';
 import { AppError, imageInfo, stripImageMetadata, newId, uploadsApi } from '@sw/shared';
 import { MeshServiceError, sha256Hex } from '@sw/shared/node';
+import { imageClassifier } from '../lib/image-classifier';
+import { logRefusal } from '../lib/moderation';
 import { verifyFsUrl, type fsStorage } from '@sw/storage';
 import type { AppContext } from '../context';
 import { idOr404 } from '../lib/access';
@@ -20,6 +22,7 @@ function imageKind(b: Buffer): 'png' | 'jpg' | 'webp' | null {
 }
 
 export function uploadRoutes(app: FastifyInstance, ctx: AppContext): void {
+  const classifier = imageClassifier(ctx.env.IMAGE_CLASSIFIER);
   route(app, ctx, uploadsApi.createUpload, async ({ body }, req, reply) => {
     const purpose = body.purpose;
     const ext = body.filename.toLowerCase().split('.').pop() ?? '';
@@ -58,7 +61,7 @@ export function uploadRoutes(app: FastifyInstance, ctx: AppContext): void {
     const u = await ctx.db.upload.findUnique({ where: { id } });
     const mine = u && ((req.auth.userId && u.ownerId === req.auth.userId) || (!u.ownerId && req.auth.anonId && u.anonId === req.auth.anonId));
     if (!u || !mine) throw new AppError('NOT_FOUND', 'Upload not found');
-    if (u.status === 'CLEAN' || u.status === 'REJECTED') return { upload: serializeUpload(u), analysis: null };
+    if (u.status === 'CLEAN' || u.status === 'REJECTED' || u.status === 'FLAGGED') return { upload: serializeUpload(u), analysis: null };
     const size = await ctx.storage.size(u.storageKey);
     const reject = async (reason: string) => {
       const r = await ctx.db.upload.update({ where: { id }, data: { status: 'REJECTED', rejectReason: reason } });
@@ -76,6 +79,16 @@ export function uploadRoutes(app: FastifyInstance, ctx: AppContext): void {
     if (u.purpose === 'IMAGE') {
       const kind = imageKind(body);
       if (!kind || (kind === 'jpg' ? !['jpg', 'jpeg'].includes(ext) : kind !== ext)) await reject('the file contents are not the image type its name says');
+      // Prohibited-item check before the image can be used anywhere; a flag holds it for review.
+      const verdict = await classifier.classify(body);
+      if (verdict.flagged) {
+        await ctx.db.$transaction(async (tx) => {
+          await tx.upload.update({ where: { id }, data: { status: 'FLAGGED', rejectReason: 'held for review under the content policy' } });
+          await tx.moderationCase.create({ data: { kind: 'IMAGE', subjectId: id, ownerId: u.ownerId, reason: verdict.category ?? 'flagged', details: { classifier: classifier.key, score: verdict.score ?? null } } });
+          await logRefusal(tx, ctx.env.APP_SECRET, req.auth.userId ?? req.auth.anonId, { path: 'image', surface: 'upload', category: verdict.category ?? 'flagged' });
+        });
+        throw new AppError('PROHIBITED_ITEM', 'This image shows an item we do not make or print. It has been held for review.');
+      }
       // Strip EXIF/XMP/IPTC (location, camera, names) before the image is used anywhere.
       const stripped = stripImageMetadata(body);
       clean = Buffer.from(stripped.data.buffer, stripped.data.byteOffset, stripped.data.byteLength);

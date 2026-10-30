@@ -72,8 +72,8 @@ export async function seed(url?: string): Promise<void> {
       };
       await db.printerProfile.upsert({ where: { key: p.key }, update: data, create: { key: p.key, ...data } });
     }
-    // Photo calibration opens to users only with the image content policy in place (M6-F).
-    await db.featureFlag.upsert({ where: { key: 'copilot.photo_calibration' }, update: {}, create: { key: 'copilot.photo_calibration', enabled: false, data: {} } });
+    // Photo calibration is open now that the image content policy is enforced (M6-F).
+    await db.featureFlag.upsert({ where: { key: 'copilot.photo_calibration' }, update: { enabled: true }, create: { key: 'copilot.photo_calibration', enabled: true, data: {} } });
     await db.featureFlag.upsert({
       where: { key: 'forge.costs' },
       update: { data: FORGE_COSTS, enabled: true },

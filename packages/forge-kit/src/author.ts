@@ -233,6 +233,9 @@ export class MockAuthor implements FormAuthor {
    * rest of the file byte-identical. Anything else is declined with a plain reason.
    */
   async edit(req: EditRequest, _ctx?: AuthorContext): Promise<EditResult> {
+    // Deterministic test hook: a proposal whose result names a prohibited item, so the
+    // platform's check on proposed edits can be exercised.
+    if (req.message.includes('[[prohibited-result]]')) return { params: {}, notes: ['Added a suppressor thread to the end.'] };
     const e = readEdit(req.message);
     if (!e) throw new AuthorDeclined('The mock author can only change sizes, for example "make the holes 4 mm larger".');
     const numeric = Object.entries(req.schema).filter(([, s]) => s.type === 'number');

@@ -573,6 +573,43 @@ model ExportRecord {
   @@map("export_records")
 }
 
+/// A refused request (content policy). The user is stored only as a keyed hash.
+model ContentRefusal {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  path      String
+  surface   String
+  userHash  String   @map("user_hash")
+  category  String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("content_refusals")
+}
+
+enum ModerationCaseStatus {
+  OPEN
+  UPHELD
+  RELEASED
+}
+
+/// Content held for a person to review (flagged images).
+model ModerationCase {
+  id          String               @id @default(uuid(7)) @db.Uuid
+  kind        String
+  subjectId   String               @map("subject_id") @db.Uuid
+  ownerId     String?              @map("owner_id") @db.Uuid
+  reason      String
+  details     Json?
+  status      ModerationCaseStatus @default(OPEN)
+  decidedBy   String?              @map("decided_by") @db.Uuid
+  decidedAt   DateTime?            @map("decided_at")
+  decisionNote String?             @map("decision_note")
+  createdAt   DateTime             @default(now()) @map("created_at")
+
+  @@index([status, createdAt])
+  @@map("moderation_cases")
+}
+
 /// Photo calibration: a line across a known edge and its real length (USER_MEASURED).
 model Calibration {
   id            String   @id @default(uuid(7)) @db.Uuid
@@ -749,6 +786,8 @@ enum UploadStatus {
   SCANNING
   CLEAN
   REJECTED
+  /// Held in quarantine for review (content policy); never used.
+  FLAGGED
 }
 
 model Upload {

@@ -9,6 +9,7 @@ import { FORGE_BUILD_TIMEOUT_MS, FORGE_EXPORT_TIMEOUT_MS, forgeCosts } from '../
 import { requireUser, route } from '../lib/route';
 import { assertDimensionsConfirmed, printerFor } from '../lib/dimensions';
 import { assertFormatAllowed, recordExport } from '../lib/exports';
+import { moderateOrRefuse } from '../lib/moderation';
 import { serializeForge, serializeForgeVersion, serializeJob } from '../lib/serialize';
 
 export function forgeRoutes(app: FastifyInstance, ctx: AppContext): void {
@@ -25,6 +26,7 @@ export function forgeRoutes(app: FastifyInstance, ctx: AppContext): void {
   route(app, ctx, forgeApi.createForge, async ({ body, idempotencyKey }, req) => {
     const userId = requireUser(req);
     if (body.starter_key && !STARTERS.some((s) => s.key === body.starter_key)) throw new AppError('VALIDATION_FAILED', 'Unknown starter');
+    if (body.prompt) await moderateOrRefuse(ctx, req, body.prompt, 'forge');
     const costs = await forgeCosts(ctx.db);
     const { job } = await ctx.db.$transaction((tx) =>
       createJob(tx, {

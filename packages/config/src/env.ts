@@ -34,6 +34,8 @@ export const envSchema = z
     MOCK_PROVIDER_LATENCY_MS: z.string().default('8000-25000'),
 
     FORGE_AUTHOR: z.enum(['mock', 'llm']).default('mock'),
+    /** Prohibited-item image classifier (Module 6, section 10). Only the mock exists so far (open question). */
+    IMAGE_CLASSIFIER: z.enum(['mock']).default('mock'),
     FORGE_BUILD_TIMEOUT_MS: z.coerce.number().int().positive().default(20000),
     FORGE_BUILD_MEMORY_MB: z.coerce.number().int().positive().default(1024),
 

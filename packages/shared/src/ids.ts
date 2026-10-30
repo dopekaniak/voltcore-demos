@@ -29,6 +29,7 @@ export const ID_PREFIX = {
   calibration: 'cal_',
   printerProfile: 'prf_',
   exportRecord: 'exr_',
+  moderationCase: 'mod_',
   model: 'mdl_',
 } as const;
 

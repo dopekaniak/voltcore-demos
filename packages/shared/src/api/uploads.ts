@@ -9,7 +9,7 @@ export const UPLOAD_LIMITS = { print: 150 * 1024 * 1024, image: 20 * 1024 * 1024
 
 export const uploadSchema = z.object({
   id: z.string(),
-  status: z.enum(['PENDING', 'UPLOADED', 'SCANNING', 'CLEAN', 'REJECTED']),
+  status: z.enum(['PENDING', 'UPLOADED', 'SCANNING', 'CLEAN', 'REJECTED', 'FLAGGED']),
   purpose: z.enum(['print', 'image']),
   filename: z.string(),
   bytes: z.number().int(),

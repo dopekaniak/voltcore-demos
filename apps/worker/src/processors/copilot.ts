@@ -1,7 +1,20 @@
 import { type claimJob, credits, failJob, forgeState, jobProgress, succeedJob, type Prisma } from '@sw/db';
 import { buildAuthorContext, runSandboxed, SandboxError, type EditResult } from '@sw/forge-kit/node';
 import { analyzeFeatures, editDiff, extractSchema, featureSource, replaceFeature, staticCheck, toPartParams, validateParams, type ParamSchema, type ParamValues } from '@sw/forge-kit';
+import { moderateText } from '@sw/shared';
+import { refusalUserHash } from '@sw/shared/node';
 import type { WorkerContext } from '../context';
+
+const commonPrefix = (a: string, b: string) => {
+  let i = 0;
+  while (i < a.length && i < b.length && a[i] === b[i]) i++;
+  return i;
+};
+const commonSuffix = (a: string, b: string) => {
+  let i = 0;
+  while (i < a.length && i < b.length && a[a.length - 1 - i] === b[b.length - 1 - i]) i++;
+  return i;
+};
 
 type ClaimedJob = NonNullable<Awaited<ReturnType<typeof claimJob>>>;
 const limits = (ctx: WorkerContext) => ({ timeoutMs: ctx.env.FORGE_BUILD_TIMEOUT_MS, memoryMb: ctx.env.FORGE_BUILD_MEMORY_MB });
@@ -57,6 +70,13 @@ export async function proposeCopilotEdit(ctx: WorkerContext, job: ClaimedJob, ed
     }
   } catch (e) {
     return failEdit(ctx, job, editId, 'FORGE_BUILD_FAILED', (e as Error).message);
+  }
+  // The proposal itself is checked against the same deny-list before anyone sees it.
+  const changed = code === src.code ? '' : code.slice(commonPrefix(code, src.code), code.length - commonSuffix(code, src.code));
+  const verdict = moderateText([...result.notes, changed].join('\n'));
+  if (!verdict.ok) {
+    await ctx.db.contentRefusal.create({ data: { path: 'edit', surface: 'copilot', category: verdict.term ?? 'unknown', userHash: refusalUserHash(ctx.env.APP_SECRET, edit.ownerId) } });
+    return failEdit(ctx, job, editId, 'PROHIBITED_ITEM', 'This change would make an item we do not make or print.');
   }
   await forgeState(ctx.db, job, 'STATIC_CHECK');
   const check = staticCheck(code);

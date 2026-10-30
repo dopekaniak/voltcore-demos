@@ -58,6 +58,18 @@ function Billing() {
         </p>
       ))}
       <p className="text-sm text-[var(--sw-text-muted)]">{t.billing.terms}</p>
+      <section aria-labelledby="plans-h" className="space-y-2">
+        <h2 id="plans-h" className="text-lg font-semibold text-[var(--sw-text)]">{t.billing.plansTitle}</h2>
+        <ul className="grid gap-3 sm:grid-cols-3" data-testid="plan-use">
+          {t.billing.planUse.map((p) => (
+            <li key={p.name} className="rounded border border-[var(--sw-border)] p-3 text-sm">
+              <p className="font-semibold text-[var(--sw-text)]">{p.name}</p>
+              <p className="text-[var(--sw-text)]">{p.use}</p>
+              <p className="text-xs text-[var(--sw-text-muted)]">{p.formats}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
       <section className="space-y-2">
         <h2 className="text-lg font-semibold text-[var(--sw-text)]">{t.billing.ledger}</h2>
         {error ? <Alert tone="fail" title={t.common.error} action={<Button size="sm" variant="secondary" onClick={() => load()}>{t.common.retry}</Button>} /> : null}
