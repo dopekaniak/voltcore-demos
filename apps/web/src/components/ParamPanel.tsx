@@ -96,7 +96,7 @@ export function ParamPanel({ schema, values, onChange, clampNotes }: { schema: P
             return (
               <label key={k} className="block space-y-1 text-sm text-[var(--sw-text)]">
                 <span className="font-medium">{s.label}</span>
-                <input value={String(v ?? '')} maxLength={s.maxLength} onChange={(e) => onChange(k, e.target.value)} className="h-9 w-full rounded border border-[var(--sw-border)] bg-[var(--sw-bg)] px-2" />
+                <input value={String(v ?? '')} maxLength={s.maxLength} onChange={(e) => onChange(k, e.target.value)} className="h-9 w-full rounded border border-[var(--sw-border)] bg-[var(--sw-bg)] px-2" data-testid={`param-text-${k}`} />
               </label>
             );
           })}

@@ -81,3 +81,4 @@ Entries below are added as dependencies land.
 | manifold3d (Python) | Apache-2.0 | Boolean unions for sample meshes and analysis tests |
 | fast-simplification | MIT | Remesh (decimation) in the mesh service |
 | lxml | BSD-3-Clause | 3MF reading in trimesh |
+| Pillow | MIT-CMU (HPND) | Image decoding for customizer height maps |

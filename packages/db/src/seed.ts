@@ -1,6 +1,9 @@
 import { PRICING_CONFIGS } from '@sw/pricing';
 import { createDb } from './index';
-import { CREDIT_PACKS, FORGE_COSTS, GENERATION_MODELS, LICENSES, MATERIALS, PARTNERS, PLANS } from './seed-data';
+import { readFileSync } from 'node:fs';
+import { CUSTOMIZERS } from '@sw/forge-kit/customizers';
+import { extractSchema } from '@sw/forge-kit';
+import { CREDIT_PACKS, CUSTOMIZER_POLICY, FORGE_COSTS, GENERATION_MODELS, LICENSES, MATERIALS, PARTNERS, PLANS } from './seed-data';
 
 /** Idempotent seed: safe to run repeatedly. */
 export async function seed(url?: string): Promise<void> {
@@ -33,6 +36,28 @@ export async function seed(url?: string): Promise<void> {
       await db.generationModel.upsert({ where: { code: m.code }, update: data, create: data });
     }
     for (const l of LICENSES) await db.licenseTerms.upsert({ where: { code: l.code }, update: { ...l }, create: { ...l } });
+    await db.featureFlag.upsert({ where: { key: 'customizer.policy' }, update: { data: CUSTOMIZER_POLICY, enabled: true }, create: { key: 'customizer.policy', enabled: true, data: CUSTOMIZER_POLICY } });
+    const mit = await db.licenseTerms.findUniqueOrThrow({ where: { code: 'CC-BY-4.0' } });
+    for (const c of CUSTOMIZERS) {
+      const url = new URL(`../../forge-kit/customizers/${c.key}.js`, import.meta.url);
+      const code = readFileSync(url, 'utf8');
+      // Our own starter files (trusted): read their parameter schema directly.
+      const part = (await import(url.href)).default as { parameters: unknown; defaults: Record<string, unknown> };
+      const data = {
+        title: c.title,
+        description: c.summary,
+        templateKey: c.key,
+        code,
+        schema: extractSchema(part.parameters, part.defaults) as object,
+        inputRules: c.inputs as object,
+        imageInput: (c.image ?? null) as object,
+        pricePolicy: CUSTOMIZER_POLICY as object,
+        printDefaults: { material: 'PLA', color: 'black' },
+        status: 'LIVE' as const,
+        licenseId: mit.id,
+      };
+      await db.customizer.upsert({ where: { key: c.key }, update: data, create: { key: c.key, ...data } });
+    }
     await db.featureFlag.upsert({
       where: { key: 'forge.costs' },
       update: { data: FORGE_COSTS, enabled: true },

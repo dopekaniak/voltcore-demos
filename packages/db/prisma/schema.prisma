@@ -1057,3 +1057,50 @@ model Part {
   @@index([status, category])
   @@map("parts")
 }
+
+// ───────────── Module 4: customizers (addendum slice B) ─────────────
+
+enum CustomizerStatus {
+  DRAFT
+  REVIEW
+  LIVE
+  REMOVED
+}
+
+model Customizer {
+  id            String           @id @default(uuid(7)) @db.Uuid
+  key           String           @unique
+  title         String
+  description   String
+  authorId      String?          @map("author_id") @db.Uuid
+  licenseId     String?          @map("license_id") @db.Uuid
+  templateKey   String           @map("template_key")
+  code          String
+  schema        Json
+  inputRules    Json             @map("input_rules")
+  imageInput    Json?            @map("image_input")
+  pricePolicy   Json             @map("price_policy")
+  printDefaults Json             @map("print_defaults")
+  status        CustomizerStatus @default(DRAFT)
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+  exports       CustomizerExport[]
+
+  @@map("customizers")
+}
+
+model CustomizerExport {
+  id           String     @id @default(uuid(7)) @db.Uuid
+  userId       String     @map("user_id") @db.Uuid
+  customizerId String     @map("customizer_id") @db.Uuid
+  jobId        String     @unique @map("job_id") @db.Uuid
+  format       String
+  credits      Int
+  free         Boolean
+  planCode     String     @map("plan_code")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  customizer   Customizer @relation(fields: [customizerId], references: [id])
+
+  @@index([userId, createdAt])
+  @@map("customizer_exports")
+}

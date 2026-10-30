@@ -392,7 +392,38 @@ jobs are keyed to its hash and kept for 24 hours (the reaper deletes them). Sign
 claims them; `POST /v1/print/quotes/:id/claim` does the same explicitly. Job status routes
 accept the anonymous owner so the page can follow a repair.
 
+## ADR-036 — Licenses and safety classes (addendum slice A)
+
+**Decision:** `LicenseTerms` rows hold each license's permissions (commercial, derivatives,
+print orders); `ModelLicense` ties an asset to one with its attribution. Seeded: CC0-1.0,
+CC-BY-4.0, CC-BY-SA-4.0, CC-BY-NC-4.0, CC-BY-ND-4.0, ALL-RIGHTS-RESERVED (personal print only).
+Custom licenses store their text and default to no commercial use, no derivatives, and no
+print orders. Catalog `Part` rows carry a `safety_class`; a title, category, or description
+naming a safety system (brakes, steering, suspension, wheel attachment, seat belts,
+restraints, fuel system, crash load paths) forces `SAFETY_CRITICAL`, and the change is
+audited. The print-order gate runs when quoting a part, adding to the cart, and (slice 8)
+at checkout and routing; a model used by a safety-critical part cannot be printed through
+the library route. Only TOTP-verified admins change a safety class, with a reason.
+
 ---
+
+## ADR-037 — Customizers (addendum slice B)
+
+**Decision:** a customizer is a stored forge (`Customizer`: key, code, parameter schema,
+text input rules, optional image input, license, status) run by the same forge-kit
+contract, static check, browser sandbox, and server sandbox. There is no second runner.
+Previews build in the browser and are free. Exports run as `FORGE_EXPORT` jobs on the
+worker: the first `free_exports_per_month` (3, seed data `customizer.policy`) are free on
+the free plan, then each costs `export_cost` (5) credits, reserved and committed like
+Generate. Free plans export STL only; 3MF is for paid plans. Free-plan exports show a
+"Made with the Shapewright … customizer" credit line on the export page; files and printed
+parts are never marked. Text inputs are rejected (not trimmed) when they break the length
+or character allowlist (`CUSTOMIZER_INPUT_INVALID`) and pass the prompt moderation list;
+numbers are clamped with a visible message. Image input: the upload goes through the
+normal image upload path, the mesh service turns it into a small grayscale height map
+(`POST /heightmap`, Pillow, max 128×128, decompression-bomb limit), and the grid is
+substituted into the customizer as JSON data at a fixed marker; it is never code. Starters:
+name plate, storage tile, image relief coaster, cable organizer, all original and MIT.
 
 ## Open questions
 
@@ -414,3 +445,10 @@ Each has the option chosen for now.
    RSS watchdog (kill above `FORGE_BUILD_MEMORY_MB`) plus `--max-old-space-size`. An
    address-space limit (RLIMIT_AS) breaks WASM's virtual reservations. Chosen: watchdog +
    no egress for the worker container. Revisit with cgroup limits per build in production.
+7. **ALL-RIGHTS-RESERVED and partner printing.** Chosen: no print orders (personal print
+   by the downloader only) pending a product decision.
+8. **Designer verification for custom design requests.** Chosen: designers must be
+   reviewed contributors before they can claim requests (slice F).
+9. **Image moderation for customizer photos.** No image classifier is chosen. Chosen: type,
+   size, and pixel-count checks only, plus the upload notice in `docs/policy-content.md`;
+   reports are handled by the takedown process. Revisit before public launch.

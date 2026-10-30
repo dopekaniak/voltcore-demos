@@ -85,3 +85,6 @@ export const LICENSES = [
   { code: 'CC-BY-ND-4.0', name: 'Creative Commons Attribution-NoDerivatives 4.0', text: 'Share with attribution; no adaptations. https://creativecommons.org/licenses/by-nd/4.0/', attributionTemplate: '{title} by {author}, licensed CC BY-ND 4.0', allowsCommercial: true, allowsDerivatives: false, allowsPrintOrder: true },
   { code: 'ALL-RIGHTS-RESERVED', name: 'All rights reserved', text: 'Download for personal printing only. No resale, no redistribution, no derivatives.', attributionTemplate: '{title} by {author}, all rights reserved', allowsCommercial: false, allowsDerivatives: false, allowsPrintOrder: false, personalPrintOnly: true },
 ] as const;
+
+/** Customizer export policy (addendum 1.2): previews are free; exports cost credits after a free allowance. */
+export const CUSTOMIZER_POLICY = { free_exports_per_month: 3, export_cost: 5, free_plan_formats: ['stl'], paid_plan_formats: ['stl', '3mf'] } as const;

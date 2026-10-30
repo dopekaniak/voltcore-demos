@@ -80,6 +80,7 @@ export function AppShell({ children, initialTheme }: { children: ReactNode; init
                   <Link role="menuitem" href="/" className={menuItem}>{t.nav.describe}</Link>
                   <Link role="menuitem" href="/generate" className={menuItem}>{t.nav.generate}</Link>
                   <Link role="menuitem" href="/print" className={menuItem}>{t.nav.upload}</Link>
+                  <Link role="menuitem" href="/customizers" className={menuItem}>{t.nav.customize}</Link>
                 </div>
               ) : null}
             </div>

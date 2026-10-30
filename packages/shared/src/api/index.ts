@@ -8,4 +8,5 @@ export * as uploadsApi from './uploads';
 export * as libraryApi from './library';
 export * as printApi from './print';
 export * as catalogApi from './catalog';
+export * as customizerApi from './customizers';
 export type { JobDto } from './jobs';

@@ -24,3 +24,16 @@ Shapewright does not design, generate, or print:
 
 Users must own or be licensed to use what they upload. Takedown requests are handled by
 hiding the item, notifying the owner, logging the action, and allowing a counter-notice.
+
+## Customizer text and photos
+
+- **Text:** customizer text fields accept only the characters each customizer lists (for
+  example letters, numbers, spaces, and `- . ' &` on the name plate) up to a fixed length,
+  and pass the same deny-list as prompts. Text that breaks the rules is refused, not
+  silently changed.
+- **Photos:** people may upload only photos they took or hold the rights to. Not allowed:
+  logos or trademarks they do not own, photos of other people without their consent, and
+  anything on the prohibited list above. The upload field says this before a file is
+  chosen. Photos are reduced to a small grayscale height map on the server; the original
+  upload follows the normal retention rules. There is no automatic image classifier yet
+  (open question 9 in `docs/decisions.md`); reported designs go through the takedown process.

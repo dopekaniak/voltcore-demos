@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { claimJob, failJob, forgeState, jobProgress, succeedJob, type Prisma, type Tx } from '@sw/db';
 import { buildAuthorContext, runSandboxed, SandboxError, starterCode, type BuildOutput } from '@sw/forge-kit/node';
 import { STARTERS } from '@sw/forge-kit';
-import { DEFAULT_PROFILE, extractSchema, toPartParams, validateParams } from '@sw/forge-kit';
+import { DEFAULT_PROFILE, extractSchema, injectRelief, toPartParams, validateParams } from '@sw/forge-kit';
 import { newId } from '@sw/shared';
 import type { WorkerContext } from '../context';
 
@@ -156,6 +156,9 @@ interface ForgeExportInput {
   params: Record<string, unknown>;
   /** Set when the export feeds a print part: build, check, analyze, and attach. */
   print_part_id?: string;
+  /** Customizer exports: code comes from the customizer, with an optional image relief. */
+  customizer_id?: string;
+  relief_upload_id?: string;
 }
 
 const EXPORT_META = {
@@ -170,6 +173,7 @@ export async function processForgeExport(ctx: WorkerContext, jobId: string): Pro
   if (!job) return;
   const input = job.input as unknown as ForgeExportInput;
   if (input.print_part_id) return exportForPrint(ctx, job.id, job.assetVersionId!, input);
+  if (input.customizer_id) return exportCustomizer(ctx, job.id, input);
   try {
     const source = await ctx.db.forgeSource.findUniqueOrThrow({ where: { assetVersionId: job.assetVersionId! }, include: { assetVersion: { include: { asset: true } } } });
     const schema = source.schema as unknown as Parameters<typeof validateParams>[0];
@@ -303,5 +307,31 @@ async function exportForPrint(ctx: WorkerContext, jobId: string, versionId: stri
   } catch (e) {
     await ctx.db.printPart.update({ where: { id: partId }, data: { status: 'REJECTED', validationReport: { error: (e as Error).message } } }).catch(() => undefined);
     await failJob(ctx.db, jobId, { code: 'FORGE_BUILD_FAILED', message: (e as Error).message });
+  }
+}
+
+/** Customizer export (addendum 1.2): the customizer's code, the user's inputs, optional relief. */
+async function exportCustomizer(ctx: WorkerContext, jobId: string, input: ForgeExportInput): Promise<void> {
+  try {
+    const c = await ctx.db.customizer.findUniqueOrThrow({ where: { id: input.customizer_id! } });
+    let code = c.code;
+    if (input.relief_upload_id) {
+      const up = await ctx.db.upload.findUniqueOrThrow({ where: { id: input.relief_upload_id } });
+      const grid = (c.imageInput as { grid: number } | null)?.grid ?? 48;
+      const res = await fetch(`${ctx.env.MESH_URL}/heightmap?grid=${grid}`, { method: 'POST', headers: { authorization: `Bearer ${ctx.env.MESH_SERVICE_TOKEN}` }, body: new Uint8Array(await ctx.storage.get(up.storageKey)) });
+      if (!res.ok) throw new Error(`the image could not be processed (${res.status})`);
+      code = injectRelief(code, (await res.json()) as { width: number; height: number; data: number[] });
+    }
+    const schema = c.schema as unknown as Parameters<typeof validateParams>[0];
+    const { values } = validateParams(schema, input.params ?? {});
+    await jobProgress(ctx.db, jobId, 30, { phase: `exporting ${input.format.toUpperCase()}` });
+    const { file } = await runSandboxed({ op: 'export', code, format: input.format, params: toPartParams(schema, values) }, limits(ctx));
+    const meta = EXPORT_META[input.format];
+    await succeedJob(ctx.db, jobId, { actualCredits: (await ctx.db.job.findUniqueOrThrow({ where: { id: jobId } })).reservedCredits }, async (tx, j) => {
+      const f = await storeFile(ctx, tx, { ownerId: j.ownerId, assetVersionId: null, role: meta.role, body: file!, contentType: meta.ct, filename: `${c.key}.${meta.ext}`, keyPrefix: `customizer-exports/${c.id}`, ext: meta.ext, expiresAt: new Date(Date.now() + EXPORT_TTL_MS) });
+      await tx.job.update({ where: { id: j.id }, data: { output: { file_id: f.id, format: input.format, bytes: f.bytes, params: values, customizer: c.key } } });
+    });
+  } catch (e) {
+    await failJob(ctx.db, jobId, { code: e instanceof SandboxError && e.code === 'FORGE_BUILD_TIMEOUT' ? 'FORGE_BUILD_TIMEOUT' : 'FORGE_BUILD_FAILED', message: (e as Error).message });
   }
 }

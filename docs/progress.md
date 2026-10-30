@@ -193,3 +193,20 @@ titles (Prisma did not know about it). The index is now declared in the schema (
 any generated diff that drops hand-written SQL objects. The slice A commit was pushed with
 this one db test failing; this commit is green: `pnpm lint` 0, `pnpm typecheck` 0,
 `pnpm test` 0.
+
+## Addendum slice B — Customizers
+
+Shipped: `Customizer` and `CustomizerExport` tables; four starter customizers in
+`packages/forge-kit/customizers` (name plate, storage tile, image relief coaster, cable
+organizer); input validation (`validateCustomizerInputs`) and relief injection
+(`injectRelief`) shared by browser and server; `GET /v1/customizers`,
+`GET /v1/customizers/:id`, `POST /v1/customizers/:id/previews`,
+`POST /v1/customizers/:id/relief`, `POST /v1/customizers/:id/exports`,
+`GET /v1/jobs/:id/file`; worker export through the server sandbox; mesh service
+`POST /heightmap`; web pages `/customizers` and `/customizers/[key]` with free browser
+previews, photo upload, allowance and footer, and STL/3MF export.
+
+Checks: `pnpm lint` 0, `pnpm typecheck` 0, `pnpm test` 0 (forge-kit customizers 8, worker
+customizer flow 6, mesh heightmap tests). `pnpm e2e` J5 customizer journey passes.
+
+Mocked/limited: no image classifier (open question 9).

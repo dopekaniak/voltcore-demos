@@ -15,6 +15,7 @@ from fastapi.responses import JSONResponse
 
 from .analysis import analyze, remesh, repair
 from .formats import FORMATS, Limits, MeshRejected, export_mesh, load_mesh
+from .heightmap import heightmap
 from .samples import SAMPLES, sample
 
 SERVICE_TOKEN = os.environ.get("MESH_SERVICE_TOKEN", "dev-mesh-service-token")
@@ -93,3 +94,8 @@ def sample_route(name: str, format: str = "glb", textured: bool = False) -> Resp
     if name not in SAMPLES or format not in FORMATS:
         raise HTTPException(404, "no such sample")
     return Response(export_mesh(sample(name, textured), format), media_type="application/octet-stream")
+
+
+@app.post("/heightmap", dependencies=[Depends(require_token)])
+async def heightmap_route(request: Request, grid: int = 48) -> dict:
+    return heightmap(await request.body(), grid)

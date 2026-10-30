@@ -11,6 +11,7 @@ import { assetRoutes } from './routes/assets';
 import { authRoutes } from './routes/auth';
 import { cartRoutes } from './routes/cart';
 import { catalogRoutes } from './routes/catalog';
+import { customizerRoutes } from './routes/customizers';
 import { printRoutes } from './routes/print';
 import { generateRoutes } from './routes/generate';
 import { internalRoutes } from './routes/internal';
@@ -56,5 +57,6 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
   printRoutes(app, ctx);
   cartRoutes(app, ctx);
   catalogRoutes(app, ctx);
+  customizerRoutes(app, ctx);
   return app;
 }
