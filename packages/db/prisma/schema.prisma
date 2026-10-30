@@ -538,6 +538,21 @@ model PrinterProfile {
   @@map("printer_profiles")
 }
 
+/// Server-side printability checks for one version under one printer profile (cached).
+model ForgeCheckRun {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  assetVersionId String   @map("asset_version_id") @db.Uuid
+  profileKey     String   @map("profile_key")
+  profile        Json
+  checks         Json
+  estimates      Json
+  slice          Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@unique([assetVersionId, profileKey])
+  @@map("forge_check_runs")
+}
+
 /// Photo calibration: a line across a known edge and its real length (USER_MEASURED).
 model Calibration {
   id            String   @id @default(uuid(7)) @db.Uuid

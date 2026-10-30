@@ -43,3 +43,14 @@ test('M6: switching to a 180 mm printer re-runs bed fit', async ({ page }) => {
   await page.getByTestId('printer-select').selectOption({ label: 'Original Prusa MINI+' });
   await expect(page.getByTestId('checks-list')).toContainText('larger than the 180 × 180 × 180 mm bed', { timeout: 30_000 });
 });
+
+test('M6: engineering estimates show the formula and the estimate label', async ({ page }) => {
+  await signIn(page);
+  await forgeFromPrompt(page, 'a bracket for a 60 mm fan');
+  await page.getByTestId('estimates-toggle').click();
+  await expect(page.getByTestId('estimate').first()).toContainText('θ = atan(d / h)');
+  await page.getByTestId('bend-feature').selectOption('flange');
+  await expect(page.getByTestId('estimate')).toHaveCount(2);
+  await expect(page.getByTestId('estimate').nth(1)).toContainText('σ = 6 F L / (b t²)');
+  for (const label of await page.getByTestId('estimate-label').all()) await expect(label).toHaveText('Estimate, not a certified load test.');
+});

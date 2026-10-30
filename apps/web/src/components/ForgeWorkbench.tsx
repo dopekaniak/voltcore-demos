@@ -2,7 +2,7 @@
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { clampMessage, dfmFromPrinter, extractSchema, toPartParams, unconfirmedAssumed, validateParams, type Dimensions, type ForgeCheck, type ParamSchema, type ParamValues } from '@sw/forge-kit/browser';
+import { clampMessage, dfmFromPrinter, type ForgeReport, extractSchema, toPartParams, unconfirmedAssumed, validateParams, type Dimensions, type ForgeCheck, type ParamSchema, type ParamValues } from '@sw/forge-kit/browser';
 import { Alert, Badge, Button, Dialog } from '@sw/ui';
 import type { ViewerHit, ViewerMesh } from '@sw/ui';
 import { api, ApiError, downloadBytes, followJob, type Job } from '@/lib/api';
@@ -14,6 +14,8 @@ import { ChecksPanel } from './ChecksPanel';
 import { CopilotPanel } from './CopilotPanel';
 import { PrinterPanel } from './PrinterPanel';
 import { PhotoMeasure } from './PhotoMeasure';
+import { EstimatesPanel } from './EstimatesPanel';
+import type { Feature } from './CopilotPanel';
 import { ParamPanel } from './ParamPanel';
 
 // three.js is heavy; load the viewer only on the client, on demand.
@@ -79,6 +81,13 @@ export function ForgeWorkbench(p: WorkbenchProps) {
   const [printer, setPrinter] = useState<Printer | null>(p.printer ?? null);
   const [dims, setDims] = useState<Dimensions>(p.dimensions ?? {});
   const [confirming, setConfirming] = useState(false);
+  const [report, setReport] = useState<ForgeReport | null>(null);
+  const [shown, setShown] = useState<{ id: string; location: number[] | null; overhang: boolean } | null>(null);
+  const [features, setFeatures] = useState<Feature[]>([]);
+  useEffect(() => {
+    if (!p.forgeId) return;
+    api<{ data: Feature[] }>(`/v1/forges/${p.forgeId}/features${p.versionId ? `?version=${p.versionId}` : ''}`).then((r) => setFeatures(r.data)).catch(() => undefined);
+  }, [p.forgeId, p.versionId]);
   const dfm = useMemo(() => (printer ? dfmFromPrinter({ key: printer.key, name: printer.name, bed_mm: printer.bed_mm as [number, number, number], wall_min_mm: printer.wall_min_mm, overhang_default_deg: printer.overhang_deg, is_generic: false }) : null), [printer]);
 
   // Initial values once the schema is known.
@@ -99,6 +108,7 @@ export function ForgeWorkbench(p: WorkbenchProps) {
         if (my !== seq.current) return;
         if (!b.superseded) setMeshes(b.meshes);
         setChecks(report.checks);
+        setReport(report);
         setBuildError(null);
       } catch (e) {
         if (my === seq.current) setBuildError((e as Error).message);
@@ -232,6 +242,8 @@ export function ForgeWorkbench(p: WorkbenchProps) {
           selectMode={selectMode}
           onSelect={(h) => setHits(h)}
           highlightFeature={targetFeature}
+          marker={shown?.location ?? null}
+          overhangDeg={shown?.overhang ? (printer?.overhang_deg ?? 45) : null}
         />
         {runtime.status === 'starting' ? <p className="text-sm text-[var(--sw-text-muted)]">{t.forge.runtimeLoading}</p> : null}
         {runtime.status === 'error' ? <Alert tone="fail" title={t.forge.buildError}>{runtime.error}</Alert> : null}
@@ -278,7 +290,8 @@ export function ForgeWorkbench(p: WorkbenchProps) {
         {p.forgeId ? (
           <CopilotPanel forgeId={p.forgeId} versionId={p.versionId} selectMode={selectMode} onSelectMode={setSelectMode} hits={hits} onTarget={setTargetFeature} />
         ) : null}
-        <ChecksPanel checks={checks} busy={busy} />
+        <ChecksPanel checks={checks} busy={busy} shown={shown?.id ?? null} onShow={(c) => setShown(c ? { id: c.id, location: c.location ?? null, overhang: c.id.startsWith('overhang:') } : null)} />
+        <EstimatesPanel report={report} meshes={meshes} features={features} />
         <div className="space-y-2">
           {failing.length ? (
             <label className="flex items-start gap-2 text-sm text-[var(--sw-text)]">

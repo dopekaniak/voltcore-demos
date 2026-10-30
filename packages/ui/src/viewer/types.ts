@@ -31,6 +31,8 @@ export interface ModelViewerProps {
   /** Region selection: click a face or drag a circle; orbiting pauses while on. */
   selectMode?: boolean;
   onSelect?: (hits: ViewerHit[]) => void;
+  /** A marker at a point of interest (mm), e.g. the thinnest wall. */
+  marker?: [number, number, number] | number[] | null;
   /** Tint the triangles of this feature. */
   highlightFeature?: string | null;
 }

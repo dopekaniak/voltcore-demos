@@ -205,3 +205,35 @@ export const createMeasurement = defineRoute({
   body: z.object({ key: z.string(), line_px: line, calibration_id: z.string().optional(), version_id: z.string().optional() }),
   response: z.object({ key: z.string(), value_mm: z.number(), source: z.literal('measured'), calibration_id: z.string(), job: jobSchema }),
 });
+
+// ───────────── Printability checks ─────────────
+
+export const estimateSchema = z.object({
+  code: z.literal('ESTIMATE_NOT_CERTIFIED'),
+  label: z.string(),
+  title: z.string(),
+  formula: z.string(),
+  inputs: z.record(z.string(), z.union([z.number(), z.string()])),
+  assumptions: z.array(z.string()),
+  value: z.number(),
+  unit: z.string(),
+  summary: z.string(),
+});
+
+export const getForgeChecks = defineRoute({
+  method: 'GET',
+  path: '/v1/forges/:id/checks',
+  summary: 'Printability checks for a version under a printer profile (computed on the server, cached)',
+  tag: 'copilot',
+  auth: 'optional',
+  params: idParam,
+  query: z.object({ version: z.string().optional(), profile_id: z.string().optional() }),
+  response: z.object({
+    status: z.enum(['ready', 'pending']),
+    printer: printerSchema,
+    checks: z.array(forgeCheckSchema),
+    estimates: z.array(estimateSchema),
+    send_to_print_blocked: z.boolean(),
+    job: jobSchema.nullable(),
+  }),
+});

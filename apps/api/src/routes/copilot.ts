@@ -1,14 +1,14 @@
 import type { FastifyInstance } from 'fastify';
 import type { FastifyRequest } from 'fastify';
 import { AppError, copilotApi, moderateText, newId, toApiId } from '@sw/shared';
-import { calibrate, CalibrationError, measure, mmKeys, resolveSelection, validateParams, type Dimensions, type FeatureBox, type Line, type ParamSchema } from '@sw/forge-kit';
+import { calibrate, dfmFromPrinter, CalibrationError, measure, mmKeys, resolveSelection, validateParams, type Dimensions, type FeatureBox, type Line, type ParamSchema } from '@sw/forge-kit';
 import { createJob, credits, Prisma, type Calibration, type CopilotEdit, type ForgeFeature } from '@sw/db';
 import type { AppContext } from '../context';
 import { idOr404, ownedAsset, readableAsset } from '../lib/access';
 import { FORGE_BUILD_TIMEOUT_MS, forgeCosts } from '../lib/costs';
 import { requireUser, route } from '../lib/route';
 import { serializeJob } from '../lib/serialize';
-import { printerFor, serializePrinter } from '../lib/dimensions';
+import { printerFor, serializePrinter, type PrinterDto } from '../lib/dimensions';
 
 function serializeCalibration(c: Calibration) {
   return {
@@ -328,5 +328,41 @@ export function copilotRoutes(app: FastifyInstance, ctx: AppContext): void {
       }),
     );
     return { key: body.key, value_mm: value, source: 'measured' as const, calibration_id: toApiId('calibration', c.id), job: serializeJob(job) };
+  });
+
+  // ───────────── Printability checks ─────────────
+
+  route(app, ctx, copilotApi.getForgeChecks, async ({ params, query }, req) => {
+    const { asset } = await readableAsset(ctx.db, req, idOr404('forge', params.id, 'Forge'), 'FORGE');
+    const v = await version(asset.id, query.version);
+    let printer: PrinterDto;
+    if (query.profile_id) {
+      const p = await ctx.db.printerProfile.findUnique({ where: { id: idOr404('printerProfile', query.profile_id, 'Printer profile') } });
+      if (!p) throw new AppError('NOT_FOUND', 'Printer profile not found');
+      printer = serializePrinter(p, p.isGeneric && p.id === asset.printerProfileId ? asset.printerBedMm : null);
+    } else printer = await printerFor(ctx.db, asset);
+    const profileKey = `${printer.key}:${printer.bed_mm.join('x')}`;
+    const run = await ctx.db.forgeCheckRun.findUnique({ where: { assetVersionId_profileKey: { assetVersionId: v.id, profileKey } } });
+    if (run) {
+      const checks = run.checks as { id: string; status: string }[];
+      // A fail on bed fit or manifold status blocks Send to print until fixed or acknowledged.
+      const blocked = checks.some((c) => c.status === 'fail' && (c.id === 'bed-fit' || c.id === 'mesh-manifold' || c.id.startsWith('watertight:')));
+      return { status: 'ready' as const, printer, checks: run.checks as never, estimates: run.estimates as never, send_to_print_blocked: blocked, job: null };
+    }
+    const dfm = dfmFromPrinter({ key: printer.key, name: printer.name, bed_mm: printer.bed_mm as [number, number, number], wall_min_mm: printer.wall_min_mm, overhang_default_deg: printer.overhang_deg, is_generic: false });
+    const { job } = await ctx.db.$transaction((tx) =>
+      createJob(tx, {
+        ownerId: asset.ownerId,
+        kind: 'FORGE_EXPORT',
+        idempotencyKey: `checks:${v.id}:${profileKey}`,
+        input: { checks_profile: dfm, profile_key: profileKey, format: 'stl', params: {} } as unknown as Prisma.InputJsonValue,
+        reserveCredits: 0,
+        timeoutMs: FORGE_BUILD_TIMEOUT_MS,
+        assetId: asset.id,
+        assetVersionId: v.id,
+        maxAttempts: 1,
+      }),
+    );
+    return { status: 'pending' as const, printer, checks: [], estimates: [], send_to_print_blocked: false, job: serializeJob(job) };
   });
 }

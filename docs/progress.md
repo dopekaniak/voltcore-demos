@@ -255,3 +255,15 @@ panel (behind the `copilot.photo_calibration` flag); source badges on parameters
 Checks: `pnpm lint` 0, `pnpm typecheck` 0, `pnpm test` 0 (forge-kit calibration 7, shared
 image 3, worker copilot flow 17 including the 60 → 58 mm recalibration). `pnpm e2e` 14
 journeys pass, including assumed-size confirmation and the 180 mm printer bed-fit flip.
+
+## Module 6, slice M6-D — Checks panel and engineering estimates
+
+Shipped: overhang share and locations, wall locations, and centre of mass in the forge
+report; `GET /v1/forges/:id/checks` with cached server runs (`ForgeCheckRun`); mesh service
+`POST /slice-check` (layer sanity); tip-over and bending estimates with formulas,
+assumptions, and the estimate label; "Show on the model" for wall and overhang checks;
+estimates panel on the forge page.
+
+Checks: `pnpm lint` 0, `pnpm typecheck` 0, `pnpm test` 0 (forge-kit estimates 4, worker
+server checks flow incl. the 200 mm part flipping from pass to fail on a 180 mm bed, mesh
+slice-check 3). `pnpm e2e` J6 estimates journey passes.

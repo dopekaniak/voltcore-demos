@@ -60,6 +60,8 @@ export const t = {
     again: 'Send a new link',
   },
   forge: {
+    showOnModel: 'Show on the model',
+    hideOnModel: 'Hide',
     assumedTitle: 'Some sizes were assumed',
     assumedLead: (list: string) => `Your description did not give these, so the author picked them: ${list}. Check them, change any that are wrong, then confirm.`,
     assumedNotOwner: 'Only the designer can confirm them; fork the forge to set your own.',
@@ -142,6 +144,15 @@ export const t = {
     files: 'Files',
     stage: { PREVIEW: 'Preview', REFINED: 'Refined', RETEXTURED: 'Retextured', REMESHED: 'Remeshed', REPAIRED: 'Repaired', FORGE: 'Forge', UPLOAD: 'Upload' } as Record<string, string>,
     open: 'Open',
+  },
+  estimates: {
+    title: 'Engineering estimates',
+    open: 'Show',
+    never: 'These are simple calculations. They never mean a part is safe or will hold a load.',
+    noTip: 'Tip-over is estimated for single-piece parts once the preview has built.',
+    feature: 'Feature',
+    load: 'Load at the end (N)',
+    material: 'Material',
   },
   printer: {
     title: 'Printer',

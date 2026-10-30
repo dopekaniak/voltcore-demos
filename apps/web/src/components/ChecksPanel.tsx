@@ -6,7 +6,7 @@ const ICON = { pass: '✓', warn: '!', fail: '✕' } as const;
 const COLOR = { pass: 'var(--sw-pass)', warn: 'var(--sw-warn)', fail: 'var(--sw-fail)' } as const;
 const LABEL = { pass: t.forge.pass, warn: t.forge.warn, fail: t.forge.fail } as const;
 
-export function ChecksPanel({ checks, busy }: { checks: ForgeCheck[] | null; busy?: boolean }) {
+export function ChecksPanel({ checks, busy, onShow, shown }: { checks: ForgeCheck[] | null; busy?: boolean; onShow?: (c: ForgeCheck | null) => void; shown?: string | null }) {
   const rows = [...(checks ?? [])].sort((a, b) => ({ fail: 0, warn: 1, pass: 2 })[a.status] - ({ fail: 0, warn: 1, pass: 2 })[b.status]);
   const failing = rows.filter((c) => c.status === 'fail').length;
   return (
@@ -28,6 +28,11 @@ export function ChecksPanel({ checks, busy }: { checks: ForgeCheck[] | null; bus
                 {c.title}
               </p>
               <p className="text-[var(--sw-text-muted)]">{c.message}</p>
+              {onShow && (c.location || c.id.startsWith('overhang:')) && c.status !== 'pass' ? (
+                <button type="button" onClick={() => onShow(shown === c.id ? null : c)} aria-pressed={shown === c.id} className="mt-1 text-xs text-[var(--sw-accent)] underline" data-testid={`show-${c.id}`}>
+                  {shown === c.id ? t.forge.hideOnModel : t.forge.showOnModel}
+                </button>
+              ) : null}
             </div>
           </li>
         ))}

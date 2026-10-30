@@ -17,6 +17,7 @@ from .analysis import analyze, remesh, repair
 from .formats import FORMATS, Limits, MeshRejected, export_mesh, load_mesh
 from .heightmap import heightmap
 from .samples import SAMPLES, sample
+from .slicecheck import slice_check
 
 SERVICE_TOKEN = os.environ.get("MESH_SERVICE_TOKEN", "dev-mesh-service-token")
 
@@ -61,6 +62,12 @@ async def analyze_route(request: Request, format: str = Query(...), build_volume
     limits = Limits(max_bytes=max_bytes) if max_bytes else Limits()
     mesh = load_mesh(data, format, limits)
     return analyze(mesh, _volume(build_volume), scale_pct)
+
+
+@app.post("/slice-check", dependencies=[Depends(require_token)])
+async def slice_check_route(request: Request, format: str = Query(...), layer_mm: float = Query(0.2, gt=0.01, le=2.0)) -> dict:
+    data = await request.body()
+    return slice_check(load_mesh(data, format, Limits()), layer_mm)
 
 
 @app.post("/repair", dependencies=[Depends(require_token)])

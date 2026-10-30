@@ -9,6 +9,10 @@ export const forgeCheckSchema = z.object({
   title: z.string(),
   message: z.string(),
   subpart: z.string().optional(),
+  measured: z.union([z.number(), z.array(z.number())]).optional(),
+  limit: z.union([z.number(), z.array(z.number())]).optional(),
+  location: z.array(z.number()).optional(),
+  code: z.string().optional(),
 });
 export const paramValuesSchema = z.record(z.string(), z.union([z.number(), z.string(), z.boolean()]));
 

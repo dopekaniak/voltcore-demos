@@ -7,3 +7,4 @@ export * from '../features';
 export * from '../calibration';
 export { PRINTER_PROFILES, dfmFromPrinter } from '../../profiles/index.js';
 export * from '../dimensions';
+export * from '../estimates';

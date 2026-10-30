@@ -8,4 +8,6 @@ export * from './features';
 export * from './diff';
 export * from './calibration';
 export { PRINTER_PROFILES, dfmFromPrinter } from '../profiles/index.js';
+export type { DfmProfileObject, PrinterProfileRow } from '../profiles/index.js';
 export * from './dimensions';
+export * from './estimates';

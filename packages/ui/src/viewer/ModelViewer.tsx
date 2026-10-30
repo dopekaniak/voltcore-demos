@@ -11,7 +11,7 @@ import type { ModelViewerProps, ViewerHit, ViewerMesh } from './types';
  * Z-up millimetres. Orbit / pan / zoom, F frames, R resets, arrow keys orbit, wireframe
  * toggle, bounding-box readout, and a 10 mm grid at true scale on the bed.
  */
-export default function ModelViewer({ meshes, url, format, busy, overhangDeg = null, className, label = '3D model viewer', onError, selectMode = false, onSelect, highlightFeature = null }: ModelViewerProps) {
+export default function ModelViewer({ meshes, url, format, busy, overhangDeg = null, className, label = '3D model viewer', onError, selectMode = false, onSelect, highlightFeature = null, marker = null }: ModelViewerProps) {
   const host = useRef<HTMLDivElement>(null);
   const state = useRef<{
     renderer: THREE.WebGLRenderer;
@@ -198,6 +198,21 @@ export default function ModelViewer({ meshes, url, format, busy, overhangDeg = n
     s.content.children.forEach((c) => (((c as THREE.Mesh).material as THREE.MeshStandardMaterial).vertexColors = overhangDeg !== null || highlightFeature !== null));
     s.content.children.forEach((c) => (((c as THREE.Mesh).material as THREE.MeshStandardMaterial).needsUpdate = true));
   }, [highlightFeature, meshes, overhangDeg]);
+
+  useEffect(() => {
+    const s = state.current;
+    if (!s) return;
+    const old = s.scene.getObjectByName('sw-marker');
+    if (old) s.scene.remove(old);
+    if (!marker) return;
+    const box = new THREE.Box3().setFromObject(s.content);
+    const r = Math.max(1, box.isEmpty() ? 2 : box.getSize(new THREE.Vector3()).length() / 60);
+    const m = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), new THREE.MeshBasicMaterial({ color: 0x2563eb, depthTest: false, transparent: true, opacity: 0.85 }));
+    m.name = 'sw-marker';
+    m.renderOrder = 10;
+    m.position.set(marker[0]!, marker[1]!, marker[2]!);
+    s.scene.add(m);
+  }, [marker, meshes]);
 
   const pick = (cx: number, cy: number, r: number): ViewerHit[] => {
     const s = state.current;

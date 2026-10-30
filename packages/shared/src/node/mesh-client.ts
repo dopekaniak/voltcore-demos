@@ -29,6 +29,19 @@ export interface MeshReport {
   actions: string[];
 }
 
+export interface SliceCheck {
+  layer_mm: number;
+  layers: number;
+  empty_layers: number[];
+  empty_count: number;
+  open_layers: number[];
+  open_count: number;
+  self_intersecting_layers: number[];
+  self_intersecting_count: number;
+  exhaustive: boolean;
+  ok: boolean;
+}
+
 export class MeshServiceError extends Error {
   constructor(
     readonly code: string,
@@ -84,6 +97,11 @@ export class MeshClient {
 
   remesh(file: Buffer, format: MeshFormat, targetFaces: number, to: MeshFormat = 'glb') {
     return this.withReport(`/remesh?format=${format}&target_faces=${targetFaces}&to=${to}`, file);
+  }
+
+  /** Layer sanity: empty layers, open contours, and self-crossing contours (not a slicer). */
+  async sliceCheck(file: Buffer, format: MeshFormat, layerMm = 0.2): Promise<SliceCheck> {
+    return (await this.call(`/slice-check?format=${format}&layer_mm=${layerMm}`, file)).json() as Promise<SliceCheck>;
   }
 
   async convert(file: Buffer, format: MeshFormat, to: MeshFormat): Promise<Buffer> {

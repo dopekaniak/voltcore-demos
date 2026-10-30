@@ -483,6 +483,24 @@ default. Only two named printers are seeded, because only their spec pages could
 retrieved when the table was built; rows are added only with a cited source. The active
 profile drives bed fit, wall minimum, and overhang angle in the browser checks.
 
+## ADR-041 — Server printability checks and engineering estimates (slice M6-D)
+
+**Decision:** the browser runs the checks on every rebuild under the active printer profile;
+`GET /v1/forges/:id/checks?profile_id=` runs them on the server and caches them per version
+and profile (`ForgeCheckRun`), queuing a job the first time. Server checks are: bed fit,
+wall thickness (with the location of the thinnest wall), overhangs as a share of surface
+area at the profile's angle (with the location of the largest overhang), manifold and
+watertight status from the mesh service, and layer sanity — a new mesh-service endpoint
+that cuts the mesh into 0.2 mm layers and reports empty layers inside the part, open
+outlines, and outlines that cross themselves. It is a geometric check, not a slicer: no
+toolpaths, and no slicer code (rule 6). Warnings never block; a fail on bed fit or manifold
+status blocks Send to print until fixed or acknowledged (the browser already requires
+acknowledging any fail). Estimates are pure functions in forge-kit: tip-over
+θ = atan(d / h) from the centre of mass and the convex hull of the base, and cantilever
+bending σ = 6FL/(bt²) on a feature's bounding box with nominal strength halved for layer
+adhesion. Each shows its formula, inputs, and assumptions, carries the code
+`ESTIMATE_NOT_CERTIFIED`, and the text "Estimate, not a certified load test."
+
 ## Open questions
 
 Each has the option chosen for now.

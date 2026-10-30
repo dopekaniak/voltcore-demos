@@ -52,7 +52,7 @@ export function inspectPart(kernel, part, params = {}, profileKey = DEFAULT_PROF
     defaults: resolved,
     verify: { ...(part.verify ?? {}), process: profile.process, cases: ['defaults'] },
   };
-  const m = pfMeasure(kernel, atParams, view, {}, { minWall: true, gaps: false });
+  const m = pfMeasure(kernel, atParams, view, {}, { minWall: true, gaps: false, overhang: profile.overhangDeg });
   let v = null;
   let verifyError = null;
   try {
@@ -72,7 +72,12 @@ export function summarize(m, v, profile, verifyError = null) {
     triangles: s.triangleCount ?? 0,
     watertight: s.watertight !== false,
     minWall: s.minWall ?? null,
+    minWallAt: s.minWallAt ? s.minWallAt.map(r1) : null,
     overhangAreaMm2: Math.round(s.overhangArea ?? 0),
+    overhangPct: s.surfaceArea ? Math.round(((s.overhangArea ?? 0) / s.surfaceArea) * 1000) / 10 : 0,
+    overhangAt: s.overhangAt ? s.overhangAt.map(r1) : null,
+    centerOfMass: s.centerOfMass ? s.centerOfMass.map(r1) : null,
+    bounds: s.bounds ? { min: s.bounds.min.map(r1), max: s.bounds.max.map(r1) } : null,
   }));
   const bounds = unionBounds(m.subparts ?? []);
   const bbox = bounds ? bounds.max.map((x, i) => r1(x - bounds.min[i])) : [0, 0, 0];
@@ -111,8 +116,25 @@ export function summarize(m, v, profile, verifyError = null) {
         measured: r1(s.minWall),
         limit: profile.minWall,
         subpart: s.name,
+        ...(s.minWallAt ? { location: s.minWallAt } : {}),
       });
     }
+    // Overhangs never block: they need supports, which the printer adds.
+    const over = s.overhangPct > 0.5;
+    checks.push({
+      id: `overhang:${s.name}`,
+      status: over ? 'warn' : 'pass',
+      title: `${s.name}: overhangs`,
+      message: over
+        ? `${fmt(s.overhangPct)}% of the surface (${s.overhangAreaMm2} mm²) is steeper than ${profile.overhangDeg}° and needs supports.`
+        : s.overhangPct > 0
+          ? `${fmt(s.overhangPct)}% of the surface is steeper than ${profile.overhangDeg}°, small enough to print without supports.`
+          : `No surface is steeper than ${profile.overhangDeg}°; no supports needed.`,
+      measured: s.overhangPct,
+      limit: profile.overhangDeg,
+      subpart: s.name,
+      ...(over && s.overhangAt ? { location: s.overhangAt } : {}),
+    });
   }
 
   // The part's own verify block: gates fail, warnings warn, unaccepted costs warn.
@@ -121,7 +143,7 @@ export function summarize(m, v, profile, verifyError = null) {
   }
   for (const c of v?.cases?.[0]?.checks ?? []) {
     if (c.metric === 'bbox' && c.scope === 'view') continue; // covered by bed-fit
-    if (c.metric === 'minWall' || c.metric === 'watertight') continue; // covered above
+    if (c.metric === 'minWall' || c.metric === 'watertight' || c.metric === 'overhangArea') continue; // covered above
     if (c.status === 'pass' || c.status === 'skip') {
       if (c.kind === 'gate' && c.status === 'pass') {
         checks.push({ id: `verify:${c.subpart ?? 'view'}:${c.metric}`, status: 'pass', title: titleFor(c), message: passMessage(c), subpart: c.subpart ?? undefined });

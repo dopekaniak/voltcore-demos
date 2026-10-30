@@ -6,6 +6,7 @@ import { analyzeFeatures, initialDimensions, nextDimensions, type Dimensions, DE
 import { newId } from '@sw/shared';
 import type { WorkerContext } from '../context';
 import { proposeCopilotEdit } from './copilot';
+import { runForgeChecks } from './checks';
 
 export const EXPORT_TTL_MS = 7 * 24 * 3600_000;
 const sha = (b: Buffer) => createHash('sha256').update(b).digest('hex');
@@ -195,6 +196,9 @@ interface ForgeExportInput {
   /** Customizer exports: code comes from the customizer, with an optional image relief. */
   customizer_id?: string;
   relief_upload_id?: string;
+  /** Printability checks under a printer profile (cached per version and profile). */
+  checks_profile?: unknown;
+  profile_key?: string;
 }
 
 const EXPORT_META = {
@@ -210,6 +214,7 @@ export async function processForgeExport(ctx: WorkerContext, jobId: string): Pro
   const input = job.input as unknown as ForgeExportInput;
   if (input.print_part_id) return exportForPrint(ctx, job.id, job.assetVersionId!, input);
   if (input.customizer_id) return exportCustomizer(ctx, job.id, input);
+  if (input.checks_profile) return runForgeChecks(ctx, job, input as never);
   try {
     const source = await ctx.db.forgeSource.findUniqueOrThrow({ where: { assetVersionId: job.assetVersionId! }, include: { assetVersion: { include: { asset: true } } } });
     const schema = source.schema as unknown as Parameters<typeof validateParams>[0];
