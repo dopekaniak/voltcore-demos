@@ -3,6 +3,26 @@
 //
 // The outside vertical edges and the top rim are filleted with Solid.fillet, which runs
 // natively on the Manifold backend for previews and STL/3MF, and on OpenCASCADE for STEP.
+// Named features: one builder per feature, each labeled with its own key. The part's
+// build composes them; a region edit changes one builder and nothing else.
+export const features = {
+  shell: (k, p, d) => {
+    let s = k.box({ min: [0, 0, 0], max: [p.w, p.d, p.h] });
+    if (d.corner > 0) s = s.fillet({ r: d.corner, edges: { dir: 'Z' } });
+    if (d.rim > 0) s = s.fillet({ r: d.rim, edges: { inPlane: 'XY', at: p.h } });
+    return s.label('shell');
+  },
+  pocket: (k, p, d) => {
+    // A rounded rectangle that follows the outer corners, inset by the wall.
+    const iw = p.w - 2 * p.wall;
+    const id = p.d - 2 * p.wall;
+    let pocket = k.shape2d([[0, 0], [iw, 0], [iw, id], [0, id]]);
+    const ir = Math.max(0, d.corner - p.wall);
+    if (ir > 0.05) pocket = pocket.fillet(ir);
+    return pocket.extrude({ h: p.h }).translate([p.wall, p.wall, p.wall]).label('pocket');
+  },
+};
+
 export default {
   meta: { title: 'Filleted box', units: 'mm' },
   parameters: [
@@ -38,19 +58,7 @@ export default {
       label: 'Tray',
       views: { tray: true },
       export: { name: 'filleted-box' },
-      build: (k, p, d) => {
-        let s = k.box({ min: [0, 0, 0], max: [p.w, p.d, p.h] }).label('shell');
-        if (d.corner > 0) s = s.fillet({ r: d.corner, edges: { dir: 'Z' } });
-        if (d.rim > 0) s = s.fillet({ r: d.rim, edges: { inPlane: 'XY', at: p.h } });
-        // Pocket: a rounded rectangle that follows the outer corners, inset by the wall.
-        const iw = p.w - 2 * p.wall;
-        const id = p.d - 2 * p.wall;
-        let pocket = k.shape2d([[0, 0], [iw, 0], [iw, id], [0, id]]);
-        const ir = Math.max(0, d.corner - p.wall);
-        if (ir > 0.05) pocket = pocket.fillet(ir);
-        s = s.cut(pocket.extrude({ h: p.h }).translate([p.wall, p.wall, p.wall]).label('pocket'));
-        return s;
-      },
+      build: (k, p, d) => features.shell(k, p, d).cut(features.pocket(k, p, d)),
     },
   },
   views: { tray: { label: 'Tray' } },

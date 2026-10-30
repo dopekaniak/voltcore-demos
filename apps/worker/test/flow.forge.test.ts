@@ -144,7 +144,7 @@ describe('forge API flow', () => {
 
   it('serves starters publicly', async () => {
     const list = (await t.app.inject({ method: 'GET', url: '/v1/forges/starters' })).json();
-    expect(list.data.map((s: { key: string }) => s.key)).toEqual(['cable-clip', 'box-with-lid', 'planter', 'filleted-box']);
+    expect(list.data.map((s: { key: string }) => s.key)).toEqual(['cable-clip', 'box-with-lid', 'planter', 'filleted-box', 'fan-bracket']);
     const one = (await t.app.inject({ method: 'GET', url: '/v1/forges/starters/planter' })).json();
     expect(one.code).toContain('export default');
   });

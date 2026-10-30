@@ -7,3 +7,9 @@ export function subpartsFor(part: unknown, view: string, params?: Record<string,
 export function inspectPart(kernel: unknown, part: unknown, params?: Record<string, unknown>, profileKey?: string): ForgeReport;
 export function summarize(m: unknown, v: unknown, profile: DfmProfile, verifyError?: string | null): ForgeReport;
 export function mergeBinaryStl(buffers: Uint8Array[]): Uint8Array;
+export interface FeatureBoxRow {
+  key: string;
+  part: string | null;
+  bbox: { min: [number, number, number]; max: [number, number, number] } | null;
+}
+export function featureBoxes(kernel: unknown, part: unknown, features: Record<string, unknown>, featureParts: Record<string, string | null>, params?: Record<string, unknown>): FeatureBoxRow[];

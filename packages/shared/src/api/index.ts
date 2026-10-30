@@ -10,3 +10,4 @@ export * as printApi from './print';
 export * as catalogApi from './catalog';
 export * as customizerApi from './customizers';
 export type { JobDto } from './jobs';
+export * as copilotApi from './copilot';

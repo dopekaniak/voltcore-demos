@@ -425,6 +425,24 @@ normal image upload path, the mesh service turns it into a small grayscale heigh
 substituted into the customizer as JSON data at a fixed marker; it is never code. Starters:
 name plate, storage tile, image relief coaster, cable organizer, all original and MIT.
 
+## ADR-038 — Named features for region edits (Module 6, slice M6-A)
+
+**Decision:** the forge format gains one required export for authored and starter forges:
+`export const features = { key: (k, p, d) => solid.label('key'), … }`, lower_snake_case keys,
+composed by the parts' `build` functions. The kernel's `.label()` attribution gives the
+picked triangle's feature directly in the browser, so selection maps to features, not
+triangles, without a second geometry pass. The server stores per version the feature's
+source range, parameters, and bounds (`ForgeFeature`). Resolution uses the labels and checks
+them against the stored bounds; ambiguous selections return candidates. Edits replace only
+the builder's source range, which makes "unrelated features are byte-identical" a property
+of the edit function, tested directly. Customizers are not region-editable (they are a
+separate front end with fixed inputs). A fifth starter, the fan bracket, covers the
+"bracket for a 60 mm fan" journey with the common case-fan screw spacings.
+
+**Alternatives:** feature IDs from triangle indices recomputed on the server (indices differ
+between preview and print quality meshes); marker comments around feature code (not
+checkable, easy to break).
+
 ## Open questions
 
 Each has the option chosen for now.

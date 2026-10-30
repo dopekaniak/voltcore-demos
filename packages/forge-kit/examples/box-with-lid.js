@@ -4,6 +4,53 @@
 // Two printed pieces. The body prints open side up. The lid prints upside down: its plate
 // is on the bed and its lip points up. A ridge on the outside of the lip clicks into a
 // groove inside the body walls.
+// Rounded rectangle profile with its corner at the origin.
+const rr = (k, w, dd, r) => {
+  const shape = k.shape2d([[0, 0], [w, 0], [w, dd], [0, dd]]);
+  return r > 0.05 ? shape.fillet(r) : shape;
+};
+
+// Named features: one builder per feature, each labeled with its own key. The parts'
+// builds compose them; a region edit changes one builder and nothing else.
+export const features = {
+  shell: (k, p, d) => rr(k, d.W, d.D, d.r).extrude({ h: d.H }).label('shell'),
+  cavity: (k, p, d) => rr(k, p.inner_w, p.inner_d, Math.max(0, d.r - p.wall)).extrude({ h: d.H }).translate([p.wall, p.wall, p.wall]).label('cavity'),
+  groove: (k, p, d) => {
+    if (!p.snap) return null;
+    // Grooves in the two long walls, where the lid ridge lands.
+    const z0 = d.H - d.lipH + 0.6; // ridge lands at H - lipH + 0.7 .. + 2.0
+    let g = null;
+    for (const y of [p.wall - 0.5, d.D - p.wall]) {
+      const b = k.box({ min: [p.wall + d.r, y, z0], max: [d.W - p.wall - d.r, y + 0.5, z0 + 1.6] });
+      g = g ? g.union(b) : b;
+    }
+    return g.label('groove');
+  },
+  plate: (k, p, d) => rr(k, d.W, d.D, d.r).extrude({ h: d.lidT }).label('plate'),
+  lip: (k, p, d) => {
+    const c = p.clearance;
+    const lw = p.inner_w - 2 * c;
+    const ld = p.inner_d - 2 * c;
+    const lipR = Math.max(0, d.r - p.wall - c);
+    const lip = rr(k, lw, ld, lipR).extrude({ h: d.lipH })
+      .cut(rr(k, lw - 2 * d.lipW, ld - 2 * d.lipW, Math.max(0, lipR - d.lipW)).extrude({ h: d.lipH + 2 }).translate([d.lipW, d.lipW, -1]))
+      .translate([p.wall + c, p.wall + c, d.lidT]);
+    return lip.label('lip');
+  },
+  ridge: (k, p, d) => {
+    if (!p.snap) return null;
+    // Ridge on the long sides of the lip, 0.4 mm proud and 1.3 mm tall; lands in the body groove.
+    const c = p.clearance;
+    const z0 = d.lidT + d.lipH - 2.0;
+    let r = null;
+    for (const [y0, y1] of [[p.wall + c - 0.4, p.wall + c + 0.01], [d.D - p.wall - c - 0.01, d.D - p.wall - c + 0.4]]) {
+      const b = k.box({ min: [p.wall + d.r, y0, z0], max: [d.W - p.wall - d.r, y1, z0 + 1.3] });
+      r = r ? r.union(b) : b;
+    }
+    return r.label('ridge');
+  },
+};
+
 export default {
   meta: { title: 'Box with lid', units: 'mm' },
   parameters: [
@@ -54,20 +101,9 @@ export default {
       views: { print: true, body: true },
       export: { name: 'box-body' },
       build: (k, p, d) => {
-        const rr = (w, dd, r) => {
-          const shape = k.shape2d([[0, 0], [w, 0], [w, dd], [0, dd]]);
-          return r > 0.05 ? shape.fillet(r) : shape;
-        };
-        let s = rr(d.W, d.D, d.r).extrude({ h: d.H }).label('shell');
-        const ir = Math.max(0, d.r - p.wall);
-        s = s.cut(rr(p.inner_w, p.inner_d, ir).extrude({ h: d.H }).translate([p.wall, p.wall, p.wall]).label('cavity'));
-        if (p.snap) {
-          // Grooves in the two long walls, where the lid ridge lands.
-          const z0 = d.H - d.lipH + 0.6; // ridge lands at H - lipH + 0.7 .. + 2.0
-          for (const y of [p.wall - 0.5, d.D - p.wall]) {
-            s = s.cut(k.box({ min: [p.wall + d.r, y, z0], max: [d.W - p.wall - d.r, y + 0.5, z0 + 1.6] }).label('groove'));
-          }
-        }
+        let s = features.shell(k, p, d).cut(features.cavity(k, p, d));
+        const groove = features.groove(k, p, d);
+        if (groove) s = s.cut(groove);
         return s;
       },
     },
@@ -76,26 +112,9 @@ export default {
       views: { print: (s, p, d) => s.translate([d.W + d.gap, 0, 0]), lid: true },
       export: { name: 'box-lid' },
       build: (k, p, d) => {
-        const rr = (w, dd, r) => {
-          const shape = k.shape2d([[0, 0], [w, 0], [w, dd], [0, dd]]);
-          return r > 0.05 ? shape.fillet(r) : shape;
-        };
-        let s = rr(d.W, d.D, d.r).extrude({ h: d.lidT }).label('plate');
-        const c = p.clearance;
-        const lw = p.inner_w - 2 * c;
-        const ld = p.inner_d - 2 * c;
-        const lipR = Math.max(0, d.r - p.wall - c);
-        const lip = rr(lw, ld, lipR).extrude({ h: d.lipH })
-          .cut(rr(lw - 2 * d.lipW, ld - 2 * d.lipW, Math.max(0, lipR - d.lipW)).extrude({ h: d.lipH + 2 }).translate([d.lipW, d.lipW, -1]))
-          .translate([p.wall + c, p.wall + c, d.lidT]);
-        s = s.union(lip.label('lip'));
-        if (p.snap) {
-          // Ridge on the long sides of the lip, 0.4 mm proud and 1.3 mm tall; lands in the body groove.
-          const z0 = d.lidT + d.lipH - 2.0;
-          for (const [y0, y1] of [[p.wall + c - 0.4, p.wall + c + 0.01], [d.D - p.wall - c - 0.01, d.D - p.wall - c + 0.4]]) {
-            s = s.union(k.box({ min: [p.wall + d.r, y0, z0], max: [d.W - p.wall - d.r, y1, z0 + 1.3] }).label('ridge'));
-          }
-        }
+        let s = features.plate(k, p, d).union(features.lip(k, p, d));
+        const ridge = features.ridge(k, p, d);
+        if (ridge) s = s.union(ridge);
         return s;
       },
     },

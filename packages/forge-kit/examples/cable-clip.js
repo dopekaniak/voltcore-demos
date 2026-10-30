@@ -4,6 +4,36 @@
 // Printed lying flat: the ring axis is Z, so the whole profile sits on the bed and no
 // part of the clip overhangs. The opening at the top is narrower than the cable, so the
 // cable snaps in and stays.
+// Named features: one builder per feature, each labeled with its own key. The part's
+// build composes them; a region edit changes one builder and nothing else.
+export const features = {
+  body: (k, p, d) => {
+    const ring = k.cylinder({ r: d.R, h: p.width });
+    const baseTop = Math.min(-d.R + p.base, 0);
+    const base = k.box({ min: [-(d.R + p.tab), -d.R, 0], max: [d.R + p.tab, baseTop, p.width] });
+    return ring.union(base).label('body');
+  },
+  bore: (k, p, d) => k.cylinder({ r: d.r, h: p.width + 2 }).at([0, 0, -1]).label('bore'),
+  snap: (k, p, d) => {
+    // Snap mouth: a radial wedge. Its faces meet both circles at right angles, so the
+    // arm tips have no thin corners, and the mouth widens outward to guide the cable.
+    const sa = Math.sin(d.alpha);
+    const ca = Math.cos(d.alpha);
+    const L = (d.R + 1) / ca;
+    return k.prism({ points: [[0, 0], [L * sa, L * ca], [-L * sa, L * ca]], h: p.width + 2 }).at([0, 0, -1]).label('snap');
+  },
+  screw_holes: (k, p, d) => {
+    if (!(p.hole > 0 && p.tab >= p.hole + 1)) return null;
+    let holes = null;
+    for (const side of [-1, 1]) {
+      const x = side * (d.R + p.tab / 2);
+      const h = k.cylinder({ d: p.hole, h: p.base + 2, center: true }).along('+Y').at([x, -d.R + p.base / 2, p.width / 2]);
+      holes = holes ? holes.union(h) : h;
+    }
+    return holes.label('screw_holes');
+  },
+};
+
 export default {
   meta: { title: 'Cable clip', units: 'mm' },
   parameters: [
@@ -49,24 +79,9 @@ export default {
       views: { clip: true },
       export: { name: 'cable-clip' },
       build: (k, p, d) => {
-        const ring = k.cylinder({ r: d.R, h: p.width });
-        const baseTop = Math.min(-d.R + p.base, 0);
-        const base = k.box({ min: [-(d.R + p.tab), -d.R, 0], max: [d.R + p.tab, baseTop, p.width] });
-        let s = ring.union(base).label('body');
-        s = s.cut(k.cylinder({ r: d.r, h: p.width + 2 }).at([0, 0, -1]).label('bore'));
-        // Snap mouth: a radial wedge. Its faces meet both circles at right angles, so the
-        // arm tips have no thin corners, and the mouth widens outward to guide the cable.
-        const sa = Math.sin(d.alpha);
-        const ca = Math.cos(d.alpha);
-        const L = (d.R + 1) / ca;
-        const wedge = k.prism({ points: [[0, 0], [L * sa, L * ca], [-L * sa, L * ca]], h: p.width + 2 }).at([0, 0, -1]);
-        s = s.cut(wedge.label('snap'));
-        if (p.hole > 0 && p.tab >= p.hole + 1) {
-          for (const side of [-1, 1]) {
-            const x = side * (d.R + p.tab / 2);
-            s = s.cut(k.cylinder({ d: p.hole, h: p.base + 2, center: true }).along('+Y').at([x, -d.R + p.base / 2, p.width / 2]).label('screw-hole'));
-          }
-        }
+        let s = features.body(k, p, d).cut(features.bore(k, p, d)).cut(features.snap(k, p, d));
+        const holes = features.screw_holes(k, p, d);
+        if (holes) s = s.cut(holes);
         return s;
       },
     },

@@ -4,14 +4,14 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import type { ModelViewerProps, ViewerMesh } from './types';
+import type { ModelViewerProps, ViewerHit, ViewerMesh } from './types';
 
 /**
  * Shared 3D viewer for forges, generated models, and print previews (build prompt 11).
  * Z-up millimetres. Orbit / pan / zoom, F frames, R resets, arrow keys orbit, wireframe
  * toggle, bounding-box readout, and a 10 mm grid at true scale on the bed.
  */
-export default function ModelViewer({ meshes, url, format, busy, overhangDeg = null, className, label = '3D model viewer', onError }: ModelViewerProps) {
+export default function ModelViewer({ meshes, url, format, busy, overhangDeg = null, className, label = '3D model viewer', onError, selectMode = false, onSelect, highlightFeature = null }: ModelViewerProps) {
   const host = useRef<HTMLDivElement>(null);
   const state = useRef<{
     renderer: THREE.WebGLRenderer;
@@ -27,6 +27,8 @@ export default function ModelViewer({ meshes, url, format, busy, overhangDeg = n
   const [bbox, setBbox] = useState<[number, number, number] | null>(null);
   const [wireframe, setWireframe] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [circle, setCircle] = useState<{ x: number; y: number; r: number } | null>(null);
+  const drag = useRef<{ x: number; y: number } | null>(null);
 
   // Scene setup once.
   useEffect(() => {
@@ -182,6 +184,67 @@ export default function ModelViewer({ meshes, url, format, busy, overhangDeg = n
     s?.content.children.forEach((c) => (((c as THREE.Mesh).material as THREE.MeshStandardMaterial).wireframe = wireframe));
   }, [wireframe]);
 
+  // Orbit controls pause while selecting, so a drag draws a circle instead.
+  useEffect(() => {
+    const s = state.current;
+    if (s) s.controls.enabled = !selectMode;
+    if (!selectMode) setCircle(null);
+  }, [selectMode]);
+
+  useEffect(() => {
+    const s = state.current;
+    if (!s) return;
+    for (const c of s.content.children) paintFeature((c as THREE.Mesh).geometry, highlightFeature);
+    s.content.children.forEach((c) => (((c as THREE.Mesh).material as THREE.MeshStandardMaterial).vertexColors = overhangDeg !== null || highlightFeature !== null));
+    s.content.children.forEach((c) => (((c as THREE.Mesh).material as THREE.MeshStandardMaterial).needsUpdate = true));
+  }, [highlightFeature, meshes, overhangDeg]);
+
+  const pick = (cx: number, cy: number, r: number): ViewerHit[] => {
+    const s = state.current;
+    if (!s) return [];
+    const rect = s.renderer.domElement.getBoundingClientRect();
+    const ray = new THREE.Raycaster();
+    const samples: [number, number][] = [[cx, cy]];
+    if (r > 6) {
+      const step = Math.max(3, r / 6);
+      for (let dx = -r; dx <= r; dx += step) for (let dy = -r; dy <= r; dy += step) if (dx * dx + dy * dy <= r * r && (dx || dy)) samples.push([cx + dx, cy + dy]);
+    }
+    const hits: ViewerHit[] = [];
+    for (const [x, y] of samples.slice(0, 200)) {
+      ray.setFromCamera(new THREE.Vector2(((x - rect.left) / rect.width) * 2 - 1, -((y - rect.top) / rect.height) * 2 + 1), s.camera);
+      const hit = ray.intersectObjects(s.content.children, false)[0];
+      if (!hit || hit.faceIndex === undefined || hit.faceIndex === null) continue;
+      const g = (hit.object as THREE.Mesh).geometry;
+      const ids = g.userData.featureIds as Uint16Array | undefined;
+      const names = g.userData.features as string[] | undefined;
+      const fi = ids?.[hit.faceIndex] ?? 0;
+      hits.push({ mesh: String(g.userData.name ?? ''), feature: fi > 0 ? (names?.[fi - 1] ?? null) : null, point: [hit.point.x, hit.point.y, hit.point.z] });
+    }
+    return hits;
+  };
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!selectMode) return;
+    drag.current = { x: e.clientX, y: e.clientY };
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+    const rect = host.current!.getBoundingClientRect();
+    setCircle({ x: e.clientX - rect.left, y: e.clientY - rect.top, r: 0 });
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!selectMode || !drag.current) return;
+    const rect = host.current!.getBoundingClientRect();
+    setCircle({ x: drag.current.x - rect.left, y: drag.current.y - rect.top, r: Math.hypot(e.clientX - drag.current.x, e.clientY - drag.current.y) });
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (!selectMode || !drag.current) return;
+    const start = drag.current;
+    drag.current = null;
+    const r = Math.hypot(e.clientX - start.x, e.clientY - start.y);
+    const hits = pick(start.x, start.y, r);
+    if (r <= 6) setCircle(null);
+    onSelect?.(hits);
+  };
+
   const onKey = (e: React.KeyboardEvent) => {
     const s = state.current;
     if (!s) return;
@@ -210,9 +273,19 @@ export default function ModelViewer({ meshes, url, format, busy, overhangDeg = n
         role="img"
         aria-label={`${label}. ${bbox ? `Bounding box ${bbox.map((n) => n.toFixed(1)).join(' by ')} millimetres.` : ''} Press F to frame, R to reset, arrow keys to orbit.`}
         onKeyDown={onKey}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
         className="h-full w-full touch-none focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--sw-focus)]"
         data-testid="model-viewer"
       />
+      {circle && circle.r > 6 ? (
+        <div
+          className="pointer-events-none absolute rounded-full border-2 border-dashed border-[var(--sw-accent)] bg-[var(--sw-accent)]/10"
+          style={{ left: circle.x - circle.r, top: circle.y - circle.r, width: circle.r * 2, height: circle.r * 2 }}
+          data-testid="selection-circle"
+        />
+      ) : null}
       <div className="pointer-events-none absolute left-2 top-2 rounded bg-[var(--sw-bg)]/80 px-2 py-1 font-mono text-xs tabular-nums text-[var(--sw-text)]" data-testid="bbox-readout">
         {bbox ? `${bbox.map((n) => n.toFixed(1)).join(' × ')} mm` : '—'}
       </div>
@@ -243,7 +316,33 @@ function toGeometry(m: ViewerMesh): THREE.BufferGeometry {
   g.setAttribute('position', new THREE.BufferAttribute(m.positions, 3));
   if (m.normals && m.normals.length === m.positions.length) g.setAttribute('normal', new THREE.BufferAttribute(m.normals, 3));
   if (m.indices) g.setIndex(new THREE.BufferAttribute(m.indices, 1));
+  g.userData = { name: m.name, featureIds: m.featureIds, features: m.features };
   return g;
+}
+
+/** Tint one feature's triangles (vertex colors); clears the tint when `feature` is null. */
+function paintFeature(g: THREE.BufferGeometry, feature: string | null) {
+  const ids = g.userData.featureIds as Uint16Array | undefined;
+  const names = g.userData.features as string[] | undefined;
+  if (feature === null) {
+    if (g.userData.featureTint) {
+      g.deleteAttribute('color');
+      g.userData.featureTint = false;
+    }
+    return;
+  }
+  if (!ids || !names || g.index) return;
+  const want = names.indexOf(feature) + 1;
+  const pos = g.getAttribute('position');
+  const colors = new Float32Array(pos.count * 3);
+  const base = new THREE.Color('#d9611c');
+  const hi = new THREE.Color('#2563eb');
+  for (let t = 0; t < pos.count / 3; t++) {
+    const c = want > 0 && ids[t] === want ? hi : base;
+    for (let k = 0; k < 3; k++) colors.set([c.r, c.g, c.b], (t * 3 + k) * 3);
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  g.userData.featureTint = true;
 }
 
 /** Color faces that point down more steeply than `deg` from vertical (needs supports). */

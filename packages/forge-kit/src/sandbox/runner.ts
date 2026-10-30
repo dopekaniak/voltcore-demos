@@ -4,6 +4,8 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { rewriteImports, staticCheck, type StaticIssue } from '../static-check';
 import type { ForgeReport } from '../types';
+import { analyzeFeatures } from '../features';
+import type { FeatureBoxRow } from '../runtime/inspect.js';
 
 export interface SandboxLimits {
   timeoutMs: number;
@@ -23,6 +25,8 @@ export interface BuildOutput {
   warnings: string[];
   stl?: Buffer;
   thumbnail?: Buffer;
+  /** Named-feature bounds (featured forges only). */
+  features?: FeatureBoxRow[];
 }
 
 export class SandboxError extends Error {
@@ -120,6 +124,7 @@ export async function runSandboxed(
           warnings: (r.warnings as string[]) ?? [],
           ...(r.stl ? { stl: Buffer.from(String(r.stl), 'base64') } : {}),
           ...(r.thumbnail ? { thumbnail: Buffer.from(String(r.thumbnail), 'base64') } : {}),
+          ...(Array.isArray(r.features) ? { features: r.features as FeatureBoxRow[] } : {}),
         };
         resolvePromise({ build });
       });
@@ -132,7 +137,8 @@ export async function runSandboxed(
       );
     });
     child.on('error', (e) => finish(() => reject(new SandboxError('SANDBOX_CRASHED', e.message))));
-    child.send({ ...req, code });
+    const featureParts = req.op === 'build' ? featurePartsOf(req.code) : null;
+    child.send({ ...req, code, ...(featureParts ? { featureParts } : {}) });
   });
 }
 
@@ -141,4 +147,10 @@ export function formatIssues(issues: StaticIssue[]): string {
     .slice(0, 5)
     .map((i) => `line ${i.line}: ${i.message}`)
     .join('; ');
+}
+
+function featurePartsOf(code: string): Record<string, string | null> | null {
+  const a = analyzeFeatures(code);
+  if (!a.featured) return null;
+  return Object.fromEntries(a.features.map((f) => [f.key, f.part]));
 }

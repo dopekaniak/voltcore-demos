@@ -210,3 +210,18 @@ Checks: `pnpm lint` 0, `pnpm typecheck` 0, `pnpm test` 0 (forge-kit customizers 
 customizer flow 6, mesh heightmap tests). `pnpm e2e` J5 customizer journey passes.
 
 Mocked/limited: no image classifier (open question 9).
+
+## Module 6, slice M6-A — Named features and region selection
+
+Shipped: the named-feature contract (`export const features`), `analyzeFeatures`,
+`replaceFeature`, and `resolveSelection` in forge-kit; feature bounds from the sandbox
+build; `ForgeFeature` rows written for every built version; all starters converted, plus a
+fan bracket starter; authored forges without features go to the repair attempt;
+`GET /v1/forges/:id/features` and `POST /v1/forges/:id/region-edits` (resolves a selection
+or returns `FEATURE_AMBIGUOUS` candidates, `FORGE_NOT_FEATURED` when there are none); viewer
+select mode (click or circle), feature highlight, candidate picker, and a feature list as
+the keyboard path.
+
+Checks: `pnpm lint` 0, `pnpm typecheck` 0, `pnpm test` 0 (forge-kit features tests including
+the byte-identical rim edit; worker copilot flow 6 including the 60 mm fan bracket journey).
+`pnpm e2e` J6 region selection passes.

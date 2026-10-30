@@ -118,6 +118,25 @@ The forge page creates a hidden iframe on `FORGE_RUNTIME_ORIGIN` and talks to it
 requests, coalesces queued builds, and restarts the worker after a 20 s timeout. Parameter
 changes rebuild 250 ms after the last change; the last good mesh stays visible.
 
+## Named features and region selection (Module 6)
+
+A forge exports `features`, an object of builder functions, each returning a solid labeled
+with its own key; the parts' `build` functions compose them. The kernel carries the labels
+through booleans, so every triangle of the preview mesh names its feature
+(`featureIds`/`features` on each mesh, forwarded by the runtime relay). The server build
+step (sandbox) also returns each feature's view-frame bounds, and the worker stores one
+`ForgeFeature` row per feature: key, sub-part, source range of the builder, parameters it
+reads, and bounds.
+
+Selecting an area: the viewer's select mode turns a click or a dragged circle into up to 200
+ray hits (point + the hit triangle's feature label). `POST /v1/forges/:id/region-edits`
+resolves them against the version's `ForgeFeature` rows (`resolveSelection`): a label counts
+only when its point lies inside that feature's bounds; unlabeled hits count for the features
+whose bounds contain them. The winner needs half the votes and twice the runner-up;
+otherwise the API answers `409 FEATURE_AMBIGUOUS` with candidates and the person picks one.
+A forge without features answers `409 FORGE_NOT_FEATURED`. Edits to a feature replace only
+the source range of its builder (`replaceFeature`); everything else stays byte-identical.
+
 ## Storage
 
 `STORAGE_DRIVER=fs|s3`. The `s3` driver targets MinIO in `infra/docker-compose.yml` and real

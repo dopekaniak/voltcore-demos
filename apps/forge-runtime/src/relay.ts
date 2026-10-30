@@ -111,9 +111,10 @@ async function handle(req: Req) {
         { type: 'generate', view, params: req.params, subparts: sub.subparts, jobId: gj, cache: true },
         (m) => (m.type === 'meshes' || m.type === 'superseded' ? true : m.type === 'error' && m.jobId === gj ? 'reject' : false),
       );
-      const meshes = (res.meshes as { name: string; positions: Float32Array; normals: Float32Array; indices?: Uint32Array; triangles: number }[] | undefined) ?? [];
-      const out = meshes.map((x) => ({ name: x.name, positions: x.positions, normals: x.normals, indices: x.indices, triangles: x.triangles }));
-      const transfer = out.flatMap((x) => [x.positions.buffer, x.normals.buffer, ...(x.indices ? [x.indices.buffer] : [])]);
+      const meshes = (res.meshes as { name: string; positions: Float32Array; normals: Float32Array; indices?: Uint32Array; triangles: number; featureIds?: Uint16Array; features?: string[] }[] | undefined) ?? [];
+      // Feature ids name the labeled feature of each triangle, for region selection.
+      const out = meshes.map((x) => ({ name: x.name, positions: x.positions, normals: x.normals, indices: x.indices, triangles: x.triangles, featureIds: x.featureIds, features: x.features }));
+      const transfer = out.flatMap((x) => [x.positions.buffer, x.normals.buffer, ...(x.indices ? [x.indices.buffer] : []), ...(x.featureIds ? [x.featureIds.buffer] : [])]);
       reply({ type: 'meshes', reqId: req.reqId, meshes: out, ms: Math.round(performance.now() - t0), superseded: res.type === 'superseded', warnings: res.warnings ?? [] }, transfer as Transferable[]);
     } else if (req.type === 'inspect') {
       const j = nextJob++;

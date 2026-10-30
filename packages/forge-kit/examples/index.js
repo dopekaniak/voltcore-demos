@@ -28,4 +28,11 @@ export const STARTERS = [
     keywords: ['tray', 'fillet', 'filleted', 'rounded', 'desk', 'organizer', 'dish'],
     examplePrompt: 'a desk tray 120 by 80 mm with 10 mm rounded corners',
   },
+  {
+    key: 'fan-bracket',
+    title: 'Fan bracket',
+    summary: 'Plate for a square case fan with an upright mounting flange.',
+    keywords: ['fan', 'bracket', 'mount', 'cooling', 'blower'],
+    examplePrompt: 'a bracket for a 60 mm fan',
+  },
 ];

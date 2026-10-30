@@ -4,13 +4,14 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { clampMessage, extractSchema, toPartParams, validateParams, type ForgeCheck, type ParamSchema, type ParamValues } from '@sw/forge-kit/browser';
 import { Alert, Badge, Button, Dialog } from '@sw/ui';
-import type { ViewerMesh } from '@sw/ui';
+import type { ViewerHit, ViewerMesh } from '@sw/ui';
 import { api, ApiError, downloadBytes, followJob, type Job } from '@/lib/api';
 import { downloadFile } from '@/lib/files';
 import { useForgeRuntime } from '@/lib/forge-runtime';
 import { t } from '@/lib/messages';
 import { useSession } from '@/lib/session';
 import { ChecksPanel } from './ChecksPanel';
+import { CopilotPanel } from './CopilotPanel';
 import { ParamPanel } from './ParamPanel';
 
 // three.js is heavy; load the viewer only on the client, on demand.
@@ -55,6 +56,9 @@ export function ForgeWorkbench(p: WorkbenchProps) {
   const [notice, setNotice] = useState<{ tone: 'pass' | 'fail' | 'info'; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const seq = useRef(0);
+  const [selectMode, setSelectMode] = useState(false);
+  const [hits, setHits] = useState<ViewerHit[] | null>(null);
+  const [targetFeature, setTargetFeature] = useState<string | null>(null);
 
   // Initial values once the schema is known.
   useEffect(() => {
@@ -184,7 +188,15 @@ export function ForgeWorkbench(p: WorkbenchProps) {
             ) : null}
           </div>
         </div>
-        <ModelViewer meshes={meshes} busy={busy && meshes !== undefined} className="h-[52vh] min-h-[320px]" label={`${p.title} preview`} />
+        <ModelViewer
+          meshes={meshes}
+          busy={busy && meshes !== undefined}
+          className="h-[52vh] min-h-[320px]"
+          label={`${p.title} preview`}
+          selectMode={selectMode}
+          onSelect={(h) => setHits(h)}
+          highlightFeature={targetFeature}
+        />
         {runtime.status === 'starting' ? <p className="text-sm text-[var(--sw-text-muted)]">{t.forge.runtimeLoading}</p> : null}
         {runtime.status === 'error' ? <Alert tone="fail" title={t.forge.buildError}>{runtime.error}</Alert> : null}
         {buildError ? <Alert tone="fail" title={t.forge.buildError}>{buildError}</Alert> : null}
@@ -209,6 +221,9 @@ export function ForgeWorkbench(p: WorkbenchProps) {
       </div>
       <aside className="space-y-6">
         {schema && values ? <ParamPanel schema={schema} values={values} onChange={onParam} clampNotes={clampNotes} /> : <p className="text-sm text-[var(--sw-text-muted)]">{t.common.loading}</p>}
+        {p.forgeId ? (
+          <CopilotPanel forgeId={p.forgeId} versionId={p.versionId} selectMode={selectMode} onSelectMode={setSelectMode} hits={hits} onTarget={setTargetFeature} />
+        ) : null}
         <ChecksPanel checks={checks} busy={busy} />
         <div className="space-y-2">
           {failing.length ? (

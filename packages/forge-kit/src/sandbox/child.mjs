@@ -42,6 +42,7 @@ async function loadPart(code) {
   const mod = await import(url);
   const part = mod.default;
   if (!part || typeof part !== 'object' || !part.parts) throw Object.assign(new Error('the model does not export a part definition'), { code: 'FORGE_CONTRACT' });
+  if (mod.features && typeof mod.features === 'object') Object.defineProperty(part, '__swFeatures', { value: mod.features, enumerable: false });
   return part;
 }
 
@@ -69,7 +70,7 @@ async function run(msg) {
     const first = lint.errors[0];
     throw Object.assign(new Error(`${first.rule}: ${first.message} ${first.hint}`), { code: 'FORGE_LINT', details: lint.errors.slice(0, 5) });
   }
-  const { inspectPart, defaultView } = await import('../runtime/inspect.js');
+  const { inspectPart, defaultView, featureBoxes } = await import('../runtime/inspect.js');
   const view = defaultView(part);
   const params = { ...(part.defaults ?? {}), ...(msg.params ?? {}) };
 
@@ -93,6 +94,7 @@ async function run(msg) {
     report,
     warnings: lint.warnings.slice(0, 10).map((w) => `${w.rule}: ${w.message}`),
   };
+  if (msg.featureParts && part.__swFeatures) out.features = featureBoxes(k, part, part.__swFeatures, msg.featureParts, params);
   if (msg.stl) out.stl = toB64(await exportWith(k, part, view, params, 'stl'));
   if (msg.thumbnail) {
     const imgs = await renderViewImages(k, part, view, { views: ['iso'], size: [480, 360], params, supersample: 1 });

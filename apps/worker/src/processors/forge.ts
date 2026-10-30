@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { claimJob, failJob, forgeState, jobProgress, succeedJob, type Prisma, type Tx } from '@sw/db';
 import { buildAuthorContext, runSandboxed, SandboxError, starterCode, type BuildOutput } from '@sw/forge-kit/node';
 import { STARTERS } from '@sw/forge-kit';
-import { DEFAULT_PROFILE, extractSchema, injectRelief, toPartParams, validateParams } from '@sw/forge-kit';
+import { analyzeFeatures, DEFAULT_PROFILE, extractSchema, injectRelief, toPartParams, validateParams } from '@sw/forge-kit';
 import { newId } from '@sw/shared';
 import type { WorkerContext } from '../context';
 
@@ -18,6 +18,24 @@ interface ForgeBuildInput {
   base_version_id?: string;
   params?: Record<string, unknown>;
   mode?: 'version' | 'fork';
+}
+
+/** Record the named-feature map of a version (ADR-038): source ranges and view bounds. */
+export async function writeFeatures(tx: Tx, assetVersionId: string, code: string, build: BuildOutput): Promise<void> {
+  const a = analyzeFeatures(code);
+  if (!a.featured) return;
+  const boxes = new Map((build.features ?? []).map((f) => [f.key, f.bbox]));
+  await tx.forgeFeature.createMany({
+    data: a.features.map((f) => ({
+      assetVersionId,
+      featureKey: f.key,
+      part: f.part,
+      codeRange: f.range,
+      bboxMm: (boxes.get(f.key) ?? null) as Prisma.InputJsonValue,
+      params: f.params,
+      derived: f.derived,
+    })),
+  });
 }
 
 function titleFrom(prompt: string, fallback: string): string {
@@ -83,6 +101,13 @@ export async function processForgeBuild(ctx: WorkerContext, jobId: string): Prom
       break;
     }
     await forgeState(ctx.db, job, 'STATIC_CHECK');
+    // Authored forges must declare named features (ADR-038); a miss goes to the repair attempt.
+    const fa = analyzeFeatures(code);
+    if (!fa.featured) {
+      lastError = `FORGE_CONTRACT: ${fa.issues.slice(0, 3).join('; ')}`;
+      previous = { code, error: lastError };
+      continue;
+    }
     let build: BuildOutput;
     try {
       await forgeState(ctx.db, job, 'BUILDING');
@@ -136,6 +161,7 @@ export async function processForgeBuild(ctx: WorkerContext, jobId: string): Prom
           buildState: 'READY',
         },
       });
+      await writeFeatures(tx, version.id, code, build);
       const prefix = `assets/${asset.id}/${version.id}`;
       if (build.stl) await storeFile(ctx, tx, { ownerId: j.ownerId, assetVersionId: version.id, role: 'PREVIEW_MESH', body: build.stl, contentType: 'model/stl', filename: 'preview.stl', keyPrefix: prefix, ext: 'stl' });
       if (build.thumbnail) await storeFile(ctx, tx, { ownerId: j.ownerId, assetVersionId: version.id, role: 'THUMBNAIL', body: build.thumbnail, contentType: 'image/png', filename: 'thumbnail.png', keyPrefix: prefix, ext: 'png' });
@@ -267,6 +293,7 @@ async function rebuildVersion(ctx: WorkerContext, job: ClaimedJob, input: ForgeB
         buildState: 'READY',
       },
     });
+    await writeFeatures(tx, version.id, src.code, build);
     const prefix = `assets/${assetId}/${version.id}`;
     if (build.stl) await storeFile(ctx, tx, { ownerId: j.ownerId, assetVersionId: version.id, role: 'PREVIEW_MESH', body: build.stl, contentType: 'model/stl', filename: 'preview.stl', keyPrefix: prefix, ext: 'stl' });
     if (build.thumbnail) await storeFile(ctx, tx, { ownerId: j.ownerId, assetVersionId: version.id, role: 'THUMBNAIL', body: build.thumbnail, contentType: 'image/png', filename: 'thumbnail.png', keyPrefix: prefix, ext: 'png' });

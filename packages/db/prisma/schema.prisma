@@ -428,6 +428,7 @@ model AssetVersion {
   asset           Asset        @relation(fields: [assetId], references: [id], onDelete: Cascade)
   files           AssetFile[]
   forgeSource     ForgeSource?
+  forgeFeatures   ForgeFeature[]
 
   @@unique([assetId, number])
   @@map("asset_versions")
@@ -492,6 +493,25 @@ model ForgeSource {
   assetVersion   AssetVersion    @relation(fields: [assetVersionId], references: [id], onDelete: Cascade)
 
   @@map("forge_sources")
+}
+
+/// A named feature of a forge version (Module 6, ADR-038), written by the build step.
+model ForgeFeature {
+  id             String       @id @default(uuid(7)) @db.Uuid
+  assetVersionId String       @map("asset_version_id") @db.Uuid
+  featureKey     String       @map("feature_key")
+  part           String?
+  /// [start, end] source offsets of the feature's builder in the version's code.
+  codeRange      Json         @map("code_range")
+  /// View-frame bounds in mm at the version's params; null when the feature is off.
+  bboxMm         Json?        @map("bbox_mm")
+  params         String[]
+  derived        String[]
+  createdAt      DateTime     @default(now()) @map("created_at")
+  assetVersion   AssetVersion @relation(fields: [assetVersionId], references: [id], onDelete: Cascade)
+
+  @@unique([assetVersionId, featureKey])
+  @@map("forge_features")
 }
 
 // ───────────────────────────── Jobs ─────────────────────────────

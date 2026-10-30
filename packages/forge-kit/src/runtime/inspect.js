@@ -1,6 +1,7 @@
 // Shared forge runtime helpers. Plain JavaScript so the sandboxed Node child process and
 // the browser Web Worker load the exact same code with no build step. DOM-free, node:-free.
 import { measure as pfMeasure, verify as pfVerify } from 'partforge/oracle';
+import { resolveDerived } from 'partforge/derive';
 
 /** DFM profiles (ADR-007). The partforge `process` object is applied on top of the part's verify block. */
 export const DFM_PROFILES = {
@@ -218,6 +219,33 @@ export function mergeBinaryStl(buffers) {
     const n = new DataView(b.buffer, b.byteOffset, b.byteLength).getUint32(80, true);
     out.set(b.subarray(84, 84 + n * 50), off);
     off += n * 50;
+  }
+  return out;
+}
+
+/**
+ * View-frame bounds of each named feature at the given params (ADR-038). A builder that
+ * returns null (the feature is switched off) gets null bounds. The sub-part's view
+ * placement is applied, so the bounds line up with the meshes the viewer shows.
+ */
+export function featureBoxes(kernel, part, features, featureParts, params = {}) {
+  const view = defaultView(part);
+  const p = { ...(part.defaults ?? {}), ...params };
+  const d = resolveDerived(part, p);
+  const out = [];
+  for (const [key, fn] of Object.entries(features ?? {})) {
+    if (typeof fn !== 'function') continue;
+    let solid = fn(kernel, p, d);
+    if (!solid) {
+      out.push({ key, part: featureParts?.[key] ?? null, bbox: null });
+      continue;
+    }
+    const sub = featureParts?.[key] ? part.parts?.[featureParts[key]] : null;
+    const place = sub && !Array.isArray(sub.views) ? sub.views?.[view] : null;
+    if (typeof place === 'function') solid = place(solid, p, d);
+    const b = solid.boundingBox();
+    const r3 = (n) => Math.round(n * 1000) / 1000;
+    out.push({ key, part: featureParts?.[key] ?? null, bbox: { min: b.min.map(r3), max: b.max.map(r3) } });
   }
   return out;
 }

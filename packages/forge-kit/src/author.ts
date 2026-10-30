@@ -35,7 +35,11 @@ export const CONTRACT_TEXT = `A model file default-exports a partforge PartDefin
   derive?: (p) => d, parts: { name: { build: (k, p, d) => Solid, views: { view: true } } },
   views: { name: { label } }, verify?: { process, expect } }.
 Imports are limited to partforge/geometry and partforge/derive. Build at the origin, flat on
-the bed (z = 0), in millimetres. Every control key must exist in defaults.`;
+the bed (z = 0), in millimetres. Every control key must exist in defaults.
+Named features are required: \`export const features = { key: (k, p, d) => solid.label('key') }\`
+with lower_snake_case keys, one builder per feature a person would name (wall, rim, lid_snap),
+each labeling its own solid with its key; the parts' build functions compose them through
+\`features.key(k, p, d)\`. A builder may return null when its feature is switched off.`;
 
 export const SCHEMA_RULES = `Controls: slider/number (min, max, step, unit), checkbox (on), select/radio (options),
 text. Every numeric control has min and max. Out-of-range values are clamped by the platform.`;
@@ -85,6 +89,11 @@ const HINTS: Record<string, [RegExp, string][]> = {
     [rx(`${NUM} (?:tall|high)`), 'height'],
     [rx(`${NUM} walls?`), 'wall'],
     [rx(String.raw`(\d+) drainage holes?`), 'holes'],
+  ],
+  'fan-bracket': [
+    [rx(`${NUM} (?:case )?fan`), 'fan'],
+    [rx(`${NUM} (?:screw )?holes?`), 'screw'],
+    [rx(`${NUM} (?:thick )?plate`), 'plate'],
   ],
   'filleted-box': [
     [rx(`${NUM} by \\d+(?:\\.\\d+)?\\s*mm`), 'w'],
