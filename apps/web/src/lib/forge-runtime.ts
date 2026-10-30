@@ -105,8 +105,8 @@ export function useForgeRuntime(code: string | null) {
       const m = await send({ type: 'build', params });
       return { meshes: (m.meshes as ViewerMesh[]) ?? [], superseded: Boolean(m.superseded), ms: Number(m.ms ?? 0) };
     },
-    async inspect(params: Record<string, unknown>): Promise<ForgeReport> {
-      return (await send({ type: 'inspect', params })).report as ForgeReport;
+    async inspect(params: Record<string, unknown>, profile?: Record<string, unknown> | null): Promise<ForgeReport> {
+      return (await send({ type: 'inspect', params, ...(profile ? { profile } : {}) })).report as ForgeReport;
     },
     async exportFile(format: 'stl' | '3mf', params: Record<string, unknown>): Promise<{ name: string; data: Uint8Array }[]> {
       return (await send({ type: 'export', format, params })).parts as { name: string; data: Uint8Array }[];

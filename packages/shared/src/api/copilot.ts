@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { defineRoute, idParam } from './route';
 import { jobSchema } from './jobs';
-import { forgeCheckSchema } from './forge';
+import { dimensionSchema, forgeCheckSchema, printerSchema } from './forge';
 
 const vec3 = z.tuple([z.number().finite(), z.number().finite(), z.number().finite()]);
 
@@ -22,7 +22,7 @@ export const listForgeFeatures = defineRoute({
   auth: 'optional',
   params: idParam,
   query: z.object({ version: z.string().optional() }),
-  response: z.object({ featured: z.boolean(), edit_cost: z.number().int(), data: z.array(forgeFeatureSchema) }),
+  response: z.object({ featured: z.boolean(), edit_cost: z.number().int(), photo_calibration: z.boolean(), data: z.array(forgeFeatureSchema) }),
 });
 
 export const selectionHitSchema = z.object({ feature: z.string().max(40).nullable().optional(), point: vec3 });
@@ -119,4 +119,89 @@ export const rejectCopilotEdit = defineRoute({
   scope: 'forge:write',
   params: idParam,
   response: z.object({ edit: copilotEditSchema }),
+});
+
+// ───────────── Printer profiles ─────────────
+
+export const listPrinterProfiles = defineRoute({ method: 'GET', path: '/v1/printer-profiles', summary: 'Printer profiles (generic default first)', tag: 'copilot', auth: 'none', response: z.object({ data: z.array(printerSchema) }) });
+
+export const setForgePrinterProfile = defineRoute({
+  method: 'PUT',
+  path: '/v1/forges/:id/printer-profile',
+  summary: 'Choose the printer profile that drives this forge’s checks (generic takes a bed size)',
+  tag: 'copilot',
+  auth: 'user',
+  scope: 'forge:write',
+  params: idParam,
+  body: z.object({ profile_id: z.string(), bed_mm: z.tuple([z.number().min(20).max(2000), z.number().min(20).max(2000), z.number().min(20).max(2000)]).optional() }),
+  response: z.object({ printer: printerSchema }),
+});
+
+// ───────────── Dimensions and photo calibration ─────────────
+
+export const confirmDimensions = defineRoute({
+  method: 'POST',
+  path: '/v1/forges/:id/dimensions/confirm',
+  summary: 'Confirm assumed dimensions (required before export)',
+  tag: 'copilot',
+  auth: 'user',
+  scope: 'forge:write',
+  params: idParam,
+  body: z.object({ version_id: z.string().optional(), keys: z.array(z.string()).max(100).optional() }),
+  response: z.object({ dimensions: z.record(z.string(), dimensionSchema) }),
+});
+
+const point = z.tuple([z.number().finite(), z.number().finite()]);
+const line = z.tuple([point, point]);
+
+export const calibrationSchema = z.object({
+  id: z.string(),
+  photo_upload_id: z.string(),
+  line_px: line,
+  real_length_mm: z.number(),
+  mm_per_px: z.number(),
+  image: z.object({ width: z.number().int(), height: z.number().int() }),
+  source: z.literal('USER_MEASURED'),
+  created_at: z.string(),
+});
+
+export const createCalibration = defineRoute({
+  method: 'POST',
+  path: '/v1/calibrations',
+  summary: 'Calibrate a photo: a line across a known edge and its real length in mm',
+  tag: 'copilot',
+  auth: 'user',
+  status: 201,
+  body: z.object({ photo_upload_id: z.string(), line_px: line, real_length_mm: z.number() }),
+  response: calibrationSchema,
+});
+
+export const getCalibration = defineRoute({ method: 'GET', path: '/v1/calibrations/:id', summary: 'A calibration', tag: 'copilot', auth: 'user', params: idParam, response: calibrationSchema });
+
+export const updateCalibration = defineRoute({
+  method: 'PATCH',
+  path: '/v1/calibrations/:id',
+  summary: 'Change a calibration; measured dimensions that use it are updated and marked for rebuild',
+  tag: 'copilot',
+  auth: 'user',
+  params: idParam,
+  body: z.object({ real_length_mm: z.number(), line_px: line.optional() }),
+  response: z.object({
+    calibration: calibrationSchema,
+    affected: z.array(z.object({ forge_id: z.string(), version_id: z.string(), key: z.string(), from_mm: z.number(), to_mm: z.number(), needs_rebuild: z.array(z.string()) })),
+  }),
+});
+
+export const createMeasurement = defineRoute({
+  method: 'POST',
+  path: '/v1/forges/:id/measurements',
+  summary: 'Set a dimension from a line measured on a calibrated photo; saves a new version',
+  tag: 'copilot',
+  auth: 'user',
+  scope: 'forge:write',
+  idempotent: true,
+  status: 202,
+  params: idParam,
+  body: z.object({ key: z.string(), line_px: line, calibration_id: z.string().optional(), version_id: z.string().optional() }),
+  response: z.object({ key: z.string(), value_mm: z.number(), source: z.literal('measured'), calibration_id: z.string(), job: jobSchema }),
 });

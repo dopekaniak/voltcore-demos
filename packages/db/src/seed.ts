@@ -2,7 +2,7 @@ import { PRICING_CONFIGS } from '@sw/pricing';
 import { createDb } from './index';
 import { readFileSync } from 'node:fs';
 import { CUSTOMIZERS } from '@sw/forge-kit/customizers';
-import { extractSchema } from '@sw/forge-kit';
+import { extractSchema, PRINTER_PROFILES } from '@sw/forge-kit';
 import { CREDIT_PACKS, CUSTOMIZER_POLICY, FORGE_COSTS, GENERATION_MODELS, LICENSES, MATERIALS, PARTNERS, PLANS } from './seed-data';
 
 /** Idempotent seed: safe to run repeatedly. */
@@ -58,6 +58,22 @@ export async function seed(url?: string): Promise<void> {
       };
       await db.customizer.upsert({ where: { key: c.key }, update: data, create: { key: c.key, ...data } });
     }
+    for (const p of PRINTER_PROFILES) {
+      const data = {
+        name: p.name,
+        bedMm: p.bed_mm,
+        nozzleMm: p.nozzle_mm,
+        validatedMaterials: p.validated_materials,
+        overhangDefaultDeg: p.overhang_default_deg,
+        wallMinMm: p.wall_min_mm,
+        sourceUrl: p.source_url,
+        retrievedOn: p.retrieved_on ? new Date(`${p.retrieved_on}T00:00:00Z`) : null,
+        isGeneric: p.is_generic,
+      };
+      await db.printerProfile.upsert({ where: { key: p.key }, update: data, create: { key: p.key, ...data } });
+    }
+    // Photo calibration opens to users only with the image content policy in place (M6-F).
+    await db.featureFlag.upsert({ where: { key: 'copilot.photo_calibration' }, update: {}, create: { key: 'copilot.photo_calibration', enabled: false, data: {} } });
     await db.featureFlag.upsert({
       where: { key: 'forge.costs' },
       update: { data: FORGE_COSTS, enabled: true },

@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { as, makeTestApp, signIn } from '@sw/api/testing';
+import { readFileSync } from 'node:fs';
+import { as, makeTestApp, ORIGIN, signIn } from '@sw/api/testing';
 import { fromApiId } from '@sw/shared';
 import { fsStorage } from '@sw/storage';
 import { dispatchForge } from '../src/dispatch';
@@ -57,6 +58,10 @@ describe('named features and region selection (M6-A)', () => {
     expect(ids.some((x: string) => x.startsWith('min-wall:'))).toBe(true);
     const feats = (await call('GET', `/v1/forges/${id}/features`)).json();
     expect(feats.data.map((f: { key: string }) => f.key)).toEqual(['plate', 'opening', 'fan_holes', 'flange', 'flange_holes']);
+    expect(forge.source.dimensions.fan).toEqual({ source: 'given' });
+    expect(forge.source.dimensions.flange_h).toEqual({ source: 'assumed', confirmed: false });
+    expect((await call('POST', `/v1/forges/${id}/exports`, { format: 'stl' }, { 'idempotency-key': key() })).json().error.code).toBe('DIMENSIONS_ASSUMED');
+    await call('POST', `/v1/forges/${id}/dimensions/confirm`, {});
     const exp = await call('POST', `/v1/forges/${id}/exports`, { format: 'stl' }, { 'idempotency-key': key() });
     await run(exp.json().job.id);
     expect((await call('GET', `/v1/jobs/${exp.json().job.id}`)).json().output.file_id).toMatch(/^fil_/);
@@ -224,5 +229,104 @@ describe('copilot edits (M6-B)', () => {
     expect((await as(t, b.cookie)('GET', `/v1/copilot-edits/${eid}`)).statusCode).toBe(404);
     expect((await as(t, b.cookie)('POST', `/v1/copilot-edits/${eid}/accept`, undefined, { 'idempotency-key': key() })).statusCode).toBe(404);
     expect((await as(t, b.cookie)('POST', `/v1/copilot-edits/${eid}/reject`)).statusCode).toBe(404);
+  });
+});
+
+describe('photo calibration, dimension sources, and printer profiles (M6-C)', () => {
+  const photo = readFileSync(new URL('./fixtures/fan-photo.jpg', import.meta.url));
+  async function uploadPhoto(cookie: string) {
+    const res = await t.app.inject({ method: 'POST', url: '/v1/uploads', headers: { origin: ORIGIN, cookie }, payload: { filename: 'fan.jpg', content_type: 'image/jpeg', bytes: photo.length, purpose: 'image' } });
+    const created = res.json();
+    const u = new URL(created.put.url);
+    await t.app.inject({ method: 'PUT', url: u.pathname.replace(/^\/api/, '') + u.search, headers: { 'content-type': 'image/jpeg' }, payload: photo });
+    const done = await t.app.inject({ method: 'POST', url: `/v1/uploads/${created.upload.id}/complete`, headers: { origin: ORIGIN, cookie } });
+    return { id: created.upload.id as string, done: done.json() };
+  }
+  const setFlag = (enabled: boolean) => w.db.featureFlag.update({ where: { key: 'copilot.photo_calibration' }, data: { enabled } });
+  const SQUARE: [[number, number], [number, number]] = [[150, 50], [450, 50]]; // 300 px
+
+  it('image uploads lose their EXIF (camera, GPS) and record the pixel size', async () => {
+    const s = await signIn(t);
+    const up = await uploadPhoto(s.cookie);
+    expect(up.done.analysis).toMatchObject({ width: 600, height: 400 });
+    expect(up.done.analysis.metadata_removed).toBeGreaterThan(0);
+    const row = await w.db.upload.findUnique({ where: { id: fromApiId('upload', up.id)! } });
+    const stored = await w.storage.get(row!.storageKey);
+    expect(stored.includes(Buffer.from('Exif'))).toBe(false);
+    expect(stored.includes(Buffer.from('TestCam'))).toBe(false);
+    expect(stored.subarray(0, 3)).toEqual(Buffer.from([0xff, 0xd8, 0xff]));
+  });
+
+  it('photo calibration stays off until the image policy is enabled', async () => {
+    await setFlag(false);
+    const s = await signIn(t);
+    const up = await uploadPhoto(s.cookie);
+    const r = await as(t, s.cookie)('POST', '/v1/calibrations', { photo_upload_id: up.id, line_px: SQUARE, real_length_mm: 60 });
+    expect(r.statusCode).toBe(403);
+    expect(r.json().error.code).toBe('FEATURE_DISABLED');
+  });
+
+  it('a 60 mm reference edge gives a measured 60 mm dimension; recalibrating to 58 mm updates it and marks dependents for rebuild', async () => {
+    await setFlag(true);
+    const s = await signIn(t);
+    const call = as(t, s.cookie);
+    const id = await newForge(s.cookie, 'fan-bracket');
+    const up = await uploadPhoto(s.cookie);
+    const bad = await call('POST', '/v1/calibrations', { photo_upload_id: up.id, line_px: [[10, 10], [10, 10]], real_length_mm: 60 });
+    expect(bad.statusCode).toBe(422);
+    expect(bad.json().error.code).toBe('CALIBRATION_INVALID');
+    const outside = await call('POST', '/v1/calibrations', { photo_upload_id: up.id, line_px: [[10, 10], [900, 10]], real_length_mm: 60 });
+    expect(outside.json().error.code).toBe('CALIBRATION_INVALID');
+
+    const cal = await call('POST', '/v1/calibrations', { photo_upload_id: up.id, line_px: SQUARE, real_length_mm: 60 });
+    expect(cal.statusCode).toBe(201);
+    expect(cal.json()).toMatchObject({ mm_per_px: 0.2, source: 'USER_MEASURED' });
+
+    const noCal = await call('POST', `/v1/forges/${id}/measurements`, { key: 'fan', line_px: SQUARE }, { 'idempotency-key': key() });
+    expect(noCal.statusCode).toBe(409);
+    expect(noCal.json().error.code).toBe('CALIBRATION_REQUIRED');
+
+    // Measure the frame at 80 % of the reference: 48 mm; then the full edge: 60 mm.
+    const m1 = await call('POST', `/v1/forges/${id}/measurements`, { key: 'fan', line_px: [[150, 50], [390, 50]], calibration_id: cal.json().id }, { 'idempotency-key': key() });
+    expect(m1.json()).toMatchObject({ value_mm: 48, source: 'measured' });
+    await run(m1.json().job.id);
+    const m2 = await call('POST', `/v1/forges/${id}/measurements`, { key: 'fan', line_px: SQUARE, calibration_id: cal.json().id }, { 'idempotency-key': key() });
+    expect(m2.json().value_mm).toBe(60);
+    await run(m2.json().job.id);
+    const v3 = (await call('GET', `/v1/forges/${id}`)).json();
+    expect(v3.version.number).toBe(3);
+    expect(v3.version.params.fan).toBe(60);
+    expect(v3.source.dimensions.fan).toMatchObject({ source: 'measured', calibration_id: cal.json().id, value_mm: 60 });
+    expect(v3.source.dimensions.plate).toEqual({ source: 'default' });
+
+    const re = await call('PATCH', `/v1/calibrations/${cal.json().id}`, { real_length_mm: 58 });
+    expect(re.statusCode).toBe(200);
+    expect(re.json().affected).toEqual([
+      expect.objectContaining({ forge_id: id, key: 'fan', from_mm: 60, to_mm: 58, needs_rebuild: expect.arrayContaining(['plate', 'opening', 'fan_holes', 'flange']) }),
+    ]);
+    const after = (await call('GET', `/v1/forges/${id}`)).json();
+    expect(after.source.dimensions.fan).toMatchObject({ source: 'measured', value_mm: 58, stale: true });
+    // Rebuilding at the new value keeps it measured.
+    const save = await call('POST', `/v1/forges/${id}/versions`, { params: { ...after.version.params, fan: 58 } }, { 'idempotency-key': key() });
+    await run(save.json().job.id);
+    const v4 = (await call('GET', `/v1/forges/${id}`)).json();
+    expect(v4.version.params.fan).toBe(58);
+    expect(v4.source.dimensions.fan).toEqual({ source: 'measured', calibration_id: cal.json().id, value_mm: 58 });
+  });
+
+  it('printer profiles: generic default first, named rows cite their source; a forge can switch', async () => {
+    const list = (await t.app.inject({ method: 'GET', url: '/v1/printer-profiles' })).json().data as { id: string; key: string; is_generic: boolean; source_url: string | null; bed_mm: number[] }[];
+    expect(list[0]!.is_generic).toBe(true);
+    for (const p of list.filter((x) => !x.is_generic)) expect(p.source_url).toMatch(/^https:/);
+    const s = await signIn(t);
+    const call = as(t, s.cookie);
+    const id = await newForge(s.cookie);
+    expect((await call('GET', `/v1/forges/${id}`)).json().printer.key).toBe('generic-fdm');
+    const mini = list.find((p) => p.key === 'prusa-mini-plus')!;
+    const r = await call('PUT', `/v1/forges/${id}/printer-profile`, { profile_id: mini.id });
+    expect(r.json().printer.bed_mm).toEqual([180, 180, 180]);
+    expect((await call('PUT', `/v1/forges/${id}/printer-profile`, { profile_id: mini.id, bed_mm: [300, 300, 300] })).statusCode).toBe(400);
+    const g = await call('PUT', `/v1/forges/${id}/printer-profile`, { profile_id: list[0]!.id, bed_mm: [300, 250, 200] });
+    expect(g.json().printer.bed_mm).toEqual([300, 250, 200]);
   });
 });

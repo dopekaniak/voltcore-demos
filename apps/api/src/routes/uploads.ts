@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { AppError, newId, uploadsApi } from '@sw/shared';
+import { AppError, imageInfo, stripImageMetadata, newId, uploadsApi } from '@sw/shared';
 import { MeshServiceError, sha256Hex } from '@sw/shared/node';
 import { verifyFsUrl, type fsStorage } from '@sw/storage';
 import type { AppContext } from '../context';
@@ -71,9 +71,18 @@ export function uploadRoutes(app: FastifyInstance, ctx: AppContext): void {
     const body = await ctx.storage.get(u.storageKey);
     let analysis: Record<string, unknown> | null = null;
     const ext = u.filename.toLowerCase().split('.').pop()!;
+    let clean: Buffer = body;
+    let dims: { imageWidth: number; imageHeight: number } | null = null;
     if (u.purpose === 'IMAGE') {
       const kind = imageKind(body);
       if (!kind || (kind === 'jpg' ? !['jpg', 'jpeg'].includes(ext) : kind !== ext)) await reject('the file contents are not the image type its name says');
+      // Strip EXIF/XMP/IPTC (location, camera, names) before the image is used anywhere.
+      const stripped = stripImageMetadata(body);
+      clean = Buffer.from(stripped.data.buffer, stripped.data.byteOffset, stripped.data.byteLength);
+      const info = imageInfo(clean);
+      if (!info || info.width < 1 || info.height < 1 || info.width * info.height > 40_000_000) await reject('the image size could not be read or is too large');
+      dims = { imageWidth: info!.width, imageHeight: info!.height };
+      analysis = { width: info!.width, height: info!.height, metadata_removed: stripped.removed };
     } else {
       try {
         analysis = (await ctx.mesh.analyze(body, ext as 'stl' | 'obj' | '3mf')) as unknown as Record<string, unknown>;
@@ -83,8 +92,13 @@ export function uploadRoutes(app: FastifyInstance, ctx: AppContext): void {
       }
     }
     const cleanKey = u.storageKey.replace(/^quarantine\//, 'files/');
-    await ctx.storage.move(u.storageKey, cleanKey);
-    const done = await ctx.db.upload.update({ where: { id }, data: { status: 'CLEAN', storageKey: cleanKey, sha256: sha256Hex(body) } });
+    if (clean !== body) {
+      await ctx.storage.put(cleanKey, clean, u.contentType);
+      await ctx.storage.delete(u.storageKey).catch(() => undefined);
+    } else {
+      await ctx.storage.move(u.storageKey, cleanKey);
+    }
+    const done = await ctx.db.upload.update({ where: { id }, data: { status: 'CLEAN', storageKey: cleanKey, sha256: sha256Hex(clean), bytes: clean.length, ...(dims ?? {}) } });
     return { upload: serializeUpload(done), analysis };
   });
 

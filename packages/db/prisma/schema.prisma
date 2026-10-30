@@ -389,6 +389,9 @@ model Asset {
   license          String     @default("ALL-RIGHTS-RESERVED")
   currentVersionId String?    @map("current_version_id") @db.Uuid
   forkedFromId     String?    @map("forked_from_id") @db.Uuid
+  /// Forges: the active printer profile and, for the generic profile, the entered bed size.
+  printerProfileId String?    @map("printer_profile_id") @db.Uuid
+  printerBedMm     Json?      @map("printer_bed_mm")
   deletedAt        DateTime?  @map("deleted_at")
   createdAt        DateTime   @default(now()) @map("created_at")
   updatedAt        DateTime   @updatedAt @map("updated_at")
@@ -488,6 +491,8 @@ model ForgeSource {
   templateKey    String?         @map("template_key")
   dfmProfile     String          @map("dfm_profile")
   checks         Json?
+  /// Where each millimetre dimension came from: given, assumed (needs confirming), or measured.
+  dimensions     Json?
   buildState     ForgeBuildState @default(DRAFT) @map("build_state")
   error          String?
   createdAt      DateTime        @default(now()) @map("created_at")
@@ -513,6 +518,42 @@ model ForgeFeature {
 
   @@unique([assetVersionId, featureKey])
   @@map("forge_features")
+}
+
+/// Printer profile (Module 6, section 4). Named rows cite the manufacturer's spec page.
+model PrinterProfile {
+  id                 String    @id @default(uuid(7)) @db.Uuid
+  key                String    @unique
+  name               String
+  bedMm              Json      @map("bed_mm")
+  nozzleMm           Float     @map("nozzle_mm")
+  validatedMaterials String[]  @map("validated_materials")
+  overhangDefaultDeg Float     @map("overhang_default_deg")
+  wallMinMm          Float     @map("wall_min_mm")
+  sourceUrl          String?   @map("source_url")
+  retrievedOn        DateTime? @map("retrieved_on") @db.Date
+  isGeneric          Boolean   @default(false) @map("is_generic")
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  @@map("printer_profiles")
+}
+
+/// Photo calibration: a line across a known edge and its real length (USER_MEASURED).
+model Calibration {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  ownerId       String   @map("owner_id") @db.Uuid
+  photoUploadId String   @map("photo_upload_id") @db.Uuid
+  linePx        Json     @map("line_px")
+  realLengthMm  Float    @map("real_length_mm")
+  mmPerPx       Float    @map("mm_per_px")
+  imageWidth    Int      @map("image_width")
+  imageHeight   Int      @map("image_height")
+  source        String   @default("USER_MEASURED")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([ownerId, createdAt])
+  @@map("calibrations")
 }
 
 enum CopilotEditStatus {
@@ -687,6 +728,9 @@ model Upload {
   status       UploadStatus  @default(PENDING)
   rejectReason String?       @map("reject_reason")
   sha256       String?
+  /// Images: pixel size, read from the header after metadata is stripped.
+  imageWidth   Int?          @map("image_width")
+  imageHeight  Int?          @map("image_height")
   expiresAt    DateTime      @map("expires_at")
   createdAt    DateTime      @default(now()) @map("created_at")
   owner        User?         @relation(fields: [ownerId], references: [id], onDelete: Cascade)

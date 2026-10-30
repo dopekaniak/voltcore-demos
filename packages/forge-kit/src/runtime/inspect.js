@@ -43,7 +43,8 @@ export function subpartsFor(part, view, params) {
  * defaults are replaced by the resolved params and its presets are not expanded.
  */
 export function inspectPart(kernel, part, params = {}, profileKey = DEFAULT_PROFILE) {
-  const profile = DFM_PROFILES[profileKey] ?? DFM_PROFILES[DEFAULT_PROFILE];
+  // A profile key, or a profile object built from a printer profile (dfmFromPrinter).
+  const profile = profileKey && typeof profileKey === 'object' ? profileKey : (DFM_PROFILES[profileKey] ?? DFM_PROFILES[DEFAULT_PROFILE]);
   const view = defaultView(part);
   const resolved = { ...(part.defaults ?? {}), ...params };
   const atParams = {

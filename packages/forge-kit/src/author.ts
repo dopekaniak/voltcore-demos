@@ -18,6 +18,8 @@ export interface AuthorResult {
   code: string;
   templateKey?: string;
   notes: string[];
+  /** Parameters the author read from the description; every other mm size is assumed. */
+  given?: string[];
 }
 
 /** A copilot edit request (Module 6). With `feature`, only that builder may change. */
@@ -221,7 +223,7 @@ export class MockAuthor implements FormAuthor {
     } else if (ctx.previous) {
       notes.push('Repair attempt: returned the clean starter.');
     }
-    return { code, templateKey: key, notes };
+    return { code, templateKey: key, notes, given: Object.keys(hints) };
   }
 
   /**

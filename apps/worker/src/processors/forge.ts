@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { claimJob, credits, failJob, forgeState, jobProgress, succeedJob, type Prisma, type Tx } from '@sw/db';
 import { buildAuthorContext, runSandboxed, SandboxError, starterCode, type BuildOutput } from '@sw/forge-kit/node';
 import { STARTERS } from '@sw/forge-kit';
-import { analyzeFeatures, DEFAULT_PROFILE, extractSchema, injectRelief, toPartParams, validateParams } from '@sw/forge-kit';
+import { analyzeFeatures, initialDimensions, nextDimensions, type Dimensions, DEFAULT_PROFILE, extractSchema, injectRelief, toPartParams, validateParams } from '@sw/forge-kit';
 import { newId } from '@sw/shared';
 import type { WorkerContext } from '../context';
 import { proposeCopilotEdit } from './copilot';
@@ -22,6 +22,8 @@ interface ForgeBuildInput {
   /** Copilot: build a proposal for this edit, or save an accepted edit as a version. */
   copilot_edit_id?: string;
   accept_edit_id?: string;
+  /** Dimension sources to set on the new version (photo measurements). */
+  dimensions_patch?: Dimensions;
 }
 
 /** Record the named-feature map of a version (ADR-038): source ranges and view bounds. */
@@ -93,6 +95,7 @@ export async function processForgeBuild(ctx: WorkerContext, jobId: string): Prom
     let code: string;
     let templateKey: string | undefined;
     let notes: string[] = [];
+    let given: string[] = [];
     try {
       const starter = input.starter_key ? STARTERS.find((x) => x.key === input.starter_key) : undefined;
       const r = starter
@@ -101,6 +104,7 @@ export async function processForgeBuild(ctx: WorkerContext, jobId: string): Prom
       code = r.code;
       templateKey = r.templateKey;
       notes = r.notes;
+      given = 'given' in r && Array.isArray(r.given) ? r.given : [];
     } catch (e) {
       lastError = `Author error: ${(e as Error).message}`;
       break;
@@ -163,6 +167,7 @@ export async function processForgeBuild(ctx: WorkerContext, jobId: string): Prom
           templateKey: templateKey ?? null,
           dfmProfile: profile,
           checks: build.report.checks as unknown as Prisma.InputJsonValue,
+          dimensions: initialDimensions(schema, { authored: !input.starter_key, given }) as unknown as Prisma.InputJsonValue,
           buildState: 'READY',
         },
       });
@@ -310,6 +315,13 @@ async function rebuildVersion(ctx: WorkerContext, job: ClaimedJob, input: ForgeB
         templateKey: src.templateKey,
         dfmProfile: src.dfmProfile,
         checks: build.report.checks as unknown as Prisma.InputJsonValue,
+        dimensions: nextDimensions(
+          (src.dimensions as unknown as Dimensions | null) ?? {},
+          schema,
+          validateParams(schema, (base.params as Record<string, unknown>) ?? {}).values,
+          values,
+          input.dimensions_patch ?? {},
+        ) as unknown as Prisma.InputJsonValue,
         buildState: 'READY',
       },
     });

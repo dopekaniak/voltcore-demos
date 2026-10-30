@@ -2,10 +2,10 @@
 import { useParams, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { useEffect, useState } from 'react';
-import type { ParamSchema, ParamValues } from '@sw/forge-kit/browser';
+import type { Dimensions, ParamSchema, ParamValues } from '@sw/forge-kit/browser';
 import { Alert, Button, Spinner } from '@sw/ui';
 import { ForgeOwnerBar, type VersionInfo } from '@/components/ForgeOwnerBar';
-import { ForgeWorkbench } from '@/components/ForgeWorkbench';
+import { ForgeWorkbench, type Printer } from '@/components/ForgeWorkbench';
 import { api, type ApiError } from '@/lib/api';
 import { t } from '@/lib/messages';
 
@@ -17,7 +17,8 @@ interface Forge {
   visibility: string;
   forked_from: string | null;
   version: { id: string; number: number; params: ParamValues };
-  source: { code: string; schema: ParamSchema };
+  source: { code: string; schema: ParamSchema; dimensions: Dimensions };
+  printer: Printer;
 }
 
 export default function ForgePage() {
@@ -67,6 +68,10 @@ function ForgeView() {
       {...(forge.is_owner ? { forgeId: forge.id, assetId: forge.asset_id } : {})}
       versionId={forge.version.id}
       versionNumber={forge.version.number}
+      dimensions={forge.source.dimensions}
+      printer={forge.printer}
+      isOwner={forge.is_owner}
+      onReload={load}
     />
   );
 }

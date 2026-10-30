@@ -1,3 +1,4 @@
+import type { PrinterDto } from './dimensions';
 import { toApiId } from '@sw/shared';
 import type { ApiKey, CreditLedger, User, WebhookEndpoint } from '@sw/db';
 
@@ -105,10 +106,27 @@ export function serializeForgeVersion(v: AssetVersion & { forgeSource: ForgeSour
   };
 }
 
+/** Dimension sources for the API (photo line coordinates stay private to the owner's calibration). */
+function publicDimensions(d: unknown) {
+  const out: Record<string, { source: 'given' | 'default' | 'assumed' | 'user' | 'measured'; confirmed?: boolean; calibration_id?: string; value_mm?: number; stale?: boolean; needs_rebuild?: string[] }> = {};
+  for (const [k, v] of Object.entries((d ?? {}) as Record<string, Record<string, unknown>>)) {
+    out[k] = {
+      source: v.source as 'given',
+      ...(typeof v.confirmed === 'boolean' ? { confirmed: v.confirmed } : {}),
+      ...(typeof v.calibration_id === 'string' ? { calibration_id: toApiId('calibration', v.calibration_id) } : {}),
+      ...(typeof v.value_mm === 'number' ? { value_mm: v.value_mm } : {}),
+      ...(v.stale === true ? { stale: true } : {}),
+      ...(Array.isArray(v.needs_rebuild) ? { needs_rebuild: v.needs_rebuild as string[] } : {}),
+    };
+  }
+  return out;
+}
+
 export function serializeForge(
   a: Asset,
   v: AssetVersion & { forgeSource: ForgeSource | null; files: AssetFile[] },
   isOwner: boolean,
+  printer: PrinterDto,
 ) {
   const file = (role: AssetFile['role']) => {
     const f = v.files.find((x) => x.role === role);
@@ -123,7 +141,12 @@ export function serializeForge(
     is_owner: isOwner,
     forked_from: a.forkedFromId ? toApiId('forge', a.forkedFromId) : null,
     version: serializeForgeVersion(v),
-    source: { code: v.forgeSource?.code ?? '', schema: (v.forgeSource?.schema ?? {}) as Record<string, { type: 'number'; label: string }> },
+    source: {
+      code: v.forgeSource?.code ?? '',
+      schema: (v.forgeSource?.schema ?? {}) as Record<string, { type: 'number'; label: string }>,
+      dimensions: publicDimensions(v.forgeSource?.dimensions),
+    },
+    printer,
     files: { preview_mesh: file('PREVIEW_MESH'), thumbnail: file('THUMBNAIL') },
     created_at: a.createdAt.toISOString(),
   };

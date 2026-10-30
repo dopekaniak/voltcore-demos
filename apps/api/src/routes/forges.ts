@@ -7,6 +7,7 @@ import type { AppContext } from '../context';
 import { idOr404, ownedAsset, readableAsset } from '../lib/access';
 import { FORGE_BUILD_TIMEOUT_MS, FORGE_EXPORT_TIMEOUT_MS, forgeCosts } from '../lib/costs';
 import { requireUser, route } from '../lib/route';
+import { assertDimensionsConfirmed, printerFor } from '../lib/dimensions';
 import { serializeForge, serializeForgeVersion, serializeJob } from '../lib/serialize';
 
 export function forgeRoutes(app: FastifyInstance, ctx: AppContext): void {
@@ -52,7 +53,7 @@ export function forgeRoutes(app: FastifyInstance, ctx: AppContext): void {
 
   route(app, ctx, forgeApi.getForge, async ({ params, query }, req) => {
     const { asset, isOwner } = await readableAsset(ctx.db, req, idOr404('forge', params.id, 'Forge'), 'FORGE');
-    return serializeForge(asset, await loadVersion(asset.id, query.version), isOwner);
+    return serializeForge(asset, await loadVersion(asset.id, query.version), isOwner, await printerFor(ctx.db, asset));
   });
 
   route(app, ctx, forgeApi.saveForgeVersion, async ({ params, body, idempotencyKey }, req) => {
@@ -133,6 +134,7 @@ export function forgeRoutes(app: FastifyInstance, ctx: AppContext): void {
     const v = await loadVersion(asset.id, body.version_id);
     const schema = v.forgeSource!.schema as unknown as ParamSchema;
     const r = validateParams(schema, body.params);
+    assertDimensionsConfirmed(v.forgeSource!, validateParams(schema, (v.params as Record<string, unknown>) ?? {}).values, r.values);
     const costs = await forgeCosts(ctx.db);
     const { job } = await ctx.db.$transaction((tx) =>
       createJob(tx, {

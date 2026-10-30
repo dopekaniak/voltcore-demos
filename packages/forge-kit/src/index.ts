@@ -6,3 +6,6 @@ export { STARTERS } from '../examples/index.js';
 export * from './customizer';
 export * from './features';
 export * from './diff';
+export * from './calibration';
+export { PRINTER_PROFILES, dfmFromPrinter } from '../profiles/index.js';
+export * from './dimensions';

@@ -9,7 +9,8 @@
     "./node": "./src/sandbox/index.ts",
     "./examples": "./examples/index.js",
     "./browser/worker": "./src/browser/worker.ts",
-    "./customizers": "./customizers/index.js"
+    "./customizers": "./customizers/index.js",
+    "./profiles": "./profiles/index.js"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",

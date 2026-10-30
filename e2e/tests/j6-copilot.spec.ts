@@ -26,3 +26,20 @@ test('M6: describe a change to a selected feature, review the diff, and accept i
   await page.waitForURL(/version=ver_/, { timeout: 90_000 });
   await expect(page.getByTestId('bbox-readout')).toContainText(/108\.\d × 108\.\d/, { timeout: 60_000 });
 });
+
+test('M6: assumed sizes block export until confirmed', async ({ page }) => {
+  await signIn(page);
+  await forgeFromPrompt(page, 'a 40 mm cable clip for a 6 mm cable', { confirmSizes: false });
+  await expect(page.getByTestId('assumed-sizes')).toContainText('Wall');
+  await expect(page.getByTestId('export-stl')).toBeDisabled();
+  await page.getByTestId('confirm-sizes').click();
+  await expect(page.getByTestId('export-stl')).toBeEnabled();
+});
+
+test('M6: switching to a 180 mm printer re-runs bed fit', async ({ page }) => {
+  await signIn(page);
+  await forgeFromPrompt(page, 'a planter 200 mm across');
+  await expect(page.getByTestId('checks-list')).toContainText('the bed is 220 × 220 × 250 mm');
+  await page.getByTestId('printer-select').selectOption({ label: 'Original Prusa MINI+' });
+  await expect(page.getByTestId('checks-list')).toContainText('larger than the 180 × 180 × 180 mm bed', { timeout: 30_000 });
+});

@@ -2,7 +2,7 @@
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { clampMessage, extractSchema, toPartParams, validateParams, type ForgeCheck, type ParamSchema, type ParamValues } from '@sw/forge-kit/browser';
+import { clampMessage, dfmFromPrinter, extractSchema, toPartParams, unconfirmedAssumed, validateParams, type Dimensions, type ForgeCheck, type ParamSchema, type ParamValues } from '@sw/forge-kit/browser';
 import { Alert, Badge, Button, Dialog } from '@sw/ui';
 import type { ViewerHit, ViewerMesh } from '@sw/ui';
 import { api, ApiError, downloadBytes, followJob, type Job } from '@/lib/api';
@@ -12,10 +12,23 @@ import { t } from '@/lib/messages';
 import { useSession } from '@/lib/session';
 import { ChecksPanel } from './ChecksPanel';
 import { CopilotPanel } from './CopilotPanel';
+import { PrinterPanel } from './PrinterPanel';
+import { PhotoMeasure } from './PhotoMeasure';
 import { ParamPanel } from './ParamPanel';
 
 // three.js is heavy; load the viewer only on the client, on demand.
 const ModelViewer = dynamic(() => import('@sw/ui/viewer'), { ssr: false, loading: () => <div className="h-full w-full animate-pulse rounded-lg bg-[var(--sw-viewer-bg)]" /> });
+
+export interface Printer {
+  id: string;
+  key: string;
+  name: string;
+  bed_mm: number[];
+  nozzle_mm: number;
+  wall_min_mm: number;
+  overhang_deg: number;
+  is_generic: boolean;
+}
 
 export interface WorkbenchProps {
   title: string;
@@ -29,6 +42,10 @@ export interface WorkbenchProps {
   versionNumber?: number;
   starterKey?: string;
   stepCost?: number;
+  dimensions?: Dimensions;
+  printer?: Printer;
+  isOwner?: boolean;
+  onReload?: () => void;
   /** Rendered above the workbench; receives the current values. */
   header?: (values: ParamValues | null, dirty: boolean) => React.ReactNode;
 }
@@ -59,6 +76,10 @@ export function ForgeWorkbench(p: WorkbenchProps) {
   const [selectMode, setSelectMode] = useState(false);
   const [hits, setHits] = useState<ViewerHit[] | null>(null);
   const [targetFeature, setTargetFeature] = useState<string | null>(null);
+  const [printer, setPrinter] = useState<Printer | null>(p.printer ?? null);
+  const [dims, setDims] = useState<Dimensions>(p.dimensions ?? {});
+  const [confirming, setConfirming] = useState(false);
+  const dfm = useMemo(() => (printer ? dfmFromPrinter({ key: printer.key, name: printer.name, bed_mm: printer.bed_mm as [number, number, number], wall_min_mm: printer.wall_min_mm, overhang_default_deg: printer.overhang_deg, is_generic: false }) : null), [printer]);
 
   // Initial values once the schema is known.
   useEffect(() => {
@@ -74,7 +95,7 @@ export function ForgeWorkbench(p: WorkbenchProps) {
     const handle = setTimeout(async () => {
       const params = toPartParams(schema, values);
       try {
-        const [b, report] = await Promise.all([runtime.build(params), runtime.inspect(params)]);
+        const [b, report] = await Promise.all([runtime.build(params), runtime.inspect(params, dfm as unknown as Record<string, unknown> | null)]);
         if (my !== seq.current) return;
         if (!b.superseded) setMeshes(b.meshes);
         setChecks(report.checks);
@@ -87,7 +108,7 @@ export function ForgeWorkbench(p: WorkbenchProps) {
     }, 250);
     return () => clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [schema, values, runtime.status, runtime.generation]);
+  }, [schema, values, runtime.status, runtime.generation, dfm]);
 
   const onParam = useCallback(
     (key: string, raw: unknown) => {
@@ -103,7 +124,22 @@ export function ForgeWorkbench(p: WorkbenchProps) {
   );
 
   const failing = (checks ?? []).filter((c) => c.status === 'fail');
-  const canPrint = checks !== null && (failing.length === 0 || ack) && !busy && !buildError;
+  // Sizes the author assumed must be confirmed (or changed) before any export (Module 6 rule 2).
+  const assumed = values ? unconfirmedAssumed(dims, p.initialParams ?? {}, values) : [];
+  const canPrint = checks !== null && (failing.length === 0 || ack) && !busy && !buildError && assumed.length === 0;
+
+  async function confirmSizes() {
+    if (!p.forgeId) return;
+    setConfirming(true);
+    try {
+      const r = await api<{ dimensions: Dimensions }>(`/v1/forges/${p.forgeId}/dimensions/confirm`, { method: 'POST', body: { ...(p.versionId ? { version_id: p.versionId } : {}) } });
+      setDims((d) => Object.fromEntries(Object.entries(d).map(([k, v]) => [k, r.dimensions[k] ? { ...v, ...r.dimensions[k] } : v])));
+    } catch (e) {
+      setNotice({ tone: 'fail', text: (e as Error).message });
+    } finally {
+      setConfirming(false);
+    }
+  }
 
   async function exportLocal(format: 'stl' | '3mf') {
     if (!schema || !values) return;
@@ -200,18 +236,34 @@ export function ForgeWorkbench(p: WorkbenchProps) {
         {runtime.status === 'starting' ? <p className="text-sm text-[var(--sw-text-muted)]">{t.forge.runtimeLoading}</p> : null}
         {runtime.status === 'error' ? <Alert tone="fail" title={t.forge.buildError}>{runtime.error}</Alert> : null}
         {buildError ? <Alert tone="fail" title={t.forge.buildError}>{buildError}</Alert> : null}
+        {assumed.length && schema ? (
+          <Alert
+            tone="warn"
+            title={t.forge.assumedTitle}
+            action={
+              p.forgeId ? (
+                <Button size="sm" onClick={confirmSizes} loading={confirming} data-testid="confirm-sizes">
+                  {t.forge.confirmSizes}
+                </Button>
+              ) : null
+            }
+          >
+            <span data-testid="assumed-sizes">{t.forge.assumedLead(assumed.map((k) => `${schema[k]?.label ?? k} (${String(values?.[k])} mm)`).join(', '))}</span>
+            {!p.forgeId ? <span> {t.forge.assumedNotOwner}</span> : null}
+          </Alert>
+        ) : null}
         <section aria-labelledby="exports-h" className="space-y-2">
           <h2 id="exports-h" className="text-sm font-semibold uppercase tracking-wide text-[var(--sw-text-muted)]">
             {t.forge.exports}
           </h2>
           <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={() => exportLocal('stl')} loading={exporting === 'stl'} disabled={!meshes || exporting !== null} data-testid="export-stl">
+            <Button variant="secondary" onClick={() => exportLocal('stl')} loading={exporting === 'stl'} disabled={!meshes || exporting !== null || assumed.length > 0} data-testid="export-stl">
               {t.forge.exportStl}
             </Button>
-            <Button variant="secondary" onClick={() => exportLocal('3mf')} loading={exporting === '3mf'} disabled={!meshes || exporting !== null}>
+            <Button variant="secondary" onClick={() => exportLocal('3mf')} loading={exporting === '3mf'} disabled={!meshes || exporting !== null || assumed.length > 0}>
               {t.forge.export3mf}
             </Button>
-            <Button variant="secondary" onClick={exportStep} loading={exporting === 'step'} disabled={!p.forgeId || !meshes || exporting !== null}>
+            <Button variant="secondary" onClick={exportStep} loading={exporting === 'step'} disabled={!p.forgeId || !meshes || exporting !== null || assumed.length > 0}>
               {t.forge.exportStep}
             </Button>
           </div>
@@ -220,7 +272,9 @@ export function ForgeWorkbench(p: WorkbenchProps) {
         </section>
       </div>
       <aside className="space-y-6">
-        {schema && values ? <ParamPanel schema={schema} values={values} onChange={onParam} clampNotes={clampNotes} /> : <p className="text-sm text-[var(--sw-text-muted)]">{t.common.loading}</p>}
+        {schema && values ? <ParamPanel schema={schema} values={values} onChange={onParam} clampNotes={clampNotes} dimensions={dims} initial={p.initialParams} /> : <p className="text-sm text-[var(--sw-text-muted)]">{t.common.loading}</p>}
+        {p.forgeId && printer ? <PrinterPanel forgeId={p.forgeId} printer={printer} onChange={setPrinter} /> : null}
+        {p.forgeId && schema && values ? <PhotoMeasure forgeId={p.forgeId} versionId={p.versionId} schema={schema} dimensions={dims} onSaved={(v) => router.push(`/forge/${p.forgeId}?version=${v}`)} /> : null}
         {p.forgeId ? (
           <CopilotPanel forgeId={p.forgeId} versionId={p.versionId} selectMode={selectMode} onSelectMode={setSelectMode} hits={hits} onTarget={setTargetFeature} />
         ) : null}

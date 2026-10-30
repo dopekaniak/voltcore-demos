@@ -460,6 +460,29 @@ size changes ("make the holes 4 mm larger", "set the height to 120 mm", and for 
 feature "2 mm wider", which offsets the matching parameter inside that builder only) and
 declines anything else with a plain reason.
 
+## ADR-040 — Calibration, dimension sources, and printer profiles (slice M6-C)
+
+**Decision:** every millimetre parameter of a forge version carries a source: `given` (read
+from the description), `default` (a starter's value the person chose), `assumed` (picked by
+the author), `user` (changed by the person), or `measured` (from a calibrated photo).
+Assumed sizes block exports and print orders on the server (`409 DIMENSIONS_ASSUMED`) and in
+the browser until the person confirms or changes them. Photo calibration is a pure function
+(`calibrate`, `measure` in forge-kit): a line across a known edge plus its real length
+gives mm per pixel; zero-length lines, lines outside the image, and non-positive lengths are
+`CALIBRATION_INVALID`. A measurement without a calibration is `CALIBRATION_REQUIRED`; the
+scale is never estimated from the picture. A measurement saves a new version with the value
+and its source. Changing a calibration updates the measured values on the owner's current
+forge versions, marks them stale, and lists the features that read them as needing a
+rebuild; saving the new value keeps it `measured`. Image uploads now strip EXIF, XMP, IPTC,
+and text chunks before use and record pixel size. Photo calibration is behind the
+`copilot.photo_calibration` flag, off until the image content policy (M6-F) is in place.
+
+Printer profiles are a table seeded from `packages/forge-kit/profiles` (source URL and
+retrieval date per named row, see its README). Generic FDM, with a user-entered bed, is the
+default. Only two named printers are seeded, because only their spec pages could be
+retrieved when the table was built; rows are added only with a cited source. The active
+profile drives bed fit, wall minimum, and overhang angle in the browser checks.
+
 ## Open questions
 
 Each has the option chosen for now.
@@ -487,3 +510,10 @@ Each has the option chosen for now.
 9. **Image moderation for customizer photos.** No image classifier is chosen. Chosen: type,
    size, and pixel-count checks only, plus the upload notice in `docs/policy-content.md`;
    reports are handled by the takedown process. Revisit before public launch.
+10. **Free plan starter credits: monthly or one-time.** Chosen: monthly (the existing Free
+    plan grant resets each period, ADR-017); the copilot edit cost (3) is in seed data.
+11. **Test sections and credits.** Chosen: free, since they are cut from an existing version.
+12. **Estimate disclaimer and commercial-use wording.** Drafts in the UI and Terms; counsel
+    to review before launch.
+13. **STEP out of beta.** Chosen: STEP stays labeled beta until every starter passes a
+    round trip in a licensed CAD tool; today only the export itself is tested.

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { rewriteImports, staticCheck, type StaticIssue } from '../static-check';
 import type { ForgeReport } from '../types';
 import { analyzeFeatures } from '../features';
-import type { FeatureBoxRow } from '../runtime/inspect.js';
+import type { DfmProfile, FeatureBoxRow } from '../runtime/inspect.js';
 
 export interface SandboxLimits {
   timeoutMs: number;
@@ -13,7 +13,7 @@ export interface SandboxLimits {
 }
 
 export type SandboxRequest =
-  | { op: 'build'; code: string; params?: Record<string, unknown>; profile?: string; stl?: boolean; thumbnail?: boolean }
+  | { op: 'build'; code: string; params?: Record<string, unknown>; profile?: string | DfmProfile; stl?: boolean; thumbnail?: boolean }
   | { op: 'export'; code: string; params?: Record<string, unknown>; format: 'stl' | '3mf' | 'step' };
 
 export interface BuildOutput {

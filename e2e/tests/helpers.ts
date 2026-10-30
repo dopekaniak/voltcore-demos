@@ -24,10 +24,15 @@ export async function signIn(page: Page, email = `e2e-${Date.now()}-${Math.round
   return email;
 }
 
-export async function forgeFromPrompt(page: Page, prompt: string) {
+export async function forgeFromPrompt(page: Page, prompt: string, opts: { confirmSizes?: boolean } = {}) {
   await page.goto('/');
   await page.getByTestId('prompt-input').fill(prompt);
   await page.getByTestId('prompt-submit').click();
   await page.waitForURL(/\/forge\/frg_/, { timeout: 90_000 });
   await expect(page.getByTestId('bbox-readout')).not.toHaveText('—', { timeout: 60_000 });
+  // Sizes the description did not give are assumed and must be confirmed before export.
+  if (opts.confirmSizes !== false) {
+    await page.getByTestId('confirm-sizes').click();
+    await expect(page.getByTestId('confirm-sizes')).toHaveCount(0);
+  }
 }

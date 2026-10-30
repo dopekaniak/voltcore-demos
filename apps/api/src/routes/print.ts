@@ -3,6 +3,7 @@ import { AppError, printApi, toApiId } from '@sw/shared';
 import { MeshServiceError } from '@sw/shared/node';
 import { createJob, type PrintPart } from '@sw/db';
 import { validateParams, type ParamSchema } from '@sw/forge-kit';
+import { assertDimensionsConfirmed } from '../lib/dimensions';
 import type { AppContext } from '../context';
 import { idOr404, readableAsset } from '../lib/access';
 import { assertAssetNotSafetyCritical } from '../lib/catalog';
@@ -92,6 +93,7 @@ export function printRoutes(app: FastifyInstance, ctx: AppContext): void {
     });
     if (!v?.forgeSource) throw new AppError('NOT_FOUND', 'Version not found');
     const params = validateParams(v.forgeSource.schema as unknown as ParamSchema, body.params).values;
+    assertDimensionsConfirmed(v.forgeSource, validateParams(v.forgeSource.schema as unknown as ParamSchema, (v.params as Record<string, unknown>) ?? {}).values, params);
     const result = await ctx.db.$transaction(async (tx) => {
       const part = await tx.printPart.create({
         data: { ...owner, title: asset.title, forgeVersionId: v.id, status: 'ANALYZING', settings, ...(body.acknowledge_checks ? { checksAcknowledgedAt: ctx.now() } : {}) },

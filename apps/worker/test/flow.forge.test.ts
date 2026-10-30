@@ -58,6 +58,13 @@ describe('forge API flow', () => {
     const meshJob = (await call('GET', `/v1/jobs/${pb.job.id}`)).json();
     expect(meshJob.status).toBe('SUCCEEDED');
 
+    // Sizes the author picked (not in the description) must be confirmed before export.
+    expect(forge.source.dimensions).toMatchObject({ cable: { source: 'given' }, width: { source: 'given' }, wall: { source: 'assumed', confirmed: false } });
+    const blocked = await call('POST', `/v1/forges/${forgeId}/exports`, { format: 'stl', params: { width: 15 } }, { 'idempotency-key': 'test-key-export-stl-0' });
+    expect(blocked.statusCode).toBe(409);
+    expect(blocked.json().error.code).toBe('DIMENSIONS_ASSUMED');
+    expect(blocked.json().error.details.keys).toEqual(expect.arrayContaining(['wall', 'base', 'tab', 'hole']));
+    expect((await call('POST', `/v1/forges/${forgeId}/dimensions/confirm`, {})).statusCode).toBe(200);
     const exp = await call('POST', `/v1/forges/${forgeId}/exports`, { format: 'stl', params: { width: 15 } }, { 'idempotency-key': 'test-key-export-stl-1' });
     expect(exp.statusCode).toBe(202);
     await runJob(exp.json().job.id);

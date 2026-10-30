@@ -26,6 +26,30 @@ export const forgeVersionSchema = z.object({
   created_at: z.string(),
 });
 
+/** Where a millimetre dimension came from (Module 6 rule 2). `assumed` must be confirmed before export. */
+export const dimensionSchema = z.object({
+  source: z.enum(['given', 'default', 'assumed', 'user', 'measured']),
+  confirmed: z.boolean().optional(),
+  calibration_id: z.string().optional(),
+  value_mm: z.number().optional(),
+  stale: z.boolean().optional(),
+  needs_rebuild: z.array(z.string()).optional(),
+});
+
+export const printerSchema = z.object({
+  id: z.string(),
+  key: z.string(),
+  name: z.string(),
+  bed_mm: z.array(z.number()),
+  nozzle_mm: z.number(),
+  wall_min_mm: z.number(),
+  overhang_deg: z.number(),
+  validated_materials: z.array(z.string()),
+  is_generic: z.boolean(),
+  source_url: z.string().nullable(),
+  retrieved_on: z.string().nullable(),
+});
+
 export const forgeSchema = z.object({
   id: z.string(),
   asset_id: z.string(),
@@ -35,7 +59,8 @@ export const forgeSchema = z.object({
   is_owner: z.boolean(),
   forked_from: z.string().nullable(),
   version: forgeVersionSchema,
-  source: z.object({ code: z.string(), schema: paramSpecSchema }),
+  source: z.object({ code: z.string(), schema: paramSpecSchema, dimensions: z.record(z.string(), dimensionSchema) }),
+  printer: printerSchema,
   files: z.object({ preview_mesh: z.string().nullable(), thumbnail: z.string().nullable() }),
   created_at: z.string(),
 });

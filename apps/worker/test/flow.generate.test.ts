@@ -171,7 +171,7 @@ describe('uploads', () => {
     const done = await t.app.inject({ method: 'POST', url: `/v1/uploads/${created.upload.id}/complete`, headers: { origin: ORIGIN, cookie: c } });
     return { created, put, done, cookie: c };
   }
-  const png = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(100)]);
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64');
 
   it('accepts a real PNG and an STL, and rejects mismatched contents', async () => {
     const s = await signIn(t);

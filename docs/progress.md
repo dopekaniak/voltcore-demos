@@ -241,3 +241,17 @@ declined edit, expiry, prohibited edit, cross-user access). `pnpm e2e` J6 (selec
 accept) passes.
 
 Mocked: the author is the mock author (size edits only).
+
+## Module 6, slice M6-C — Calibration and printer profiles
+
+Shipped: calibration math with tests; `Calibration` and `PrinterProfile` tables;
+`POST/GET/PATCH /v1/calibrations`, `POST /v1/forges/:id/measurements`,
+`POST /v1/forges/:id/dimensions/confirm`, `GET /v1/printer-profiles`,
+`PUT /v1/forges/:id/printer-profile`; dimension sources on every version with the
+assumed-size export gate (server and browser); EXIF/XMP stripping and pixel size on image
+uploads; printer picker (generic with bed size) driving the browser checks; photo measuring
+panel (behind the `copilot.photo_calibration` flag); source badges on parameters.
+
+Checks: `pnpm lint` 0, `pnpm typecheck` 0, `pnpm test` 0 (forge-kit calibration 7, shared
+image 3, worker copilot flow 17 including the 60 → 58 mm recalibration). `pnpm e2e` 14
+journeys pass, including assumed-size confirmation and the 180 mm printer bed-fit flip.

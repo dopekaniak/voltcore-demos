@@ -1,13 +1,36 @@
 import type { FastifyInstance } from 'fastify';
 import type { FastifyRequest } from 'fastify';
 import { AppError, copilotApi, moderateText, newId, toApiId } from '@sw/shared';
-import { resolveSelection, type FeatureBox } from '@sw/forge-kit';
-import { createJob, credits, type CopilotEdit, type ForgeFeature } from '@sw/db';
+import { calibrate, CalibrationError, measure, mmKeys, resolveSelection, validateParams, type Dimensions, type FeatureBox, type Line, type ParamSchema } from '@sw/forge-kit';
+import { createJob, credits, Prisma, type Calibration, type CopilotEdit, type ForgeFeature } from '@sw/db';
 import type { AppContext } from '../context';
 import { idOr404, ownedAsset, readableAsset } from '../lib/access';
 import { FORGE_BUILD_TIMEOUT_MS, forgeCosts } from '../lib/costs';
 import { requireUser, route } from '../lib/route';
 import { serializeJob } from '../lib/serialize';
+import { printerFor, serializePrinter } from '../lib/dimensions';
+
+function serializeCalibration(c: Calibration) {
+  return {
+    id: toApiId('calibration', c.id),
+    photo_upload_id: toApiId('upload', c.photoUploadId),
+    line_px: c.linePx as Line,
+    real_length_mm: c.realLengthMm,
+    mm_per_px: c.mmPerPx,
+    image: { width: c.imageWidth, height: c.imageHeight },
+    source: 'USER_MEASURED' as const,
+    created_at: c.createdAt.toISOString(),
+  };
+}
+
+const calibrated = <T>(fn: () => T): T => {
+  try {
+    return fn();
+  } catch (e) {
+    if (e instanceof CalibrationError) throw new AppError('CALIBRATION_INVALID', e.message);
+    throw e;
+  }
+};
 
 /** Proposals hold their credits for a day; the reaper expires undecided ones. */
 export const PROPOSAL_TTL_MS = 24 * 3600_000;
@@ -53,7 +76,8 @@ export function copilotRoutes(app: FastifyInstance, ctx: AppContext): void {
   route(app, ctx, copilotApi.listForgeFeatures, async ({ params, query }, req) => {
     const { asset } = await readableAsset(ctx.db, req, idOr404('forge', params.id, 'Forge'), 'FORGE');
     const v = await version(asset.id, query.version);
-    return { featured: v.forgeFeatures.length > 0, edit_cost: (await forgeCosts(ctx.db)).copilot_edit, data: v.forgeFeatures.map(serializeFeature) };
+    const flag = await ctx.db.featureFlag.findUnique({ where: { key: 'copilot.photo_calibration' } });
+    return { featured: v.forgeFeatures.length > 0, edit_cost: (await forgeCosts(ctx.db)).copilot_edit, photo_calibration: Boolean(flag?.enabled), data: v.forgeFeatures.map(serializeFeature) };
   });
 
   route(app, ctx, copilotApi.createRegionEdit, async ({ params, body }, req) => {
@@ -181,5 +205,128 @@ export function copilotRoutes(app: FastifyInstance, ctx: AppContext): void {
       const fresh = await tx.copilotEdit.findUniqueOrThrow({ where: { id: e.id } });
       return { edit: serializeEdit(fresh, e.assetVersion.assetId) };
     });
+  });
+
+  // ───────────── Printer profiles ─────────────
+
+  route(app, ctx, copilotApi.listPrinterProfiles, async () => {
+    const rows = await ctx.db.printerProfile.findMany({ orderBy: [{ isGeneric: 'desc' }, { name: 'asc' }] });
+    return { data: rows.map((p) => serializePrinter(p)) };
+  });
+
+  route(app, ctx, copilotApi.setForgePrinterProfile, async ({ params, body }, req) => {
+    const asset = await ownedAsset(ctx.db, req, idOr404('forge', params.id, 'Forge'), 'FORGE');
+    const p = await ctx.db.printerProfile.findUnique({ where: { id: idOr404('printerProfile', body.profile_id, 'Printer profile') } });
+    if (!p) throw new AppError('NOT_FOUND', 'Printer profile not found');
+    if (body.bed_mm && !p.isGeneric) throw new AppError('VALIDATION_FAILED', 'Only the generic profile takes a bed size');
+    const updated = await ctx.db.asset.update({ where: { id: asset.id }, data: { printerProfileId: p.id, printerBedMm: p.isGeneric && body.bed_mm ? body.bed_mm : Prisma.DbNull } });
+    return { printer: await printerFor(ctx.db, updated) };
+  });
+
+  // ───────────── Dimensions ─────────────
+
+  route(app, ctx, copilotApi.confirmDimensions, async ({ params, body }, req) => {
+    const asset = await ownedAsset(ctx.db, req, idOr404('forge', params.id, 'Forge'), 'FORGE');
+    const v = await version(asset.id, body.version_id);
+    const dims = { ...((v.forgeSource!.dimensions as unknown as Dimensions | null) ?? {}) };
+    for (const [k, d] of Object.entries(dims)) if (d.source === 'assumed' && (!body.keys || body.keys.includes(k))) dims[k] = { ...d, confirmed: true };
+    await ctx.db.forgeSource.update({ where: { id: v.forgeSource!.id }, data: { dimensions: dims as unknown as Prisma.InputJsonValue } });
+    return { dimensions: Object.fromEntries(Object.entries(dims).map(([k, d]) => [k, { source: d.source, ...(d.confirmed !== undefined ? { confirmed: d.confirmed } : {}) }])) };
+  });
+
+  // ───────────── Photo calibration ─────────────
+
+  async function photoCalibrationOn() {
+    const f = await ctx.db.featureFlag.findUnique({ where: { key: 'copilot.photo_calibration' } });
+    if (!f?.enabled) throw new AppError('FEATURE_DISABLED', 'Photo measurements are not available yet');
+  }
+
+  async function ownedCalibration(req: FastifyRequest, apiId: string) {
+    const userId = requireUser(req);
+    const c = await ctx.db.calibration.findUnique({ where: { id: idOr404('calibration', apiId, 'Calibration') } });
+    if (!c || c.ownerId !== userId) throw new AppError('NOT_FOUND', 'Calibration not found');
+    return c;
+  }
+
+  route(app, ctx, copilotApi.createCalibration, async ({ body }, req, reply) => {
+    await photoCalibrationOn();
+    const userId = requireUser(req);
+    const up = await ctx.db.upload.findUnique({ where: { id: idOr404('upload', body.photo_upload_id, 'Upload') } });
+    if (!up || up.ownerId !== userId || up.purpose !== 'IMAGE') throw new AppError('NOT_FOUND', 'Photo not found');
+    if (up.status !== 'CLEAN' || !up.imageWidth || !up.imageHeight) throw new AppError('INVALID_STATE', 'Finish uploading the photo first');
+    const image = { width: up.imageWidth, height: up.imageHeight };
+    const c = calibrated(() => calibrate(image, body.line_px, body.real_length_mm));
+    const row = await ctx.db.calibration.create({
+      data: { ownerId: userId, photoUploadId: up.id, linePx: body.line_px, realLengthMm: body.real_length_mm, mmPerPx: c.mmPerPx, imageWidth: image.width, imageHeight: image.height },
+    });
+    reply.status(201);
+    return serializeCalibration(row);
+  });
+
+  route(app, ctx, copilotApi.getCalibration, async ({ params }, req) => serializeCalibration(await ownedCalibration(req, params.id)));
+
+  route(app, ctx, copilotApi.updateCalibration, async ({ params, body }, req) => {
+    const c = await ownedCalibration(req, params.id);
+    const image = { width: c.imageWidth, height: c.imageHeight };
+    const line = body.line_px ?? (c.linePx as Line);
+    const next = calibrated(() => calibrate(image, line, body.real_length_mm));
+    return ctx.db.$transaction(async (tx) => {
+      const row = await tx.calibration.update({ where: { id: c.id }, data: { realLengthMm: body.real_length_mm, linePx: line, mmPerPx: next.mmPerPx } });
+      // Measured dimensions on the owner's latest forge versions follow the new scale and
+      // are marked for rebuild with the features that read them.
+      const affected: { forge_id: string; version_id: string; key: string; from_mm: number; to_mm: number; needs_rebuild: string[] }[] = [];
+      const forges = await tx.asset.findMany({ where: { ownerId: c.ownerId, kind: 'FORGE', deletedAt: null, currentVersionId: { not: null } }, select: { id: true, currentVersionId: true } });
+      for (const f of forges) {
+        const src = await tx.forgeSource.findUnique({ where: { assetVersionId: f.currentVersionId! }, include: { assetVersion: { include: { forgeFeatures: true } } } });
+        const dims = (src?.dimensions as unknown as Dimensions | null) ?? null;
+        if (!src || !dims || !Object.values(dims).some((d) => d.calibration_id === c.id)) continue;
+        const out = { ...dims };
+        for (const [k, d] of Object.entries(dims)) {
+          if (d.calibration_id !== c.id || !d.line_px) continue;
+          const to = measure(image, d.line_px, next.mmPerPx);
+          const from = d.value_mm ?? to;
+          const deps = src.assetVersion.forgeFeatures.filter((x) => x.params.includes(k)).map((x) => x.featureKey);
+          out[k] = { ...d, value_mm: to, stale: to !== Number((src.assetVersion.params as Record<string, unknown>)[k]), needs_rebuild: deps };
+          affected.push({ forge_id: toApiId('forge', f.id), version_id: toApiId('version', f.currentVersionId!), key: k, from_mm: from, to_mm: to, needs_rebuild: deps });
+        }
+        await tx.forgeSource.update({ where: { id: src.id }, data: { dimensions: out as unknown as Prisma.InputJsonValue } });
+      }
+      return { calibration: serializeCalibration(row), affected };
+    });
+  });
+
+  route(app, ctx, copilotApi.createMeasurement, async ({ params, body, idempotencyKey }, req) => {
+    await photoCalibrationOn();
+    const asset = await ownedAsset(ctx.db, req, idOr404('forge', params.id, 'Forge'), 'FORGE');
+    if (!body.calibration_id) {
+      throw new AppError('CALIBRATION_REQUIRED', 'Calibrate the photo first: draw a line across an edge you know and enter its real length. Sizes are never guessed from the picture.');
+    }
+    const c = await ownedCalibration(req, body.calibration_id);
+    const v = await version(asset.id, body.version_id);
+    const schema = v.forgeSource!.schema as unknown as ParamSchema;
+    if (!mmKeys(schema).includes(body.key)) throw new AppError('VALIDATION_FAILED', `"${body.key}" is not a millimetre size of this forge`);
+    const value = calibrated(() => measure({ width: c.imageWidth, height: c.imageHeight }, body.line_px, c.mmPerPx));
+    const current = validateParams(schema, (v.params as Record<string, unknown>) ?? {}).values;
+    const r = validateParams(schema, { ...current, [body.key]: value });
+    if (r.values[body.key] !== value) throw new AppError('VALIDATION_FAILED', `The measured ${value} mm is outside this forge's range for ${schema[body.key]!.label}`);
+    const { job } = await ctx.db.$transaction((tx) =>
+      createJob(tx, {
+        ownerId: asset.ownerId,
+        kind: 'FORGE_BUILD',
+        idempotencyKey: idempotencyKey!,
+        input: {
+          base_version_id: v.id,
+          params: r.values,
+          mode: 'version',
+          dimensions_patch: { [body.key]: { source: 'measured', calibration_id: c.id, line_px: body.line_px, value_mm: value } },
+        },
+        reserveCredits: 0,
+        timeoutMs: FORGE_BUILD_TIMEOUT_MS,
+        assetId: asset.id,
+        assetVersionId: v.id,
+        maxAttempts: 1,
+      }),
+    );
+    return { key: body.key, value_mm: value, source: 'measured' as const, calibration_id: toApiId('calibration', c.id), job: serializeJob(job) };
   });
 }

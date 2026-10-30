@@ -6,3 +6,4 @@ export * from './credits';
 export * from './api/index';
 export * from './moderation';
 export * from './licensing';
+export * from './image';

@@ -1,14 +1,26 @@
 'use client';
-import type { ParamSchema, ParamSpec, ParamValues } from '@sw/forge-kit/browser';
+import type { Dimension, Dimensions, ParamSchema, ParamSpec, ParamValues } from '@sw/forge-kit/browser';
 import { t } from '@/lib/messages';
 
-function NumberControl({ k, spec, value, onChange }: { k: string; spec: Extract<ParamSpec, { type: 'number' }>; value: number; onChange: (v: unknown) => void }) {
+const SOURCE_STYLE: Record<string, string> = {
+  assumed: 'border-[var(--sw-warn)] text-[var(--sw-warn)]',
+  measured: 'border-[var(--sw-pass)] text-[var(--sw-pass)]',
+  given: 'border-[var(--sw-border)] text-[var(--sw-text-muted)]',
+};
+
+function SourceTag({ d }: { d: Dimension | null }) {
+  if (!d || !(d.source in SOURCE_STYLE)) return null;
+  const label = d.source === 'assumed' ? (d.confirmed ? t.forge.dimConfirmed : t.forge.dimAssumed) : d.source === 'measured' ? (d.stale ? t.forge.dimStale(d.value_mm ?? 0) : t.forge.dimMeasured) : t.forge.dimGiven;
+  return <span className={`rounded border px-1 text-[10px] uppercase tracking-wide ${SOURCE_STYLE[d.source]}`} data-testid="dim-source">{label}</span>;
+}
+
+function NumberControl({ k, spec, value, onChange, source }: { k: string; spec: Extract<ParamSpec, { type: 'number' }>; value: number; onChange: (v: unknown) => void; source: Dimension | null }) {
   const id = `p-${k}`;
   return (
     <div className="space-y-1">
       <div className="flex items-baseline justify-between gap-2">
-        <label htmlFor={id} className="text-sm font-medium text-[var(--sw-text)]">
-          {spec.label}
+        <label htmlFor={id} className="flex items-center gap-1.5 text-sm font-medium text-[var(--sw-text)]">
+          {spec.label} <SourceTag d={source} />
         </label>
         <span className="flex items-center gap-1">
           <input
@@ -45,7 +57,9 @@ function NumberControl({ k, spec, value, onChange }: { k: string; spec: Extract<
   );
 }
 
-export function ParamPanel({ schema, values, onChange, clampNotes }: { schema: ParamSchema; values: ParamValues; onChange: (key: string, v: unknown) => void; clampNotes: string[] }) {
+export function ParamPanel({ schema, values, onChange, clampNotes, dimensions, initial }: { schema: ParamSchema; values: ParamValues; onChange: (key: string, v: unknown) => void; clampNotes: string[]; dimensions?: Dimensions; initial?: ParamValues | undefined }) {
+  // A value the person changed is theirs; otherwise show where the stored value came from.
+  const sourceOf = (k: string): Dimension | null => (initial && values[k] !== initial[k] ? null : (dimensions?.[k] ?? null));
   const sections = new Map<string, [string, ParamSpec][]>();
   for (const [k, s] of Object.entries(schema)) {
     if (s.hidden) continue;
@@ -72,7 +86,7 @@ export function ParamPanel({ schema, values, onChange, clampNotes }: { schema: P
           <legend className="px-1 text-sm font-semibold text-[var(--sw-text)]">{title}</legend>
           {entries.map(([k, s]) => {
             const v = values[k];
-            if (s.type === 'number') return <NumberControl key={k} k={k} spec={s} value={Number(v)} onChange={(x) => onChange(k, x)} />;
+            if (s.type === 'number') return <NumberControl key={k} k={k} spec={s} value={Number(v)} onChange={(x) => onChange(k, x)} source={sourceOf(k)} />;
             if (s.type === 'boolean')
               return (
                 <label key={k} className="flex items-center gap-2 text-sm text-[var(--sw-text)]">

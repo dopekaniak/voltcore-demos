@@ -17,4 +17,5 @@ if [ "${2:-}" != "" ]; then cat "$2" >> "$dir/migration.sql"; fi
 npx prisma migrate deploy >/dev/null
 DATABASE_URL="$TEST_DATABASE_URL" npx prisma migrate deploy >/dev/null
 npx prisma generate >/dev/null
+npx tsx src/test-prepare.ts >/dev/null
 echo "created and applied $dir"
