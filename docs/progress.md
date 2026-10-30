@@ -297,3 +297,17 @@ Mocked: the image classifier (test marker only).
 `pnpm e2e`: all 16 journeys pass after a clean restart (`scripts/dev-down.sh`, then
 `scripts/dev-up.sh`). An earlier run failed J3 because a stale API process from an older
 start was still serving with `ESTIMATE_ORDERS=block`; `dev-down.sh` now stops leftovers.
+
+## Status after Module 6
+
+Done: base slices 1–7, addendum slices A (licenses and safety classes) and B
+(customizers), Module 6 slices M6-A to M6-F.
+
+Not started: addendum slices C (library publishing, collections, cost calculator),
+D (vehicles and fitment, NHTSA vPIC importer), E (parts pages and fit reports),
+F (request board and payouts); base slices 8 (checkout, orders, partner routing),
+9 (admin screens, reconciliation, accessibility audit), 10 (handoff); Modules 7 and 8.
+
+Mocked: forge author (mock author: starters plus size edits), image classifier (test
+marker only), generation provider (mock unless a Meshy key is set), quotes (estimate mode),
+email (log driver). No secret was needed for any slice so far.
