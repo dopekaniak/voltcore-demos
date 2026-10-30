@@ -225,3 +225,19 @@ the keyboard path.
 Checks: `pnpm lint` 0, `pnpm typecheck` 0, `pnpm test` 0 (forge-kit features tests including
 the byte-identical rim edit; worker copilot flow 6 including the 60 mm fan bracket journey).
 `pnpm e2e` J6 region selection passes.
+
+## Module 6, slice M6-B — Copilot edits
+
+Shipped: `CopilotEdit` table and lifecycle; `FormAuthor.edit()` with the mock author's size
+edits; `POST /v1/forges/:id/copilot-edits`, `GET /v1/forges/:id/copilot-edits`,
+`GET /v1/copilot-edits/:id`, `POST /v1/copilot-edits/:id/accept|reject`; region edits with a
+message create a feature-scoped proposal; diffs of parameter values and feature code;
+credits held on proposal, charged on accept, released on reject, failure, or expiry; forge
+page panel to describe a change, review the diff, and accept or reject.
+
+Checks: `pnpm lint` 0, `pnpm typecheck` 0, `pnpm test` 0 (worker copilot flow 13: accept and
+charge, reject and release, region edit with the byte-identical check through the API,
+declined edit, expiry, prohibited edit, cross-user access). `pnpm e2e` J6 (select, propose,
+accept) passes.
+
+Mocked: the author is the mock author (size edits only).

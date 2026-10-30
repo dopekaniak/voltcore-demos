@@ -70,7 +70,7 @@ export const GENERATION_MODELS = [
 ] as const;
 
 /** Forge credit costs. Previews in the browser are free; authoring and exports cost. */
-export const FORGE_COSTS = { author: 10, step_export: 2 } as const;
+export const FORGE_COSTS = { author: 10, step_export: 2, copilot_edit: 3 } as const;
 
 /**
  * License catalog (addendum rule 2). Texts are short summaries with the canonical URL;

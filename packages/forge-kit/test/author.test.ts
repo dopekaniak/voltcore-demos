@@ -40,3 +40,38 @@ describe('MockAuthor', () => {
     expect(code.length).toBeGreaterThan(1000);
   });
 });
+
+describe('MockAuthor.edit (copilot)', async () => {
+  const { MockAuthor: Author, readEdit, buildAuthorContext: ctx, starterCode: src } = await import('../src/author');
+  const { extractSchema, validateParams } = await import('../src/contract');
+  const { analyzeFeatures, featureSource } = await import('../src/features');
+  const code = src('planter');
+  const part = (await import('../examples/planter.js')).default;
+  const schema = extractSchema(part.parameters, part.defaults);
+  const params = validateParams(schema, {}).values;
+  const a = new Author();
+
+  it('reads relative and absolute size changes', () => {
+    expect(readEdit('make the holes 4 mm larger')).toMatchObject({ amount: 4, adjective: 'larger', absolute: false });
+    expect(readEdit('make it 2 mm narrower')).toMatchObject({ amount: -2 });
+    expect(readEdit('set the height to 120 mm')).toMatchObject({ amount: 120, absolute: true });
+    expect(readEdit('add a lip on the left edge')).toBeNull();
+  });
+
+  it('a whole-model edit changes a parameter value', async () => {
+    expect((await a.edit({ code, message: 'make the holes 4 mm larger', schema, params }, ctx())).params).toEqual({ hole_d: 10 });
+    expect((await a.edit({ code, message: 'set the height to 120 mm', schema, params }, ctx())).params).toEqual({ height: 120 });
+  });
+
+  it('a feature edit rewrites only the target builder', async () => {
+    const rim = analyzeFeatures(code).features.find((f) => f.key === 'rim')!;
+    const r = await a.edit({ code, message: 'make it 2 mm wider', schema, params, feature: { key: 'rim', source: featureSource(code, 'rim')!, params: rim.params } }, ctx());
+    expect(r.code).toBeUndefined();
+    expect(r.featureSource).toContain('(p.rim + 2)');
+    expect(r.featureSource).not.toMatch(/[^(]p\.rim\b(?! \+)/);
+  });
+
+  it('declines what it cannot do', async () => {
+    await expect(a.edit({ code, message: 'add a lip on the left edge', schema, params }, ctx())).rejects.toThrow(/only change sizes/);
+  });
+});

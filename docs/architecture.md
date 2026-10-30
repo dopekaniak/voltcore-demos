@@ -137,6 +137,13 @@ otherwise the API answers `409 FEATURE_AMBIGUOUS` with candidates and the person
 A forge without features answers `409 FORGE_NOT_FEATURED`. Edits to a feature replace only
 the source range of its builder (`replaceFeature`); everything else stays byte-identical.
 
+### Copilot edits
+
+`PROPOSING → PROPOSED → ACCEPTED | REJECTED | EXPIRED`, or `FAILED`. Credits: reserved on
+proposal, committed when the accepted version is saved, released on reject, failure, or
+expiry (24 h). The proposal job and the accept job are both `FORGE_BUILD` jobs on the forge
+queue (`input.copilot_edit_id` / `input.accept_edit_id`).
+
 ## Storage
 
 `STORAGE_DRIVER=fs|s3`. The `s3` driver targets MinIO in `infra/docker-compose.yml` and real

@@ -12,3 +12,17 @@ test('M6: select an area of a planter and map it to a named feature', async ({ p
   await page.getByTestId('feature-select').selectOption('rim');
   await expect(page.getByTestId('feature-target')).toContainText('Selected: rim');
 });
+
+test('M6: describe a change to a selected feature, review the diff, and accept it as a new version', async ({ page }) => {
+  await signIn(page);
+  await forgeFromPrompt(page, 'a planter 100 mm across with 5 drainage holes');
+  await expect(page.getByTestId('bbox-readout')).toContainText('104.4 × 104.4');
+  await page.getByTestId('feature-select').selectOption('rim');
+  await page.getByTestId('copilot-message').fill('make it 2 mm wider');
+  await page.getByTestId('copilot-propose').click();
+  await expect(page.getByTestId('copilot-diff')).toContainText('rim: changed', { timeout: 90_000 });
+  await expect(page.getByTestId('copilot-diff')).toContainText('(p.rim + 2)');
+  await page.getByTestId('copilot-accept').click();
+  await page.waitForURL(/version=ver_/, { timeout: 90_000 });
+  await expect(page.getByTestId('bbox-readout')).toContainText(/108\.\d × 108\.\d/, { timeout: 60_000 });
+});

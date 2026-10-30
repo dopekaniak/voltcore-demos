@@ -25,6 +25,10 @@ export const ID_PREFIX = {
   request: 'rqt_',
   customizer: 'cus_',
   collection: 'col_',
+  copilotEdit: 'cpe_',
+  calibration: 'cal_',
+  printerProfile: 'prf_',
+  exportRecord: 'exr_',
   model: 'mdl_',
 } as const;
 

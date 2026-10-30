@@ -3,7 +3,8 @@ import { jobMachine, canTransition } from '@sw/shared';
 
 /**
  * Housekeeping (build prompt section 6):
- * - release reservations past their expiry (job timeout + 1 h) and fail their jobs;
+ * - release reservations past their expiry (job timeout + 1 h) and fail their jobs, and
+ *   expire copilot proposals whose held credits ran out (24 h);
  * - expire monthly plan credits past period end;
  * - roll Free subscriptions into a new period with fresh credits.
  */
@@ -14,6 +15,8 @@ export async function reap(db: Db, now = new Date(), storage?: { delete(key: str
     await db.$transaction(async (tx) => {
       const res = await credits.release(tx, { reservationId: r.id, idempotencyKey: `reaper:release:${r.id}`, expired: true });
       if (!res.duplicate) released++;
+      // Undecided copilot proposals expire with their held credits.
+      await tx.copilotEdit.updateMany({ where: { reservationId: r.id, status: { in: ['PROPOSING', 'PROPOSED'] } }, data: { status: 'EXPIRED', decidedAt: now } });
       if (r.jobId) {
         const job = await tx.job.findUnique({ where: { id: r.jobId } });
         if (job && canTransition(jobMachine, job.status, 'FAILED')) {

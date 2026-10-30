@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { parse } from 'acorn';
 import { STARTERS } from '../examples/index.js';
 import { DFM_PROFILES, DEFAULT_PROFILE } from './runtime/inspect.js';
+import type { ParamSchema, ParamValues } from './contract';
 
 /** Everything an author gets (build prompt 3.2). */
 export interface AuthorContext {
@@ -19,11 +20,72 @@ export interface AuthorResult {
   notes: string[];
 }
 
+/** A copilot edit request (Module 6). With `feature`, only that builder may change. */
+export interface EditRequest {
+  code: string;
+  message: string;
+  schema: ParamSchema;
+  params: ParamValues;
+  feature?: { key: string; source: string; params: string[] };
+}
+
+export interface EditResult {
+  /** Feature edits: the new builder source for the target feature, and nothing else. */
+  featureSource?: string;
+  /** Whole-model edits: the new model file. */
+  code?: string;
+  /** Parameter values to change on the new version. */
+  params?: ParamValues;
+  notes: string[];
+}
+
 /** The forge author is a provider adapter (build prompt 3.2). */
 export interface FormAuthor {
   readonly key: string;
   readonly version: string;
   author(prompt: string, ctx: AuthorContext): Promise<AuthorResult>;
+  edit(req: EditRequest, ctx: AuthorContext): Promise<EditResult>;
+}
+
+export class AuthorDeclined extends Error {
+  readonly code = 'AUTHOR_DECLINED';
+}
+
+const WORDS: Record<string, string[]> = {
+  wider: ['width', 'wide', 'rim'],
+  narrower: ['width', 'wide', 'rim'],
+  taller: ['height', 'tall', 'band'],
+  shorter: ['height', 'tall', 'band'],
+  higher: ['height', 'tall', 'band'],
+  lower: ['height', 'tall', 'band'],
+  thicker: ['thickness', 'wall', 'thick'],
+  thinner: ['thickness', 'wall', 'thick'],
+  longer: ['length', 'long', 'width'],
+  deeper: ['depth', 'deep'],
+  larger: ['diameter', 'size', 'hole'],
+  bigger: ['diameter', 'size', 'hole'],
+  smaller: ['diameter', 'size', 'hole'],
+};
+const GROW = new Set(['wider', 'taller', 'higher', 'thicker', 'longer', 'deeper', 'larger', 'bigger']);
+
+/** Score a parameter against the words of a message (key, label, and size words). */
+function scoreParam(key: string, label: string, words: string[], adjective: string | null): number {
+  const hay = `${key.replace(/_/g, ' ')} ${label}`.toLowerCase();
+  let score = 0;
+  for (const w of words) if (w.length > 2 && hay.includes(w.replace(/s$/, ''))) score += 2;
+  for (const w of adjective ? (WORDS[adjective] ?? []) : []) if (hay.includes(w)) score += 1;
+  return score;
+}
+
+/** Read "make the X N mm larger" / "set X to N mm" from a message. */
+export function readEdit(message: string): { amount: number; adjective: string | null; absolute: boolean; words: string[] } | null {
+  const m = message.toLowerCase();
+  const words = m.split(/[^a-z0-9_]+/).filter(Boolean);
+  const rel = /(\d+(?:\.\d+)?)\s*(?:mm|millimet(?:er|re)s?)\s+(wider|narrower|taller|shorter|higher|lower|thicker|thinner|longer|deeper|larger|bigger|smaller)/.exec(m);
+  if (rel) return { amount: (GROW.has(rel[2]!) ? 1 : -1) * Number(rel[1]), adjective: rel[2]!, absolute: false, words };
+  const abs = /(?:to|be|at)\s+(\d+(?:\.\d+)?)\s*(?:mm|millimet(?:er|re)s?|%)?\b/.exec(m);
+  if (abs) return { amount: Number(abs[1]), adjective: null, absolute: true, words };
+  return null;
 }
 
 export function starterCode(key: string): string {
@@ -160,5 +222,30 @@ export class MockAuthor implements FormAuthor {
       notes.push('Repair attempt: returned the clean starter.');
     }
     return { code, templateKey: key, notes };
+  }
+
+  /**
+   * Mock copilot edits. Size changes only: "make the holes 4 mm larger", "set the height to
+   * 120 mm". Whole-model edits change a parameter value. Feature edits rewrite the target
+   * builder so the matching parameter is offset inside that builder only, which keeps the
+   * rest of the file byte-identical. Anything else is declined with a plain reason.
+   */
+  async edit(req: EditRequest, _ctx?: AuthorContext): Promise<EditResult> {
+    const e = readEdit(req.message);
+    if (!e) throw new AuthorDeclined('The mock author can only change sizes, for example "make the holes 4 mm larger".');
+    const numeric = Object.entries(req.schema).filter(([, s]) => s.type === 'number');
+    const pool = req.feature ? numeric.filter(([k]) => req.feature!.params.includes(k)) : numeric;
+    const ranked = pool.map(([k, s]) => ({ k, s, score: scoreParam(k, s.label, e.words, e.adjective) })).sort((a, b) => b.score - a.score);
+    const best = ranked[0];
+    if (!best || best.score === 0) throw new AuthorDeclined('Could not tell which size to change. Name it, for example "make the rim 2 mm wider".');
+    if (req.feature) {
+      if (e.absolute) throw new AuthorDeclined('For a selected feature, describe a change, for example "2 mm wider".');
+      const ref = new RegExp(`\\bp\\.${best.k}\\b`, 'g');
+      const src = req.feature.source.replace(ref, `(p.${best.k} ${e.amount >= 0 ? '+' : '-'} ${Math.abs(e.amount)})`);
+      return { featureSource: src, notes: [`Changed ${best.s.label.toLowerCase()} by ${e.amount > 0 ? '+' : ''}${e.amount} mm in the ${req.feature.key.replace(/_/g, ' ')} feature only.`] };
+    }
+    const current = Number(req.params[best.k] ?? (best.s.type === 'number' ? best.s.default : 0));
+    const next = e.absolute ? e.amount : Math.round((current + e.amount) * 1000) / 1000;
+    return { params: { [best.k]: next }, notes: [`Set ${best.s.label.toLowerCase()} from ${current} to ${next}.`] };
   }
 }

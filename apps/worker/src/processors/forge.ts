@@ -1,10 +1,11 @@
 import { createHash } from 'node:crypto';
-import { claimJob, failJob, forgeState, jobProgress, succeedJob, type Prisma, type Tx } from '@sw/db';
+import { claimJob, credits, failJob, forgeState, jobProgress, succeedJob, type Prisma, type Tx } from '@sw/db';
 import { buildAuthorContext, runSandboxed, SandboxError, starterCode, type BuildOutput } from '@sw/forge-kit/node';
 import { STARTERS } from '@sw/forge-kit';
 import { analyzeFeatures, DEFAULT_PROFILE, extractSchema, injectRelief, toPartParams, validateParams } from '@sw/forge-kit';
 import { newId } from '@sw/shared';
 import type { WorkerContext } from '../context';
+import { proposeCopilotEdit } from './copilot';
 
 export const EXPORT_TTL_MS = 7 * 24 * 3600_000;
 const sha = (b: Buffer) => createHash('sha256').update(b).digest('hex');
@@ -18,6 +19,9 @@ interface ForgeBuildInput {
   base_version_id?: string;
   params?: Record<string, unknown>;
   mode?: 'version' | 'fork';
+  /** Copilot: build a proposal for this edit, or save an accepted edit as a version. */
+  copilot_edit_id?: string;
+  accept_edit_id?: string;
 }
 
 /** Record the named-feature map of a version (ADR-038): source ranges and view bounds. */
@@ -77,6 +81,7 @@ export async function processForgeBuild(ctx: WorkerContext, jobId: string): Prom
   const job = await claimJob(ctx.db, jobId, ctx.workerId);
   if (!job) return;
   const input = job.input as unknown as ForgeBuildInput;
+  if (input.copilot_edit_id) return proposeCopilotEdit(ctx, job, input.copilot_edit_id);
   if (input.base_version_id) return rebuildVersion(ctx, job, input);
   const profile = input.profile ?? DEFAULT_PROFILE;
   let previous: { code: string; error: string } | undefined;
@@ -239,17 +244,32 @@ async function rebuildVersion(ctx: WorkerContext, job: ClaimedJob, input: ForgeB
   const base = await ctx.db.assetVersion.findUnique({ where: { id: input.base_version_id! }, include: { forgeSource: true, asset: true, files: true } });
   if (!base?.forgeSource) return void (await failJob(ctx.db, job.id, { code: 'NOT_FOUND', message: 'The base version no longer exists' }));
   const src = base.forgeSource;
-  const schema = src.schema as unknown as Parameters<typeof validateParams>[0];
-  const { values } = validateParams(schema, input.params ?? ((base.params as Record<string, unknown>) ?? {}));
+  // An accepted copilot edit brings its own code, schema, and values (ADR-039).
+  const edit = input.accept_edit_id ? await ctx.db.copilotEdit.findUnique({ where: { id: input.accept_edit_id } }) : null;
+  if (input.accept_edit_id && (!edit || edit.status !== 'ACCEPTED' || !edit.proposedCode)) {
+    return void (await failJob(ctx.db, job.id, { code: 'INVALID_STATE', message: 'The edit is not accepted' }));
+  }
+  const code = edit?.proposedCode ?? src.code;
+  const schema = (edit?.proposedSchema ?? src.schema) as unknown as Parameters<typeof validateParams>[0];
+  const { values } = validateParams(schema, (edit?.proposedParams as Record<string, unknown> | null) ?? input.params ?? ((base.params as Record<string, unknown>) ?? {}));
+  const releaseEdit = async (message: string) => {
+    if (!edit) return;
+    await ctx.db.$transaction(async (tx) => {
+      await tx.copilotEdit.update({ where: { id: edit.id }, data: { status: 'FAILED', error: message.slice(0, 1000) } });
+      if (edit.reservationId) await credits.release(tx, { reservationId: edit.reservationId, idempotencyKey: `copilot-release:${edit.id}` });
+    });
+  };
   await forgeState(ctx.db, job, 'AUTHORING', { reused_code: true });
   await forgeState(ctx.db, job, 'STATIC_CHECK');
   await forgeState(ctx.db, job, 'BUILDING');
   await jobProgress(ctx.db, job.id, 30, { phase: 'building' });
   let build: BuildOutput;
   try {
-    build = (await runSandboxed({ op: 'build', code: src.code, params: toPartParams(schema, values), profile: src.dfmProfile, stl: true, thumbnail: true }, limits(ctx))).build!;
+    build = (await runSandboxed({ op: 'build', code, params: toPartParams(schema, values), profile: src.dfmProfile, stl: true, thumbnail: true }, limits(ctx))).build!;
   } catch (e) {
-    return void (await failJob(ctx.db, job.id, { code: 'FORGE_BUILD_FAILED', message: e instanceof SandboxError ? e.message : String(e) }));
+    const message = e instanceof SandboxError ? e.message : String(e);
+    await releaseEdit(message);
+    return void (await failJob(ctx.db, job.id, { code: 'FORGE_BUILD_FAILED', message }));
   }
   await forgeState(ctx.db, job, 'VERIFYING');
   await succeedJob(ctx.db, job.id, { actualCredits: 0 }, async (tx, j) => {
@@ -282,23 +302,28 @@ async function rebuildVersion(ctx: WorkerContext, job: ClaimedJob, input: ForgeB
     await tx.forgeSource.create({
       data: {
         assetVersionId: version.id,
-        code: src.code,
-        schema: src.schema as Prisma.InputJsonValue,
-        defaults: src.defaults as Prisma.InputJsonValue,
-        author: src.author,
-        authorVersion: src.authorVersion,
+        code,
+        schema: schema as unknown as Prisma.InputJsonValue,
+        defaults: (edit ? build.defaults : src.defaults) as Prisma.InputJsonValue,
+        author: edit ? ctx.author.key : src.author,
+        authorVersion: edit ? ctx.author.version : src.authorVersion,
         templateKey: src.templateKey,
         dfmProfile: src.dfmProfile,
         checks: build.report.checks as unknown as Prisma.InputJsonValue,
         buildState: 'READY',
       },
     });
-    await writeFeatures(tx, version.id, src.code, build);
+    await writeFeatures(tx, version.id, code, build);
+    if (edit) {
+      // Charge the held credits now that the edit is saved as a version.
+      if (edit.reservationId) await credits.commit(tx, { reservationId: edit.reservationId, actual: edit.creditsReserved, idempotencyKey: `copilot-commit:${edit.id}` });
+      await tx.copilotEdit.update({ where: { id: edit.id }, data: { resultVersionId: version.id } });
+    }
     const prefix = `assets/${assetId}/${version.id}`;
     if (build.stl) await storeFile(ctx, tx, { ownerId: j.ownerId, assetVersionId: version.id, role: 'PREVIEW_MESH', body: build.stl, contentType: 'model/stl', filename: 'preview.stl', keyPrefix: prefix, ext: 'stl' });
     if (build.thumbnail) await storeFile(ctx, tx, { ownerId: j.ownerId, assetVersionId: version.id, role: 'THUMBNAIL', body: build.thumbnail, contentType: 'image/png', filename: 'thumbnail.png', keyPrefix: prefix, ext: 'png' });
     await tx.asset.update({ where: { id: assetId }, data: { currentVersionId: version.id } });
-    await tx.job.update({ where: { id: j.id }, data: { assetId, assetVersionId: version.id, forgeState: 'READY', output: { asset_id: assetId, version_id: version.id, number, mode: input.mode ?? 'version' } } });
+    await tx.job.update({ where: { id: j.id }, data: { assetId, assetVersionId: version.id, forgeState: 'READY', output: { asset_id: assetId, version_id: version.id, number, mode: input.mode ?? 'version', ...(edit ? { copilot_edit_id: edit.id } : {}) } } });
     await tx.jobEvent.create({ data: { jobId: j.id, type: 'forge_state', data: { from: 'VERIFYING', to: 'READY' } } });
   });
 }

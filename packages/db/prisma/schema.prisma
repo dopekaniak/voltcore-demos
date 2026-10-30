@@ -429,6 +429,7 @@ model AssetVersion {
   files           AssetFile[]
   forgeSource     ForgeSource?
   forgeFeatures   ForgeFeature[]
+  copilotEdits    CopilotEdit[]
 
   @@unique([assetId, number])
   @@map("asset_versions")
@@ -512,6 +513,44 @@ model ForgeFeature {
 
   @@unique([assetVersionId, featureKey])
   @@map("forge_features")
+}
+
+enum CopilotEditStatus {
+  PROPOSING
+  PROPOSED
+  ACCEPTED
+  REJECTED
+  FAILED
+  EXPIRED
+}
+
+/// A copilot edit (Module 6): a message turned into new model code, proposed for review.
+model CopilotEdit {
+  id               String            @id @default(uuid(7)) @db.Uuid
+  ownerId          String            @map("owner_id") @db.Uuid
+  assetVersionId   String            @map("asset_version_id") @db.Uuid
+  userMessage      String            @map("user_message")
+  targetFeatureKey String?           @map("target_feature_key")
+  status           CopilotEditStatus @default(PROPOSING)
+  proposedCode     String?           @map("proposed_code")
+  /// Parameter values for the new version (current values with the edit's changes).
+  proposedParams   Json?             @map("proposed_params")
+  proposedSchema   Json?             @map("proposed_schema")
+  diff             Json?
+  preview          Json?
+  notes            String[]
+  error            String?
+  creditsReserved  Int               @map("credits_reserved")
+  reservationId    String?           @unique @map("reservation_id") @db.Uuid
+  jobId            String?           @map("job_id") @db.Uuid
+  acceptJobId      String?           @map("accept_job_id") @db.Uuid
+  resultVersionId  String?           @map("result_version_id") @db.Uuid
+  createdAt        DateTime          @default(now()) @map("created_at")
+  decidedAt        DateTime?         @map("decided_at")
+  assetVersion     AssetVersion      @relation(fields: [assetVersionId], references: [id], onDelete: Cascade)
+
+  @@index([assetVersionId, createdAt])
+  @@map("copilot_edits")
 }
 
 // ───────────────────────────── Jobs ─────────────────────────────

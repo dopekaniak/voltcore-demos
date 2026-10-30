@@ -443,6 +443,23 @@ separate front end with fixed inputs). A fifth starter, the fan bracket, covers 
 between preview and print quality meshes); marker comments around feature code (not
 checkable, easy to break).
 
+## ADR-039 — Copilot edits are proposals with held credits (slice M6-B)
+
+**Decision:** `POST /v1/forges/:id/copilot-edits` (or a region edit with a message) moderates
+the message, holds `copilot_edit` credits (3, seed data `forge.costs`) in a reservation that
+lives 24 h, and queues a `FORGE_BUILD` job that runs the author's `edit()`. The author edits
+the model source, never the mesh. With a target feature it returns only that feature's
+builder, and the platform splices it in with `replaceFeature`, so nothing else in the file
+can change. The result is statically checked, built twice in the sandbox (once to read the
+new schema, once at the person's values), and stored as a `PROPOSED` edit with a diff
+(parameter values, feature builders as changed lines, overall size, checks). Accept queues
+a rebuild that saves the proposal as a new version and charges the held credits in the same
+transaction; reject releases them; a failed proposal or accept build releases them; the
+reaper expires undecided proposals and releases their credits. The mock author handles
+size changes ("make the holes 4 mm larger", "set the height to 120 mm", and for a selected
+feature "2 mm wider", which offsets the matching parameter inside that builder only) and
+declines anything else with a plain reason.
+
 ## Open questions
 
 Each has the option chosen for now.
