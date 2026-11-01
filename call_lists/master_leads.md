@@ -148,6 +148,16 @@ Update the Status column as you call: To call, Called - no answer, Called - inte
 | 137 | Wagoner Logging | Logging | 263 Ralph Ratledge Rd, Mocksville | (336) 492-5758 | Not rated | Not named | | Unverified: BBB directory only (file from 2005) | To call |
 | 138 | S & S Logging & Timber | Logging | 935 Crawford Rd, Salisbury | (704) 639-5154 | Not rated | Wayne Shepherd, owner per BBB | | Unverified: BBB directory only (file from 2008) | To call |
 | 139 | Koontz Logging | Logging | Statesville | (704) 546-5167 | Not rated | Not named | | Unverified: BBB directory only (file from 2011) | To call |
+| 140 | M. O. Deviney Lumber Co., Inc. | Hardwood timber buying | 804 Moriah Church Rd, Casar | 704-538-9071 | Not found | Robyn Houser, owner per NC Forest Service | | Verified: NC Forest Service timber buyer list; no website found | Emailed Nov 1 with demo site; follow-ups automatic |
+| 141 | Bridgewater Forest Products | Timber buying | 3991 Bridgewater Rd, Morganton | 828-584-3335 | Not found | Barry Ellenburg, procurement forester per NC Forest Service | | Verified: NC Forest Service timber buyer list; no website found | Emailed Nov 1 with demo site; follow-ups automatic |
+| 142 | South Mountain Pulpwood Co., Inc. | Timber, pulpwood buying | PO Box 276, Lattimore | 704-434-6865 | Not found | Mark Davis, president per NC Forest Service | | Verified: NC Forest Service timber buyer list; no website found | Emailed Nov 1 with demo site; follow-ups automatic |
+| 143 | Mickey Blake (timber buyer) | Timber buying | 164 Blake Loop Rd, Mount Gilead | 910-572-8723 | Not found | Mickey Blake per NC Forest Service | | Verified: NC Forest Service timber buyer list; no website found | Emailed Nov 1 with demo site; follow-ups automatic |
+| 144 | Milstead's Tree Service & Grading | Tree service, grading, firewood | 9310 Castor Rd, Salisbury | (704) 791-0072 | Not found | Not named | | Unverified: Yellow Pages only; addresses conflict | To call |
+| 145 | Timber Specialist | Logging | 2123 Shelton Ave, Statesville | (704) 878-9267 | Not found | Not named | | Unverified: Yellow Pages only | To call |
+| 146 | Billings Sawmill | Sawmill | 498 Barrett Mountain Rd, Taylorsville | (828) 632-1804 | Not found | Not named | | Unverified: Yellow Pages only | To call |
+| 147 | Curry Logging Company, Inc. | Logging | Lexington | (336) 746-5255 | Not rated | Not named | | Unverified: BBB directory only | To call |
+| 148 | Christenbury Logging & Fire Wood | Logging, firewood | Charlotte | (704) 701-7390 | Not rated | Not named | | Unverified: BBB directory only | To call |
+| 149 | Bailey's Logging | Logging | Mooresboro | (704) 434-6338 | Not rated | Not named | | Unverified: BBB directory only | To call |
 
 ## What the Gemini history shows
 - 63 daily runs produced 33 different businesses. Most days repeat the same 8 to 10 names in a new order, so the "10 fresh leads a day" was mostly the same list.
