@@ -1,0 +1,151 @@
+place_id,business_name,phone,city,rating,reviews,website,category
+L0001,Precision Plumbing & Heating,(614) 555-0137,Dayton,3.3,90,,HVAC contractor
+L0002,Precision Plumbing & Heating,(614) 555-0138,Canton,4.8,37,,HVAC contractor
+L0003,Quality Air Conditioning,(614) 555-0139,Westerville,3.8,17,,HVAC contractor
+L0004,Elite Heating & Cooling,(614) 555-0140,Hilliard,3.9,12,https://example.com/3,HVAC contractor
+L0005,Northside Comfort Systems,(614) 555-0141,Dublin,4.3,3,,HVAC contractor
+L0006,Elite HVAC,(614) 555-0142,Dublin,4.8,12,,HVAC contractor
+L0007,Northside Comfort Systems,(614) 555-0143,Dublin,4.0,13,https://example.com/6,HVAC contractor
+L0008,Buckeye Mechanical,(614) 555-0144,Dayton,4.2,8,https://example.com/7,HVAC contractor
+L0009,Precision HVAC,(614) 555-0145,Dublin,4.1,20,https://example.com/8,HVAC contractor
+L0010,Elite Mechanical,(614) 555-0146,Dayton,3.6,95,,HVAC contractor
+L0011,Comfort Pro Mechanical,(614) 555-0147,Westerville,4.7,22,https://example.com/10,HVAC contractor
+L0012,Allied Comfort Systems,(614) 555-0148,Toledo,4.0,4,https://example.com/11,HVAC contractor
+L0013,Patriot Mechanical,(614) 555-0149,Dublin,3.3,90,https://example.com/12,HVAC contractor
+L0014,Reliable Comfort Systems,(614) 555-0150,Columbus,4.4,8,https://example.com/13,HVAC contractor
+L0015,Arctic Mechanical,(614) 555-0151,Akron,4.3,22,,HVAC contractor
+L0016,Reliable Heating & Cooling,(614) 555-0152,Dayton,3.4,142,https://example.com/15,HVAC contractor
+L0017,Northside Heating & Cooling,(614) 555-0153,Columbus,4.5,32,,HVAC contractor
+L0018,Arctic HVAC,(614) 555-0154,Columbus,3.8,34,https://example.com/17,HVAC contractor
+L0019,Valley Heating & Cooling,(614) 555-0155,Columbus,3.7,11,https://example.com/18,HVAC contractor
+L0020,Patriot Comfort Systems,(614) 555-0156,Toledo,3.7,72,https://example.com/19,HVAC contractor
+L0021,Quality Air Conditioning,(614) 555-0157,Dublin,4.3,151,,HVAC contractor
+L0022,Blue Flame Mechanical,(614) 555-0158,Dublin,4.4,35,,HVAC contractor
+L0023,Express Heating & Cooling,(614) 555-0159,Toledo,3.4,9,https://example.com/22,HVAC contractor
+L0024,Comfort Pro Plumbing & Heating,(614) 555-0160,Westerville,3.5,30,https://example.com/23,HVAC contractor
+L0025,Summit Heating & Cooling,(614) 555-0161,Dublin,4.7,18,https://example.com/24,HVAC contractor
+L0026,Comfort Pro Air Conditioning,(614) 555-0162,Toledo,4.0,57,https://example.com/25,HVAC contractor
+L0027,Allied Air Conditioning,(614) 555-0163,Akron,4.2,20,https://example.com/26,HVAC contractor
+L0028,Family Air Conditioning,(614) 555-0164,Toledo,4.5,27,https://example.com/27,HVAC contractor
+L0029,Precision Mechanical,(614) 555-0165,Canton,4.3,30,,HVAC contractor
+L0030,Precision Heating & Cooling,(614) 555-0166,Dayton,4.2,4,,HVAC contractor
+L0031,Precision Air Conditioning,(614) 555-0167,Columbus,4.0,10,https://example.com/30,HVAC contractor
+L0032,Elite HVAC,(614) 555-0168,Dayton,3.4,49,,HVAC contractor
+L0033,Summit HVAC,(614) 555-0169,Canton,3.5,47,,HVAC contractor
+L0034,Quality Mechanical,(614) 555-0170,Akron,4.9,10,https://example.com/33,HVAC contractor
+L0035,Family Plumbing & Heating,(614) 555-0171,Columbus,4.4,44,,HVAC contractor
+L0036,Family Mechanical,(614) 555-0172,Dayton,3.6,126,,HVAC contractor
+L0037,Patriot Comfort Systems,(614) 555-0173,Akron,4.0,48,https://example.com/36,HVAC contractor
+L0038,Comfort Pro Mechanical,(614) 555-0174,Akron,4.3,9,,HVAC contractor
+L0039,Northside Mechanical,(614) 555-0175,Westerville,4.9,525,,HVAC contractor
+L0040,Patriot HVAC,(614) 555-0176,Dayton,3.4,5,,HVAC contractor
+L0041,Summit Plumbing & Heating,(614) 555-0177,Dublin,5.0,35,https://example.com/40,HVAC contractor
+L0042,Family Plumbing & Heating,(614) 555-0178,Hilliard,4.9,108,,HVAC contractor
+L0043,Quality Comfort Systems,(614) 555-0179,Columbus,4.5,4,,HVAC contractor
+L0044,Precision Plumbing & Heating,(614) 555-0180,Toledo,3.4,194,,HVAC contractor
+L0045,Hometown Mechanical,(614) 555-0181,Toledo,4.2,16,https://example.com/44,HVAC contractor
+L0046,Northside Heating & Cooling,(614) 555-0182,Toledo,4.4,3,https://example.com/45,HVAC contractor
+L0047,Express HVAC,(614) 555-0183,Toledo,3.3,41,,HVAC contractor
+L0048,Comfort Pro HVAC,(614) 555-0184,Akron,4.3,7,,HVAC contractor
+L0049,Northside HVAC,(614) 555-0185,Akron,4.3,19,https://example.com/48,HVAC contractor
+L0050,Reliable Mechanical,(614) 555-0186,Canton,3.3,26,,HVAC contractor
+L0051,Comfort Pro HVAC,(614) 555-0187,Dayton,4.5,24,,HVAC contractor
+L0052,Quality Comfort Systems,(614) 555-0188,Westerville,3.8,30,https://example.com/51,HVAC contractor
+L0053,Express Heating & Cooling,(614) 555-0189,Westerville,5.0,31,,HVAC contractor
+L0054,Northside Plumbing & Heating,(614) 555-0190,Toledo,4.6,16,,HVAC contractor
+L0055,Comfort Pro Mechanical,(614) 555-0191,Canton,4.4,6,https://example.com/54,HVAC contractor
+L0056,Family HVAC,(614) 555-0192,Akron,3.5,49,https://example.com/55,HVAC contractor
+L0057,Valley HVAC,(614) 555-0193,Westerville,3.8,15,,HVAC contractor
+L0058,Arctic HVAC,(614) 555-0194,Columbus,3.4,38,https://example.com/57,HVAC contractor
+L0059,Valley Heating & Cooling,(614) 555-0195,Toledo,4.1,27,,HVAC contractor
+L0060,Summit HVAC,(614) 555-0196,Toledo,3.6,0,https://example.com/59,HVAC contractor
+L0061,Patriot Plumbing & Heating,(614) 555-0197,Hilliard,3.6,69,https://example.com/60,HVAC contractor
+L0062,Patriot Comfort Systems,(614) 555-0198,Dublin,4.8,53,https://example.com/61,HVAC contractor
+L0063,Family Comfort Systems,(614) 555-0199,Toledo,4.1,32,https://example.com/62,HVAC contractor
+L0064,Precision Plumbing & Heating,(937) 555-0100,Dayton,4.7,36,https://example.com/63,HVAC contractor
+L0065,Family Plumbing & Heating,(937) 555-0101,Akron,3.8,2,,HVAC contractor
+L0066,Allied HVAC,(937) 555-0102,Hilliard,4.5,5,https://example.com/65,HVAC contractor
+L0067,Northside Air Conditioning,(937) 555-0103,Toledo,4.3,21,,HVAC contractor
+L0068,Allied Comfort Systems,(937) 555-0104,Dayton,3.7,166,https://example.com/67,HVAC contractor
+L0069,Arctic Mechanical,(937) 555-0105,Hilliard,3.7,22,https://example.com/68,HVAC contractor
+L0070,Summit Plumbing & Heating,(937) 555-0106,Dayton,4.7,6,,HVAC contractor
+L0071,Reliable Mechanical,(937) 555-0107,Dayton,4.1,58,,HVAC contractor
+L0072,Allied Comfort Systems,(937) 555-0108,Hilliard,4.6,9,,HVAC contractor
+L0073,Buckeye Mechanical,(937) 555-0109,Toledo,4.1,11,https://example.com/72,HVAC contractor
+L0074,Summit Comfort Systems,(937) 555-0110,Toledo,4.3,2,,HVAC contractor
+L0075,Buckeye Air Conditioning,(937) 555-0111,Dayton,3.7,28,https://example.com/74,HVAC contractor
+L0076,Express Heating & Cooling,(937) 555-0112,Westerville,3.5,43,https://example.com/75,HVAC contractor
+L0077,Blue Flame Air Conditioning,(937) 555-0113,Westerville,3.6,14,https://example.com/76,HVAC contractor
+L0078,Reliable Heating & Cooling,(937) 555-0114,Hilliard,3.5,54,,HVAC contractor
+L0079,Comfort Pro Mechanical,(937) 555-0115,Dublin,4.7,33,,HVAC contractor
+L0080,Arctic Plumbing & Heating,(937) 555-0116,Columbus,3.3,26,,HVAC contractor
+L0081,Summit HVAC,(937) 555-0117,Dublin,4.7,23,,HVAC contractor
+L0082,Summit Air Conditioning,(937) 555-0118,Westerville,4.2,17,,HVAC contractor
+L0083,Allied HVAC,(937) 555-0119,Westerville,4.5,14,,HVAC contractor
+L0084,Elite Heating & Cooling,(937) 555-0120,Westerville,4.3,42,,HVAC contractor
+L0085,Arctic Air Conditioning,(937) 555-0121,Akron,5.0,111,https://example.com/84,HVAC contractor
+L0086,Family Air Conditioning,(937) 555-0122,Toledo,4.8,5,,HVAC contractor
+L0087,Blue Flame Air Conditioning,(937) 555-0123,Dublin,3.9,87,,HVAC contractor
+L0088,Express Comfort Systems,(937) 555-0124,Westerville,4.8,11,,HVAC contractor
+L0089,Quality Plumbing & Heating,(937) 555-0125,Hilliard,4.0,32,,HVAC contractor
+L0090,Arctic Mechanical,(937) 555-0126,Westerville,3.4,34,,HVAC contractor
+L0091,Quality Air Conditioning,(937) 555-0127,Dublin,4.5,17,https://example.com/90,HVAC contractor
+L0092,Buckeye HVAC,(937) 555-0128,Canton,3.7,10,,HVAC contractor
+L0093,Reliable HVAC,(937) 555-0129,Toledo,4.5,79,https://example.com/92,HVAC contractor
+L0094,Allied Air Conditioning,(937) 555-0130,Columbus,4.4,74,https://example.com/93,HVAC contractor
+L0095,Buckeye Mechanical,(937) 555-0131,Hilliard,4.0,45,https://example.com/94,HVAC contractor
+L0096,Northside Heating & Cooling,(937) 555-0132,Dayton,4.4,14,https://example.com/95,HVAC contractor
+L0097,Arctic Plumbing & Heating,(937) 555-0133,Columbus,3.3,9,,HVAC contractor
+L0098,Northside Comfort Systems,(937) 555-0134,Westerville,3.6,38,https://example.com/97,HVAC contractor
+L0099,Family Plumbing & Heating,(937) 555-0135,Westerville,4.2,39,https://example.com/98,HVAC contractor
+L0100,Elite HVAC,(937) 555-0136,Canton,4.7,25,,HVAC contractor
+L0101,Quality Comfort Systems,(937) 555-0137,Canton,3.9,29,,HVAC contractor
+L0102,Express Heating & Cooling,(937) 555-0138,Westerville,3.6,40,https://example.com/101,HVAC contractor
+L0103,Buckeye Comfort Systems,(937) 555-0139,Akron,3.5,30,,HVAC contractor
+L0104,Arctic Comfort Systems,(937) 555-0140,Westerville,4.6,29,,HVAC contractor
+L0105,Quality Plumbing & Heating,(937) 555-0141,Toledo,4.4,6,,HVAC contractor
+L0106,Elite Heating & Cooling,(937) 555-0142,Dayton,4.4,18,,HVAC contractor
+L0107,Valley Mechanical,(937) 555-0143,Toledo,3.4,12,https://example.com/106,HVAC contractor
+L0108,Northside Mechanical,(937) 555-0144,Canton,3.8,31,https://example.com/107,HVAC contractor
+L0109,Arctic HVAC,(937) 555-0145,Canton,3.8,14,,HVAC contractor
+L0110,Hometown Air Conditioning,(937) 555-0146,Hilliard,3.7,332,,HVAC contractor
+L0111,Quality HVAC,(937) 555-0147,Dublin,4.8,44,https://example.com/110,HVAC contractor
+L0112,Valley Heating & Cooling,(937) 555-0148,Dublin,3.9,159,https://example.com/111,HVAC contractor
+L0113,Blue Flame Comfort Systems,(937) 555-0149,Dublin,4.5,42,https://example.com/112,HVAC contractor
+L0114,Summit Heating & Cooling,(937) 555-0150,Dayton,4.9,176,,HVAC contractor
+L0115,Blue Flame Mechanical,(937) 555-0151,Akron,4.4,38,https://example.com/114,HVAC contractor
+L0116,Summit Air Conditioning,(937) 555-0152,Toledo,4.8,86,,HVAC contractor
+L0117,Patriot Mechanical,(937) 555-0153,Hilliard,4.2,36,https://example.com/116,HVAC contractor
+L0118,Arctic Plumbing & Heating,(937) 555-0154,Dublin,3.8,19,,HVAC contractor
+L0119,Precision Mechanical,(937) 555-0155,Columbus,3.7,32,https://example.com/118,HVAC contractor
+L0120,Valley HVAC,(937) 555-0156,Toledo,4.4,3,,HVAC contractor
+L0121,Patriot Plumbing & Heating,(937) 555-0157,Westerville,4.5,19,https://example.com/120,HVAC contractor
+L0122,Buckeye Plumbing & Heating,(937) 555-0158,Hilliard,4.2,7,,HVAC contractor
+L0123,Valley Air Conditioning,(937) 555-0159,Dayton,4.0,30,,HVAC contractor
+L0124,Elite Heating & Cooling,(937) 555-0160,Toledo,4.9,53,,HVAC contractor
+L0125,Family Comfort Systems,(937) 555-0161,Hilliard,4.3,58,,HVAC contractor
+L0126,Hometown Air Conditioning,(937) 555-0162,Toledo,4.4,3,https://example.com/125,HVAC contractor
+L0127,Patriot Air Conditioning,(937) 555-0163,Dublin,3.9,89,https://example.com/126,HVAC contractor
+L0128,Arctic Plumbing & Heating,(937) 555-0164,Dayton,3.9,51,https://example.com/127,HVAC contractor
+L0129,Summit Air Conditioning,(937) 555-0165,Dublin,3.8,24,https://example.com/128,HVAC contractor
+L0130,Hometown Comfort Systems,(937) 555-0166,Akron,3.3,6,,HVAC contractor
+L0131,Family Comfort Systems,(937) 555-0167,Westerville,4.7,9,,HVAC contractor
+L0132,Arctic Heating & Cooling,(937) 555-0168,Akron,3.8,74,https://example.com/131,HVAC contractor
+L0133,Arctic Plumbing & Heating,(937) 555-0169,Dayton,4.2,26,https://example.com/132,HVAC contractor
+L0134,Comfort Pro Comfort Systems,(937) 555-0170,Westerville,4.9,52,https://example.com/133,HVAC contractor
+L0135,Comfort Pro Plumbing & Heating,(937) 555-0171,Dublin,4.4,67,https://example.com/134,HVAC contractor
+L0136,Precision Comfort Systems,(937) 555-0172,Toledo,5.0,131,https://example.com/135,HVAC contractor
+L0137,Allied Air Conditioning,(937) 555-0173,Dayton,3.4,22,https://example.com/136,HVAC contractor
+L0138,Buckeye Heating & Cooling,(937) 555-0174,Hilliard,4.9,53,https://example.com/137,HVAC contractor
+L0139,Hometown Heating & Cooling,(937) 555-0175,Hilliard,4.0,7,,HVAC contractor
+L0140,Comfort Pro Comfort Systems,(937) 555-0176,Westerville,4.6,48,,HVAC contractor
+L0141,Summit Comfort Systems,(937) 555-0177,Columbus,3.5,30,https://example.com/140,HVAC contractor
+L0142,Elite Plumbing & Heating,(937) 555-0178,Columbus,4.2,540,,HVAC contractor
+L0143,Northside Heating & Cooling,(937) 555-0179,Akron,3.8,7,https://example.com/142,HVAC contractor
+L0144,Summit Air Conditioning,(937) 555-0180,Dublin,3.7,124,,HVAC contractor
+L0145,Northside Mechanical,(937) 555-0181,Columbus,3.8,12,,HVAC contractor
+L0146,Arctic Air Conditioning,(937) 555-0182,Toledo,3.5,5,https://example.com/145,HVAC contractor
+L0147,Express Mechanical,(937) 555-0183,Akron,3.9,55,,HVAC contractor
+L0148,Patriot Mechanical,(937) 555-0184,Westerville,3.3,10,,HVAC contractor
+L0149,Allied Comfort Systems,(937) 555-0185,Hilliard,4.0,46,https://example.com/148,HVAC contractor
+L0150,Hometown Plumbing & Heating,(937) 555-0186,Dayton,3.4,33,https://example.com/149,HVAC contractor
