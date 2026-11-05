@@ -7,7 +7,7 @@ Nothing is sent without operator approval (about_me.md, Deployment Priority).
 | Source           | File / location                        | Section / scope                 | Why                                      |
 |------------------|----------------------------------------|---------------------------------|------------------------------------------|
 | Operator context | ../../about_me.md                      | Deployment Priority             | Approval rule and current priority       |
-| Extractor        | ../../scripts/camoufox_lead_scraper.py | Full file                       | Camoufox anti-detect scraper and CLI     |
+| Extractor        | ../../scripts/camoufox_lead_scraper.py | `parse_args()` (CLI flags only) | Run flags. Full source only when editing the scraper |
 | Config names     | ../../.env.example                     | Lead scraper block              | Env var names only (never values)        |
 
 ## Process
