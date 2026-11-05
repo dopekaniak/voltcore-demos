@@ -13,3 +13,5 @@ Append new business decisions, API endpoints/keys (names only, never values), an
 - 2026-11-04: Pricing policy: no discounts. Compare-at ("sale") prices removed from all active products; bundles should add value, not cut price.
 - 2026-11-04: Ad voiceover voice: "Tallulah" preset on Higgsfield Qwen Audio TTS, directed as a soft, warm Southern woman. Use it for all future ads.
 - 2026-11-04: Store direction: cozy, wintry Christmas gifts. Dragon "Magic of the Ancients" set set to draft; waffle blanket removed from hero picks. Christmas theme "Sullivan Ridge — Christmas 2026" built unpublished, pending owner publish.
+- 2026-11-05: Pivot: Sullivan Ridge becomes a Christian-faith store (scripture, faith jewelry, Christian home and gifts), with seasonal layers (Christmas now, Easter next). Deadline Nov 10. Owner approves before publishing or ad spend.
+- 2026-11-05: All 69 active/draft products archived (not deleted) after a full backup in backups/shopify-products-2026-11-05/.
