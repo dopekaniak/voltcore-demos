@@ -4,6 +4,7 @@
 - On every session start, read `./about_me.md` to align with the operator's active business units, tech stack, and preferences.
 - Whenever the operator shares new business decisions, API keys/endpoints, or workflow preferences, automatically append them to `./about_me.md` or `./memory/changelog.md`.
 - Keep microservices strictly isolated: never mix Lead Generation logic, Inbox Triage logic, and Quant Trading logic in the same script or directory.
+- Token-scoped context (ICM): for any prompt, playbook, or doc task, read `./CONTEXT.md`, then load ONLY the one `workspaces/<name>/CONTEXT.md` it routes to and only the sections that file lists. Do not read `prompts/` or `docs/opus-prompts/` wholesale.
 
 ## 2. Coding & Architecture Standards
 - Route LLM API calls through the local OmniRoute proxy (`http://localhost:20128/v1/chat/completions`) whenever applicable to optimize token costs and provider fallbacks.

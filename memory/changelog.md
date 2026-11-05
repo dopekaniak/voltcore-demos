@@ -9,3 +9,4 @@ Append new business decisions, API endpoints/keys (names only, never values), an
 - 2026-10-23: Schedule: school Mon–Fri 5:00–10:30 p.m. is the only fixed commitment; all other hours are available. Current income is gig work (DoorDash, Walmart, Spark), so build time competes with it.
 - 2026-10-23: Active accounts (names only): Anthropic Claude Pro ($20/mo, subscription, not API billing); "NAN" subscription; "RYZ" subscription; two Shopify stores; possibly 1–2 forgotten Shopify trials that may auto-bill. Action item: audit billing and cancel unused trials before they convert.
 - 2026-10-23: Deployment decision: LaunchLocal lead pipeline is the first project. Shopify and UGC deferred.
+- 2026-11-05: Preference: reduce token usage by adopting ICM (Interpretable Context Methodology, github.com/RinDig/Interpretable-Context-Methodology). Prompts are routed through `./CONTEXT.md` and `workspaces/*/CONTEXT.md`; load one workspace and only its listed sections per run.
