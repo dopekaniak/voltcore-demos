@@ -8,3 +8,7 @@ repos/*
 # Scratch output
 projects/*
 !projects/.gitkeep
+
+# Stage outputs (keep folders via .gitkeep, not the generated files)
+workspaces/*/output/*
+!workspaces/*/output/.gitkeep

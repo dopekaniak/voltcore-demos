@@ -4,32 +4,13 @@
 - On every session start, read `./about_me.md` to align with the operator's active business units, tech stack, and preferences.
 - Whenever the operator shares new business decisions, API keys/endpoints, or workflow preferences, automatically append them to `./about_me.md` or `./memory/changelog.md`.
 - Keep microservices strictly isolated: never mix Lead Generation logic, Inbox Triage logic, and Quant Trading logic in the same script or directory.
+- Efficiency: start each unrelated task with `/clear`; use a subagent for broad searches so raw output stays out of the main context.
 - Token-scoped context (ICM): for any prompt, playbook, or doc task, read `./CONTEXT.md`, then load ONLY the one `workspaces/<name>/CONTEXT.md` it routes to and only the sections that file lists. Do not read `prompts/` or `docs/opus-prompts/` wholesale.
 
 ## 2. Coding & Architecture Standards
 - Route LLM API calls through the local OmniRoute proxy (`http://localhost:20128/v1/chat/completions`) whenever applicable to optimize token costs and provider fallbacks.
 - Never hardcode secrets or API keys in source files; always use `.env` and maintain a `.env.example` template.
-- Before marking any web app, scraper, or automation ready for production, enforce the **20-Point Vibecoded Launch Hardening Checklist**:
-  1. Add rate limiting
-  2. Set API limits
-  3. Set spending caps
-  4. Add error handling
-  5. Add loading states
-  6. Add empty states
-  7. Handle failed requests
-  8. Handle API timeouts
-  9. Prevent duplicate subscriptions
-  10. Prevent duplicate payments
-  11. Optimize DB queries
-  12. Add DB indexes
-  13. Paginate large results
-  14. Compress files
-  15. Limit upload size
-  16. Cache repeat requests
-  17. Add uptime monitoring
-  18. Add error logging
-  19. Test simultaneous users
-  20. Test backup restoration
+- Before marking any web app, scraper, or automation ready for production, enforce the **20-Point Vibecoded Launch Hardening Checklist** in `docs/launch-checklist.md` (load it only at that step).
 
 ## 3. Installed Skills & Tool Routing
 - **Paid Media Audits:** Use the `claude-ads` skill (`/ads start`, `/ads audit`, `/ads meta`, `/ads google`, `/ads tiktok`).
