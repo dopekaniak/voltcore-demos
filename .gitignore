@@ -8,3 +8,11 @@ repos/*
 # Scratch output
 projects/*
 !projects/.gitkeep
+
+# Trading bots: runtime state, caches, logs and private keys
+trading/**/data/
+*.pem
+
+# Python bytecode
+__pycache__/
+*.pyc
