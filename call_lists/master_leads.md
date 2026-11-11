@@ -253,6 +253,13 @@ Update the Status column as you call: To call, Called - no answer, Called - inte
 | 242 | Putnam Excavation | Excavation, septic | Shelby | (704) 297-0668 | Not found | Charles Steven Putnam, certified installer per state list | | Verified: NCOWCICB certified septic installer list (Sep 26, 2026); no website found | To call |
 | 243 | McMurry Construction and Grading | Construction, grading, septic | Lawndale | (704) 473-6356 | Not found | Nathan William McMurry, certified installer per state list | | Verified: NCOWCICB certified septic installer list (Sep 26, 2026); no website found | To call |
 | 244 | Burgin Backhoe | Backhoe, septic | Norwood | (704) 474-4686 | Not found | Julian Lee Burgin, certified installer per state list | | Verified: NCOWCICB certified septic installer list (Sep 26, 2026); no website found | To call |
+| 245 | Sheppard Wood Products Inc | Timber buying | Lilesville | 704-848-4795 | Not found | sheppardwoodproducts@yahoo.com | | Verified: NCFS lists (Anson, Montgomery, Richmond, Stanly, Union). President Graham Sheppard. | Emailed Nov 11 with demo |
+| 246 | County Line Timber | Standing timber buying | Henrietta | 828-248-3659 | Not found | jessieshehan78@gmail.com | | Verified: NCFS lists (9 counties). Owner Rex Shehan. | Emailed Nov 11 with demo |
+| 247 | Danny Huffman Logging | Timber buying | Purlear | 336-957-1479 | Not found | justalogging@gmail.com | | Verified: NCFS lists (Alexander, Burke, Caldwell, Rutherford, Wilkes, Yadkin). Contact Danny Huffman. | Emailed Nov 11 with demo |
+| 248 | DeBerry Land & Timber, Inc. | Timber buying | Troy | 910-572-2698 | Not found | deberryland@gmail.com | | Verified: NCFS lists (Anson, Montgomery, Randolph, Richmond, Stanly, Union). Contact Danny DeBerry. | Emailed Nov 11 with demo |
+| 249 | Southern States Timber, Inc. | Timber buying | Rutherfordton | 828-755-6442 | Not found | sstimber98@gmail.com | | Verified: NCFS lists (11 counties). Contact Dan Gurley. | Emailed Nov 11 with demo |
+| 250 | Cherry Mountain Timber Co. LLC | Timber buying | Bostic | 828-748-7440 | Not found | jeff@cherrymtninvestments.com | | Verified: NCFS lists (8 counties). R. Jeff Patterson. Held: the 5-a-day cap was used. | Held for next run (email) |
+| 251 | Ingram Woodyards, Inc. | Timber buying | Biscoe | 910-245-2177 | Not found | ingramwood@gmail.com | | Verified: NCFS Montgomery list. Owner Henry Scott Ingram. One directory shows a Vass address, so confirm before sending. Held: the 5-a-day cap was used. | Held for next run (email) |
 
 ## What the Gemini history shows
 - 63 daily runs produced 33 different businesses. Most days repeat the same 8 to 10 names in a new order, so the "10 fresh leads a day" was mostly the same list.
