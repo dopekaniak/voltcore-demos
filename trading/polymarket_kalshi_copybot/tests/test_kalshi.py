@@ -86,6 +86,16 @@ class LiveExecutorTests(unittest.TestCase):
         self.assertAlmostEqual(fill.avg_price, 0.30)
         self.assertAlmostEqual(fill.fee, 0.10)  # 0.02 average fee * 5 contracts
 
+    def test_fee_is_per_contract_times_filled_count(self):
+        # 0.08 per contract is above the old $0.05 cutoff that wrongly treated it as a total.
+        _, fill = self.run_order("buy", "yes", 0.42, {"fill_count": "5.00", "average_fill_price": "0.4100",
+                                                       "average_fee_paid": "0.0800"})
+        self.assertAlmostEqual(fill.fee, 0.40)
+
+    def test_no_fill_price_is_not_reverted_to_yes_price(self):
+        _, fill = self.run_order("buy", "no", 0.30, {"fill_count": "5.00", "average_fill_price": "0.6500"})
+        self.assertAlmostEqual(fill.avg_price, 0.35)  # 1 - 0.65; the removed block used to return 0.65
+
     def test_sells_are_reduce_only_on_the_opposite_book(self):
         call, _ = self.run_order("sell", "yes", 0.55)
         self.assertEqual((call["book_side"], call["reduce_only"]), ("ask", True))

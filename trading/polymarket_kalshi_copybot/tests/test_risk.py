@@ -16,8 +16,13 @@ class RiskTests(unittest.TestCase):
         self.s = Settings()  # defaults: $10 fixed, gap 0.03, max order $25, 1% risk
 
     def test_fee_formula(self):
-        self.assertEqual(kalshi_taker_fee(10, 0.5), 0.18)  # ceil(0.07*10*0.25*100)/100
-        self.assertEqual(kalshi_taker_fee(1, 0.99), 0.01)
+        self.assertAlmostEqual(kalshi_taker_fee(10, 0.5), 0.175)      # 0.07 * 10 * 0.5 * 0.5
+        self.assertAlmostEqual(kalshi_taker_fee(1, 0.99), 0.000693)   # rounds up to $0.000001, not the cent
+        self.assertAlmostEqual(kalshi_taker_fee(10, 0.5, multiplier=0.5), 0.0875)
+
+    def test_fee_rounds_up_to_six_decimals(self):
+        self.assertAlmostEqual(kalshi_taker_fee(1, 0.5), 0.0175)
+        self.assertAlmostEqual(kalshi_taker_fee(1, 0.333), 0.015548, places=9)  # 0.01554777 rounded up
 
     def test_rejects_when_kalshi_is_too_expensive(self):
         plan = plan_entry(self.s, leader_usd=5000, leader_price=0.40, kalshi_ask=0.45, state=state())

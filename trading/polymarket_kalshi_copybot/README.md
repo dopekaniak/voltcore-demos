@@ -91,15 +91,19 @@ double-buy, and orders are never retried after a timeout.
 - **You are always late.** Fills show up in the API after the trade, and the bot polls every 30s. Leaders
   who scalp in-play sports or news will have moved the price before you see the trade; the
   `MAX_PRICE_GAP` guard skips those trades rather than chasing them.
-- **Coverage is partial on purpose.** In a live sample of 182 open leader positions (Nov 2026), 31 (17%)
-  auto-matched and 25 (14%) went to review; the rest had no clean Kalshi equivalent. Every auto-match in
-  that sample was checked by hand and was correct (NBA/NFL moneylines, spreads and totals, nominations,
-  esports, crypto thresholds). Enable `LLM_VERIFY_MODE=review` (local OmniRoute) or work the review queue to
+- **Coverage is partial on purpose.** In a live sample of 237 open leader positions (Nov 2026), 15 (6%)
+  auto-matched and 44 (19%) went to review; the rest had no clean Kalshi equivalent. All 15 auto-matches
+  were checked by hand and are correct (NBA/NFL/EuroLeague/soccer game winners, spreads, totals, BTTS).
+  Some correct matches go to review because their deadlines differ by slightly more than half a day
+  (see below); raise `MATCH_MAX_DATE_DIFF_DAYS` to trade speed for that strictness. Enable `LLM_VERIFY_MODE=review` (local OmniRoute) or work the review queue to
   raise coverage.
 - **Top-PnL wallets are not all copyable.** Some are market makers, arbitrageurs, or hedge across venues.
   Use `LEADER_WALLETS_EXCLUDE` and `LEADER_CATEGORY` to narrow the list.
 - **Equivalent ≠ identical.** Polymarket and Kalshi can use different resolution sources, times, and tie
-  rules. The gates catch the obvious mismatches; read the rules before approving review items.
+  rules. The gates catch the obvious mismatches; read the rules before approving review items. Outside
+  sports, the two deadlines must fall within half a day of each other, so a market that closes a day apart
+  goes to review. Two similar-sounding markets can also use different leaderboards (for example, LMArena
+  text vs LiveBench coding), which the matcher only catches when a critical word such as "coding" differs.
 - Paper fills assume you get only the displayed top-of-book size at the current ask, with Kalshi's
   standard taker fee formula. That's conservative, but not a promise of live results.
 

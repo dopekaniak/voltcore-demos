@@ -17,9 +17,15 @@ def ceil_tick(price: float) -> float:
     return math.ceil(round(price / TICK, 6)) * TICK
 
 
-def kalshi_taker_fee(contracts: float, price: float, rate: float = 0.07) -> float:
-    """Kalshi's general taker fee: round_up(rate * C * P * (1 - P)) to the cent. Some series use other rates."""
-    return math.ceil(round(rate * contracts * price * (1 - price) * 100, 6)) / 100
+def kalshi_taker_fee(contracts: float, price: float, rate: float = 0.07, multiplier: float = 1.0) -> float:
+    """Total taker fee for a fill: rate * multiplier * C * P * (1 - P), rounded up to $0.000001.
+
+    The round-up to $0.000001 is from Kalshi's fee-rounding docs (docs.kalshi.com/getting_started/fee_rounding).
+    The 0.07 rate and the per-series multiplier (series.fee_type 'quadratic', fee_multiplier 1 for every series
+    checked) come from secondary sources, not Kalshi's docs. Confirm them against the first real fill.
+    """
+    raw = rate * multiplier * contracts * price * (1 - price)
+    return math.ceil(round(raw * 1_000_000, 6)) / 1_000_000
 
 
 @dataclass

@@ -64,6 +64,10 @@ def kalshi_universe() -> list:
         km("KXLOL-WORLDS26-BLG", "Worlds 2026 Champion", "Will Bilibili Gaming win League of Legends Worlds?",
            "Bilibili Gaming", "KXLOL", close=datetime(2026, 11, 15, tzinfo=timezone.utc),
            exp=datetime(2026, 11, 15, tzinfo=timezone.utc)),
+        # Coding leaderboard (LiveBench) is a different resolution source from the Polymarket AI-model market.
+        km("KXCODINGMODEL-26DEC-OPEN", "Which AI company will have the best coding model on Dec 31, 2026?",
+           "Will OpenAI have the best coding model?", "OpenAI", "KXCODINGMODEL",
+           close=datetime(2026, 12, 31, 15, tzinfo=timezone.utc), exp=datetime(2026, 12, 31, 15, tzinfo=timezone.utc)),
     ]
 
 

@@ -82,7 +82,7 @@ class Settings:
     # matching
     match_auto_threshold: float = 0.80
     match_review_threshold: float = 0.65
-    match_max_date_diff_days: float = 7
+    match_max_date_diff_days: float = 0.5
     kalshi_universe_refresh_min: int = 60
     llm_verify_mode: str = "off"  # off | review | all
     llm_base_url: str = "http://localhost:20128/v1"
@@ -151,7 +151,7 @@ class Settings:
             copy_sells=_b("COPY_SELLS", True),
             match_auto_threshold=_f("MATCH_AUTO_THRESHOLD", 0.80),
             match_review_threshold=_f("MATCH_REVIEW_THRESHOLD", 0.65),
-            match_max_date_diff_days=_f("MATCH_MAX_DATE_DIFF_DAYS", 7),
+            match_max_date_diff_days=_f("MATCH_MAX_DATE_DIFF_DAYS", 0.5),
             kalshi_universe_refresh_min=_i("KALSHI_UNIVERSE_REFRESH_MIN", 60),
             llm_verify_mode=_s("LLM_VERIFY_MODE", "off").lower(),
             llm_base_url=_s("OMNIROUTE_BASE_URL", "http://localhost:20128/v1").rstrip("/"),

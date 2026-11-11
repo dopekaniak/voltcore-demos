@@ -76,13 +76,9 @@ class LiveExecutor:
         if count <= 0:
             return Fill("unfilled", raw=resp)
         avg_yes = to_float(resp.get("average_fill_price"), yes_price)
-        avg = avg_yes if side == "yes" else 1.0 - avg_yes
-        # Sanity check the price convention against our own limit; flip if the venue reported the other leg.
-        worse = (avg > limit_price + 0.005) if action == "buy" else (avg < limit_price - 0.005)
-        if worse and side == "no":
-            log.warning("fill price %s looks like NO-leg pricing; using it as-is", avg_yes)
-            avg = avg_yes
-        fee_raw = to_float(resp.get("average_fee_paid"), 0.0) or 0.0
-        fee = fee_raw * count if fee_raw <= 0.05 else fee_raw  # per-contract average vs total
+        avg = avg_yes if side == "yes" else round(1.0 - avg_yes, 4)
+        # average_fee_paid is per contract (Kalshi V2 docs), so the order's fee is that times the filled count.
+        fee_per_contract = to_float(resp.get("average_fee_paid"), 0.0) or 0.0
+        fee = fee_per_contract * count
         status = "filled" if count >= contracts - 1e-9 else "partial"
         return Fill(status, count, round(avg, 4), round(fee, 4), raw=resp)

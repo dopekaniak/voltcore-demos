@@ -75,9 +75,21 @@ class MatchTests(unittest.TestCase):
         self.assertNotEqual(r.status, "auto")
 
     def test_president_not_vice_president(self):
-        end = datetime(2028, 11, 7, tzinfo=timezone.utc)
+        end = datetime(2028, 11, 8, tzinfo=timezone.utc)
         self.assertAuto(match("Will Ron DeSantis win the 2028 US Presidential Election?", "No", end=end),
                         "KXPRESPERSON-28-RDES", "no")
+
+    def test_one_day_deadline_gap_is_not_auto(self):
+        # Kalshi closes a day before Polymarket's deadline here, so the answer can differ: a human decides.
+        r = match("Will Ron DeSantis win the 2028 US Presidential Election?", "No",
+                  end=datetime(2028, 11, 7, tzinfo=timezone.utc))
+        self.assertNotEqual(r.status, "auto")
+
+    def test_best_ai_model_is_not_best_coding_model(self):
+        # Polymarket resolves on the LMArena text leaderboard; Kalshi on LiveBench's coding average.
+        r = match("Will OpenAI have the best AI model at the end of December 2026?", "Yes",
+                  end=datetime(2026, 12, 31, 17, tzinfo=timezone.utc))
+        self.assertNotEqual(r.status, "auto")
 
     def test_nomination_not_iowa_caucus(self):
         end = datetime(2028, 8, 20, tzinfo=timezone.utc)

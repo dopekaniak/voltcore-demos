@@ -45,7 +45,7 @@ CRITICAL = frozenset(
     "vice deputy primary caucus nominee western eastern conference division runner mention say announce announced "
     "approval turnout margin popular trimmed average pm am est edt first second third half quarter period "
     "inning overtime regulation halve map hit low high record combo parlay between exactly officially facto "
-    "leave out remain stay resign removed fired impeached lose not no end".split()
+    "leave out remain stay resign removed fired impeached lose not no end coding pareto".split()
 )
 CRITICAL_PENALTY = 0.8
 NEAR_DATE_REVIEW_DAYS = 90
@@ -266,7 +266,7 @@ class MarketIndex:
 
 class Matcher:
     def __init__(self, index: MarketIndex, auto_threshold: float = 0.80, review_threshold: float = 0.65,
-                 max_date_diff_days: float = 7.0, sports_date_diff_days: float = 1.5,
+                 max_date_diff_days: float = 0.5, sports_date_diff_days: float = 1.5,
                  ambiguity_margin: float = 0.02):
         self.index = index
         self.norm = index.norm
@@ -279,9 +279,7 @@ class Matcher:
     def _allowed_days(self, pm: PMMarket, now: datetime) -> float:
         if pm.sports_market_type or league_for_pm(pm.event_slug or pm.slug):
             return self.sports_date_diff_days
-        if pm.end_date:
-            horizon = max((pm.end_date - now).total_seconds() / 86400, 0)
-            return max(self.max_date_diff_days, 0.1 * horizon)
+        # Non-sports deadlines must agree within a fraction of a day: "by Nov 13" and "before Nov 13" differ by one.
         return self.max_date_diff_days
 
     def match(self, pm: PMMarket, outcome: str, now: Optional[datetime] = None) -> MatchResult:
