@@ -1,0 +1,15 @@
+[
+  {
+    "note": "Pin a Polymarket outcome to a Kalshi market + side. Copy to market_map.json to use; loaded on start.",
+    "pm_condition_id": "0xedca15bc23f8f37de61408cb257f2b76b268b3490647ec0a0cbfd57c541a791b",
+    "pm_outcome_index": 1,
+    "kalshi_ticker": "KXNBASPREAD-26NOV09INDDAL-DAL4",
+    "kalshi_side": "no"
+  },
+  {
+    "note": "kalshi_ticker null = never copy this Polymarket outcome",
+    "pm_condition_id": "0xa467b14d51f01b957109d9cbb1d6c124fab2a089d52ed8f471d23c2812e743b7",
+    "pm_outcome_index": 0,
+    "kalshi_ticker": null
+  }
+]
