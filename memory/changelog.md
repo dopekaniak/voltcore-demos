@@ -15,3 +15,6 @@ Append new business decisions, API endpoints/keys (names only, never values), an
 - 2026-11-04: Store direction: cozy, wintry Christmas gifts. Dragon "Magic of the Ancients" set set to draft; waffle blanket removed from hero picks. Christmas theme "Sullivan Ridge — Christmas 2026" built unpublished, pending owner publish.
 - 2026-11-05: Pivot: Sullivan Ridge becomes a Christian-faith store (scripture, faith jewelry, Christian home and gifts), with seasonal layers (Christmas now, Easter next). Deadline Nov 10. Owner approves before publishing or ad spend.
 - 2026-11-05: All 69 active/draft products archived (not deleted) after a full backup in backups/shopify-products-2026-11-05/.
+- 2026-11-11: Direction confirmed by owner: Christian-faith store with a Christmas / fall-winter layer. The reactivated cozy winter products stay as the seasonal layer.
+- 2026-11-11: Google: two Merchant Center accounts, Sullivan Ridge (5876484735) and Nord Haus (5874538779); no Google Ads account linked to either. Sullivan Ridge had 0 Google-referred visits in the last 30 days.
+- 2026-11-11: Created smart collections Faith & Scripture Gifts, Christmas & Nativity, Cozy Fall & Winter; unpublished Christmas theme and Our Story page updated for the faith + Christmas direction.
