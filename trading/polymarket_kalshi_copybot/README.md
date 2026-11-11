@@ -71,8 +71,31 @@ Stop with Ctrl-C. To pause new entries without stopping, `touch data/STOP` (dele
 | `status` | Cash/equity, open positions with marks, today's spend, recent signals |
 | `check-kalshi` | Verify API keys and show the real Kalshi balance |
 | `refresh-universe` | Re-download all open Kalshi markets now |
+| `backtest --start YYYY-MM-DD --end YYYY-MM-DD [--group top\|random\|both] [--n 20]` | Replay leader trades from a past window against Kalshi's historical quotes and settled results |
 
 `market_map.json` (see `market_map.example.json`) pins or blocks specific Polymarket outcomes by hand.
+
+## Backtesting
+
+`backtest` replays real trades from a past window through the same matcher, price guard, sizing, fees and
+caps the live bot uses. It prices each copy from Kalshi's 1-minute candles and settles against the real
+results. Two groups run by default:
+
+- **top**: the current top-N leaderboard wallets. This is hindsight selection, so it is optimistic.
+- **random**: recently active wallets, not picked on PnL. It is the fairer control. If `top` does not beat
+  `random`, the leaderboard adds nothing.
+
+```bash
+python -m copybot backtest --start 2026-09-15 --end 2026-10-15 --group both --n 20
+```
+
+Each run writes a per-trade log to `data/backtests/`. The report shows matched and skipped counts,
+P&L, ROI, win rate, a bootstrap 95% confidence interval on the mean P&L per position, and max drawdown.
+
+Limits: there is no order book depth in Kalshi's history, so every order fills in full at the quoted
+price. Quotes are 1-minute candles (a buy uses the highest ask in the minute, a sell the lowest bid). Fees
+use the unverified 0.07 taker formula. A small sample with a wide confidence interval is not evidence of
+an edge.
 
 ## Going live (only after paper results justify it)
 

@@ -43,10 +43,12 @@ class PolymarketClient:
         ]
 
     # ------------------------------------------------------------------ trades
-    def trades_since(self, wallet: str, start_ts: int, max_pages: int = 5) -> list:
+    def trades_since(self, wallet: str, start_ts: int, max_pages: int = 5, end_ts: Optional[int] = None) -> list:
         """TRADE activity for one wallet with timestamp >= start_ts, oldest first."""
         params = {"user": wallet, "type": "TRADE", "start": max(int(start_ts), 1),
                   "sort_direction": "ASC", "limit": 500}
+        if end_ts:
+            params["end"] = int(end_ts)
         out: list = []
         cursor = None
         for _ in range(max_pages):
@@ -87,6 +89,11 @@ class PolymarketClient:
             if int(r.get("outcome_index") or 0) == int(outcome_index):
                 return to_float(r.get("current_size"), 0.0) or 0.0
         return 0.0
+
+    def recent_wallets(self, limit: int = 1000) -> list:
+        """Distinct wallets from the latest global trades: a control group that is not picked on PnL."""
+        data = self.http.request("GET", f"{DATA_API}/trades", params={"limit": min(limit, 1000)})
+        return sorted({str(r.get("proxy_wallet", "")).lower() for r in data.get("data", []) if r.get("proxy_wallet")})
 
     # ------------------------------------------------------------------ market metadata
     def market(self, condition_id: str) -> Optional[PMMarket]:

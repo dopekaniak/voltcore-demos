@@ -211,6 +211,17 @@ def main(argv=None) -> None:
     p.add_argument("--signals", type=int, default=15)
     sub.add_parser("check-kalshi", help="verify Kalshi API keys and show balance")
     sub.add_parser("refresh-universe", help="re-download all open Kalshi markets")
+    p = sub.add_parser("backtest", help="replay leader trades over a past window against Kalshi history")
+    p.add_argument("--league", required=True, choices=["nba", "nfl", "nhl", "mlb"],
+                   help="one league per run: the Kalshi universe is game-level series for that league only")
+    p.add_argument("--start", required=True, help="YYYY-MM-DD, UTC, inclusive")
+    p.add_argument("--end", required=True, help="YYYY-MM-DD, UTC, exclusive")
+    p.add_argument("--group", choices=["top", "random", "both"], default="both",
+                   help="top = current leaderboard (hindsight); random = recently active wallets (control)")
+    p.add_argument("--n", type=int, default=20, help="wallets per group")
+    p.add_argument("--delay", type=int, default=60, help="seconds between a leader fill and our order")
+    p.add_argument("--min-usd", type=float, default=None, help="leader order size floor (default MIN_LEADER_TRADE_USD)")
+    p.add_argument("--seed", type=int, default=7, help="seed for the random control sample")
     args = parser.parse_args(argv)
 
     try:
@@ -218,6 +229,11 @@ def main(argv=None) -> None:
     except ValueError as exc:
         sys.exit(str(exc))
     setup_logging(settings)
+    if args.cmd == "backtest":
+        from .backtest import cmd_backtest  # no trading engine needed for a replay
+
+        cmd_backtest(settings, args)
+        return
     engine = build_engine(settings)
     {
         "run": cmd_run, "leaders": cmd_leaders, "match": cmd_match, "review": cmd_review,

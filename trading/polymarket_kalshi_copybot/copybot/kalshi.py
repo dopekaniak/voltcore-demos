@@ -86,7 +86,8 @@ class KalshiClient:
                                  headers_fn=headers_fn, **kw)
 
     # ------------------------------------------------------------------ market data
-    def iter_open_events(self, page_size: int = 200, page_delay: float = 0.6) -> Iterator[dict]:
+    def iter_events(self, status: str = "open", min_close_ts: Optional[int] = None,
+                    page_size: int = 200, page_delay: float = 0.6) -> Iterator[dict]:
         # Pages with nested markets are expensive for Kalshi's rate limiter; going faster than
         # ~1 page/s triggers a 429 on nearly every page and ends up slower overall.
         cursor = None
@@ -95,7 +96,9 @@ class KalshiClient:
             if not first:
                 time.sleep(page_delay)
             first = False
-            params = {"status": "open", "with_nested_markets": "true", "limit": page_size}
+            params = {"status": status, "with_nested_markets": "true", "limit": page_size}
+            if min_close_ts:
+                params["min_close_ts"] = int(min_close_ts)
             if cursor:
                 params["cursor"] = cursor
             data = self._req("GET", "/events", params=params, max_retries=6)
@@ -104,6 +107,26 @@ class KalshiClient:
             cursor = data.get("cursor")
             if not cursor or not events:
                 return
+
+    def list_series(self) -> list:
+        """Every series on the exchange (one call; used to pick the game-level series of a league)."""
+        return self._req("GET", "/series").get("series") or []
+
+    def events_page(self, status: str, min_close_ts: Optional[int] = None, cursor: Optional[str] = None,
+                    page_size: int = 200, series_ticker: Optional[str] = None) -> tuple:
+        """One page of events with nested markets, and the cursor for the next page (None when done)."""
+        params = {"status": status, "with_nested_markets": "true", "limit": page_size}
+        if min_close_ts:
+            params["min_close_ts"] = int(min_close_ts)
+        if series_ticker:
+            params["series_ticker"] = series_ticker
+        if cursor:
+            params["cursor"] = cursor
+        data = self._req("GET", "/events", params=params, max_retries=10)
+        return data.get("events") or [], (data.get("cursor") or None)
+
+    def iter_open_events(self, page_size: int = 200, page_delay: float = 0.6) -> Iterator[dict]:
+        yield from self.iter_events("open", None, page_size, page_delay)
 
     def fetch_universe(self) -> list:
         started = time.time()
@@ -128,6 +151,13 @@ class KalshiClient:
             data = self._req("GET", "/markets", params={"tickers": ",".join(chunk), "limit": len(chunk)})
             out.extend(KalshiMarket.from_api(m) for m in data.get("markets") or [])
         return out
+
+    def candlesticks(self, series_ticker: str, ticker: str, start_ts: int, end_ts: int,
+                     period_interval: int = 1) -> dict:
+        """Per-minute bid/ask/trade OHLC for one market. Works for recently settled markets too."""
+        return self._req("GET", f"/series/{series_ticker}/markets/{ticker}/candlesticks",
+                         params={"start_ts": int(start_ts), "end_ts": int(end_ts),
+                                 "period_interval": period_interval})
 
     # ------------------------------------------------------------------ portfolio
     def balance(self) -> dict:
