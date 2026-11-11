@@ -489,6 +489,8 @@ def run_group(settings: Settings, pm: PolymarketClient, kalshi: KalshiClient, ma
         got = pm.trades_since(w, start, max_pages=60, end_ts=end)
         if league:
             got = [t for t in got if league_for_pm(t.event_slug or t.slug) == league]
+        log.info("wallet %s: %d %s trades in window (%d wallets so far)", w[:10], len(got), league or "all",
+                 len(used) + (1 if got else 0))
         if not got:
             continue
         trades.extend(got)
@@ -505,6 +507,8 @@ def run_group(settings: Settings, pm: PolymarketClient, kalshi: KalshiClient, ma
         key = (s.condition_id, s.outcome_index)
         if key in mapping:
             continue
+        if len(mapping) % 200 == 0:
+            log.info("matching outcomes: %d done", len(mapping))
         pmm = pm.market(s.condition_id)
         if pmm is None:
             mapping[key] = {"status": "no_meta"}
