@@ -273,3 +273,10 @@ Update the Status column as you call: To call, Called - no answer, Called - inte
 - Mobile Marine & Small Engine (Boatplanet): https://boatplanet.com/pro/mobile-marine-and-small-engine-services
 - 372 N Main St (BBB, The Pit Box): https://terminus.prod.bbb.org/us/nc/newton/category/wheel-alignment
 - Two Fingers Automotive: https://reviews.birdeye.com/two-fingers-automotive-166175917112992
+| 252 | Sutphin Logging Inc | Timber buying | Mount Airy | 336-325-0353 | Not found | bernieray78@gmail.com | | Verified: NCFS lists (Iredell, Stokes, Surry, Wilkes, Yadkin). Owner Nick Sutphin. About 65 mi straight-line. | Emailed Nov 12 with demo |
+| 253 | Tate Logging | Timber buying | Lowgap | 336-757-6706 | Not found | tatelogging@yahoo.com | | Verified: NCFS lists (Forsyth, Stokes, Surry, Yadkin). Contact Zackary Tate. About 66 mi straight-line. | Emailed Nov 12 with demo |
+| 254 | Felts Land & Timber, LLC | Timber buying | Pinnacle | 336-368-5667 | Not found | rfeltstbrman@gmail.com | | Verified: NCFS lists (Forsyth, Stokes, Surry, Yadkin). Owner Rickie D. Felts. About 58 mi straight-line. | Emailed Nov 12 with demo |
+| 255 | Carolina Loggers, LLC | Timber buying | Candor | 910-975-2615 | Not found | carolinaloggers@yahoo.com | | Verified: NCFS lists (Anson, Montgomery, Richmond, Stanly). Contact Tim Greene, Jr. About 63 mi. | Emailed Nov 12 with demo |
+| 256 | Byrd's Timber Company | Timber buying | Boone | 828-406-6464 | Not found | fivebyrds5@gmail.com | | Verified: NCFS lists (16 counties). Owner William Byrd. About 64 mi straight-line. | Emailed Nov 12 with demo |
+| 257 | Stewart's Forest Services, Inc. | Timber buying | Germanton | 336-536-1047 | Not found | stewartsgh@gmail.com | | Verified: NCFS lists (Stokes, Mecklenburg). Owner Adam Stewart. Held: distance ruling and the 5-a-day cap. | Held for next run (email) |
+| 258 | R&M Lumber | Timber buying / sawmill | Walnut Cove | 336-591-1162 | Not found | randmlumber@gmail.com | | Verified: NCFS lists (Rockingham, Stokes). Owner Ronnie Mabe. Held: distance ruling and the 5-a-day cap. | Held for next run (email) |
