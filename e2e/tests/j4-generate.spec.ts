@@ -9,6 +9,7 @@ test('J4: generate preview → refine → export GLB with the mock provider', as
   await signIn(page);
   await page.goto('/generate');
   await page.getByTestId('gen-prompt').fill('a small ceramic vase with a wide lip');
+  await page.getByTestId('gen-model').selectOption('mock-standard');
   await expect(page.getByTestId('gen-cost')).toHaveText('20 credits');
   await expect(page.getByTestId('gen-refine')).toBeDisabled();
   await page.getByTestId('gen-preview').click();
@@ -27,6 +28,7 @@ test('J4b: a failed generation is not charged', async ({ page }) => {
   await signIn(page);
   await page.goto('/generate');
   await page.getByTestId('gen-prompt').fill('a lamp [[fail]]');
+  await page.getByTestId('gen-model').selectOption('mock-standard');
   await page.getByTestId('gen-preview').click();
   await expect(page.getByText('Generation failed. You were not charged.')).toBeVisible({ timeout: 90_000 });
   await expect(page.getByTestId('credit-badge')).toHaveText('100 credits');
@@ -36,6 +38,7 @@ test('library lists generated models and repairs create a new version', async ({
   await signIn(page);
   await page.goto('/generate');
   await page.getByTestId('gen-prompt').fill('a gem');
+  await page.getByTestId('gen-model').selectOption('mock-standard');
   await page.getByTestId('gen-preview').click();
   await expect(page.getByTestId('download-glb-preview')).toBeVisible({ timeout: 90_000 });
   await page.goto('/library');

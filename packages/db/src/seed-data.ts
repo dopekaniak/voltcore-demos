@@ -60,6 +60,14 @@ export const GENERATION_MODELS = [
     sortOrder: 1,
   },
   {
+    code: 'studio-shape-v1',
+    providerKey: 'selfhost',
+    name: 'Studio shape (our own engine)',
+    capabilities: { textTo3D: true, imageTo3D: true, refine: true, retexture: false, remesh: false, webhooks: false, outputs: ['glb', 'stl', 'obj'] },
+    costs: { preview: 15, refine: 10, image: 20 },
+    sortOrder: -1,
+  },
+  {
     code: 'meshy-6',
     providerKey: 'meshy',
     name: 'Meshy 6 (live)',

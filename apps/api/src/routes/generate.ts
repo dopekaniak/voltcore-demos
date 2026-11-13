@@ -8,12 +8,14 @@ import { requireUser, route } from '../lib/route';
 import { serializeJob } from '../lib/serialize';
 
 export const GENERATION_TIMEOUT_MS = 30 * 60_000;
+const OWN_PROVIDERS = new Set(['mock', 'selfhost']);
 
 export function generateRoutes(app: FastifyInstance, ctx: AppContext): void {
   /** Models the current mode can actually run. */
   async function availableModels(): Promise<GenerationModel[]> {
     const rows = await ctx.db.generationModel.findMany({ where: { active: true }, orderBy: { sortOrder: 'asc' } });
-    return rows.filter((m) => ctx.providers.has(m.providerKey) && (ctx.env.PROVIDER_MODE === 'live' || m.providerKey === 'mock'));
+    // Third-party providers need live mode; our own engine and the mock only need to be configured.
+    return rows.filter((m) => ctx.providers.has(m.providerKey) && (ctx.env.PROVIDER_MODE === 'live' || OWN_PROVIDERS.has(m.providerKey)));
   }
   async function modelFor(code?: string): Promise<GenerationModel> {
     const models = await availableModels();

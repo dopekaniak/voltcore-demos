@@ -311,3 +311,23 @@ F (request board and payouts); base slices 8 (checkout, orders, partner routing)
 Mocked: forge author (mock author: starters plus size edits), image classifier (test
 marker only), generation provider (mock unless a Meshy key is set), quotes (estimate mode),
 email (log driver). No secret was needed for any slice so far.
+
+## Own generation engine (ADR-044)
+
+Shipped:
+- `apps/gen-server`: FastAPI generation server with a one-at-a-time GPU worker, task folders
+  that survive restarts, idempotent creates, cancel, refine (same input and seed at high
+  quality), print-ready cleanup (floaters removed, holes filled, faces capped, scaled to mm, on
+  the bed), STL/OBJ/GLB output, image fetch limited to allowed hosts. Engines: `test` (no GPU)
+  and `trellis` (shape only). CPU Dockerfile and GPU Dockerfile; setup guide in its README.
+- `@sw/providers`: `SelfHostProvider` and registry wiring (`GEN_SERVER_URL`, `GEN_SERVER_TOKEN`).
+  Model `studio-shape-v1` in the catalog. The API lists our own engine without live mode.
+- Generate page: "From a photo" mode (upload, background removal toggle, preview), model list
+  filtered by capability, refine label for shape-only models, an error if the model list fails.
+- `scripts/dev-up.sh` and the E2E config start the gen-server with the test engine.
+
+Checks: gen-server pytest 16 passed; providers 20 passed; E2E J4, J4b, library, J4c (own
+engine text → refine) and J4d (photo → refine) passed against the running stack.
+
+Not verified: the GPU image has not been built or run on a GPU here (no GPU or Docker on the
+build machine). Real output quality and time per task are unmeasured.

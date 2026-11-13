@@ -1,0 +1,34 @@
+# GPU image for the generation server with the TRELLIS engine (shape only).
+# Needs an NVIDIA GPU with 16 GB+ memory and the NVIDIA container runtime.
+# Built from TRELLIS's own setup.sh (pinned commit below) for PyTorch 2.4.0 + CUDA 12.1.
+#
+# Deliberately NOT installed (research / non-commercial licenses, see ADR-044):
+#   nvdiffrast, diffoctreerast, diff-gaussian-rasterization (mip-splatting).
+# Untested on a GPU from this repository's CI; see apps/gen-server/README.md.
+FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive PIP_NO_CACHE_DIR=1 PYTHONUNBUFFERED=1
+RUN apt-get update && apt-get install -y --no-install-recommends python3.10 python3-pip python3.10-dev git libgl1 libglib2.0-0 \
+ && ln -sf /usr/bin/python3.10 /usr/bin/python && rm -rf /var/lib/apt/lists/*
+
+RUN pip install torch==2.4.0 torchvision==0.19.0 --index-url https://download.pytorch.org/whl/cu121 \
+ && pip install xformers==0.0.27.post2 --index-url https://download.pytorch.org/whl/cu121 \
+ && pip install spconv-cu120 \
+ && pip install kaolin -f https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.4.0_cu121.html \
+ && pip install pillow imageio easydict opencv-python-headless scipy ninja rembg onnxruntime trimesh open3d transformers safetensors huggingface_hub \
+ && pip install git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8
+
+ARG TRELLIS_COMMIT=193e0502b5cb3eb5997ec457d5340e95d09b158e
+RUN git clone https://github.com/microsoft/TRELLIS.git /opt/trellis \
+ && cd /opt/trellis && git checkout ${TRELLIS_COMMIT} && git submodule update --init trellis/representations/mesh/flexicubes
+ENV PYTHONPATH=/opt/trellis
+
+WORKDIR /srv
+COPY requirements-gpu.txt .
+RUN pip install -r requirements-gpu.txt
+COPY app ./app
+
+ENV GEN_ENGINE=trellis GEN_DATA_DIR=/data HF_HOME=/data/hf
+VOLUME /data
+EXPOSE 8100
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8100"]

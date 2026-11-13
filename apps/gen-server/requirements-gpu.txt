@@ -1,0 +1,7 @@
+# Server packages for the GPU image. numpy, scipy, pillow and trimesh come from the TRELLIS
+# install step so their versions match PyTorch 2.4 on Python 3.10.
+fastapi==0.120.4
+uvicorn==0.38.0
+httpx==0.28.1
+fast-simplification==0.2.0
+networkx<3.5

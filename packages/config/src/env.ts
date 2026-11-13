@@ -32,6 +32,9 @@ export const envSchema = z
     MESHY_API_KEY: z.string().optional(),
     MESHY_BASE_URL: z.string().url().default('https://api.meshy.ai/openapi'),
     MOCK_PROVIDER_LATENCY_MS: z.string().default('8000-25000'),
+    /** Our own generation server (apps/gen-server). When set, its model appears in Generate. */
+    GEN_SERVER_URL: z.string().url().optional(),
+    GEN_SERVER_TOKEN: z.string().min(16).optional(),
 
     FORGE_AUTHOR: z.enum(['mock', 'llm']).default('mock'),
     /** Prohibited-item image classifier (Module 6, section 10). Only the mock exists so far (open question). */
@@ -87,6 +90,12 @@ export const envSchema = z
     }
     if (env.PROVIDER_MODE === 'live' && !env.MESHY_API_KEY) {
       issue('MESHY_API_KEY', 'required when PROVIDER_MODE=live');
+    }
+    if (env.GEN_SERVER_URL && !env.GEN_SERVER_TOKEN) {
+      issue('GEN_SERVER_TOKEN', 'required when GEN_SERVER_URL is set');
+    }
+    if (env.NODE_ENV === 'production' && env.GEN_SERVER_URL && !env.GEN_SERVER_URL.startsWith('https://')) {
+      issue('GEN_SERVER_URL', 'must use https in production');
     }
     if (env.FORGE_AUTHOR === 'llm') {
       issue('FORGE_AUTHOR', 'llm is not available in Release 1 (no live author ADR yet); use mock');

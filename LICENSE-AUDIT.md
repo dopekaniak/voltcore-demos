@@ -82,3 +82,33 @@ Entries below are added as dependencies land.
 | fast-simplification | MIT | Remesh (decimation) in the mesh service |
 | lxml | BSD-3-Clause | 3MF reading in trimesh |
 | Pillow | MIT-CMU (HPND) | Image decoding for customizer height maps |
+
+### Own generation engine (ADR-044)
+
+Generation server (`apps/gen-server`), CPU image and tests:
+
+| Package | License | Reason |
+| --- | --- | --- |
+| fastapi, uvicorn, httpx | MIT, BSD-3-Clause, BSD-3-Clause | Service and image fetch |
+| trimesh, numpy, scipy, networkx | MIT, BSD-3-Clause, BSD-3-Clause, BSD-3-Clause | Mesh cleanup and export |
+| fast-simplification | MIT | Face count limit |
+| Pillow | MIT-CMU (HPND) | Image decode and normalize |
+
+GPU image only (`Dockerfile.gpu`), checked from each repository on 2026-11-13:
+
+| Package or model | License | Reason |
+| --- | --- | --- |
+| TRELLIS code (pinned 193e0502b5cb) | MIT | Generation model code |
+| TRELLIS-text-large, TRELLIS-image-large weights | MIT (model cards) | Generation weights |
+| FlexiCubes (MaxtirError fork) | Apache-2.0 | Mesh extraction |
+| kaolin | Apache-2.0 | Used by FlexiCubes |
+| spconv | Apache-2.0 | Sparse convolutions |
+| utils3d | MIT | Geometry helpers |
+| xformers | BSD-3-Clause | Attention |
+| PyTorch, torchvision | BSD-3-Clause | Runtime |
+| rembg, U-2-Net weights | MIT, Apache-2.0 | Photo background removal |
+| open3d | MIT | Imported by the text pipeline |
+| transformers | Apache-2.0 | Text encoder loading |
+
+Deliberately excluded (research or non-commercial only): nvdiffrast, diffoctreerast,
+diff-gaussian-rasterization. Hunyuan3D 2.x is excluded for its territory limits.

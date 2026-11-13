@@ -525,6 +525,42 @@ refusal is logged in `ContentRefusal` with a keyed hash of the user (HMAC with t
 secret), never the raw id. Admins get a weekly summary endpoint. With enforcement in place
 the `copilot.photo_calibration` flag is now on in seed data.
 
+## ADR-044 — Our own generation engine (self-hosted, shape only)
+
+Status: accepted, 2026-11-13. Counsel review of the dependency list is still recommended before launch.
+
+Context: Generate only had the mock and an optional third-party API. The product owner wants
+generation that does not depend on a third-party service.
+
+Decision:
+- A separate service, `apps/gen-server`, runs on a GPU machine we rent. The platform reaches it
+  through a `selfhost` provider (polling, no webhooks). It is our own code around open models.
+- Engine: TRELLIS (github.com/microsoft/TRELLIS, MIT; weights microsoft/TRELLIS-text-large and
+  TRELLIS-image-large on Hugging Face, MIT), pinned to commit 193e0502b5cb. Text and photo input.
+- Shape only. We decode `formats=['mesh']` and export geometry with trimesh. The textured export
+  path needs nvdiffrast (NVIDIA source code license, non-commercial: "research or evaluation
+  purposes only"), diffoctreerast and diff-gaussian-rasterization (Inria license, research only).
+  None of these is installed or imported. TRELLIS loads its renderers lazily, so the shape path
+  does not touch them. Shape path dependencies, all checked from their repositories on
+  2026-11-13: FlexiCubes fork (Apache-2.0), kaolin (Apache-2.0), spconv (Apache-2.0), utils3d
+  (MIT), xformers (BSD-3-Clause), rembg (MIT) with the U-2-Net model (Apache-2.0), open3d (MIT).
+- Not chosen: Hunyuan3D 2.0/2.1 (better textures) because its community license excludes the
+  EU, UK and South Korea; TRELLIS.2 (MIT, 4B) because it needs 24 GB+ and image input only, and
+  its export path uses nvdiffrast. Both can be revisited.
+- Refine re-runs the preview's input and seed at high quality (more sampler steps, more faces).
+  Retexture is not offered by this engine.
+- The server dedupes creates on an idempotency key, so the adapter resends a create once after
+  a network error or 5xx. Images are fetched only from hosts in `GEN_ALLOWED_IMAGE_HOSTS`, with
+  no redirects, a size cap and a decode check, so a caller cannot make it fetch other hosts.
+- Credits: 15 for a preview, 20 for a photo, 10 for a refine (config in seed data). GPU cost per
+  task is not measured yet; set prices after the first real runs.
+- Without a GPU, `GEN_ENGINE=test` makes simple deterministic shapes so every path can be
+  tested; the local stack and E2E use it.
+
+Consequences: quality is below the best paid services, and there are no textures, which matters
+little for single-colour printing. Running cost is the GPU rental. The GPU image is written from
+TRELLIS's own setup script but has not been built or run on a GPU from this repository yet.
+
 ## Open questions
 
 Each has the option chosen for now.

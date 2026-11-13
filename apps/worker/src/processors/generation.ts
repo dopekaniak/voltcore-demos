@@ -4,7 +4,7 @@ import type { WorkerContext } from '../context';
 import { storeFile } from './forge';
 
 const LEASE_MS = 30_000;
-const DEFAULT_POLL: Record<string, number> = { mock: 1000, meshy: 5000 };
+const DEFAULT_POLL: Record<string, number> = { mock: 1000, selfhost: 3000, meshy: 5000 };
 
 interface GenInput {
   op: 'preview' | 'refine' | 'image' | 'retexture';
