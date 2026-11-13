@@ -49,6 +49,20 @@ Shapewright does not design, generate, or print:
 Users must own or be licensed to use what they upload. Takedown requests are handled by
 hiding the item, notifying the owner, logging the action, and allowing a counter-notice.
 
+## Community models (Module 8)
+
+- Sharing needs a license and a creator name. Page text, tags, print notes, comments,
+  collection names and profiles pass the same deny-list as prompts.
+- With `COMMUNITY_REVIEW=required`, a reviewer approves each model before it is public
+  (`/admin/community/review`). Reviewers check the license, the credit line, prohibited
+  items, and trademarks in the mesh or photos. Rejections carry a note the owner sees.
+- Anyone signed in can report a model, a comment, or a creator (one open report per item per
+  person). `POST /admin/reports/:id/action` dismisses or takes the item down; a take-down
+  settles every open report on that item and is audited. Taken-down models cannot be shared
+  again; the owner keeps the private library copy.
+- Notifying the owner and the counter-notice flow are not automated yet; ops handle them by
+  email until they are.
+
 ## Customizer text and photos
 
 - **Text:** customizer text fields accept only the characters each customizer lists (for

@@ -13,6 +13,7 @@ import { cartRoutes } from './routes/cart';
 import { catalogRoutes } from './routes/catalog';
 import { customizerRoutes } from './routes/customizers';
 import { copilotRoutes } from './routes/copilot';
+import { communityRoutes } from './routes/community';
 import { printRoutes } from './routes/print';
 import { generateRoutes } from './routes/generate';
 import { internalRoutes } from './routes/internal';
@@ -60,5 +61,6 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
   catalogRoutes(app, ctx);
   customizerRoutes(app, ctx);
   copilotRoutes(app, ctx);
+  communityRoutes(app, ctx);
   return app;
 }

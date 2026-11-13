@@ -38,6 +38,9 @@ model User {
   termsAcceptedAt DateTime? @map("terms_accepted_at")
   totpSecretEnc String?    @map("totp_secret_enc")
   totpEnabledAt DateTime?  @map("totp_enabled_at")
+  /// Public creator name for the community (Module 8). Chosen once, shown on model pages.
+  handle        String?    @unique @db.Citext
+  bio           String?
   createdAt     DateTime   @default(now()) @map("created_at")
   updatedAt     DateTime   @updatedAt @map("updated_at")
 
@@ -379,6 +382,15 @@ enum Visibility {
   PUBLIC
 }
 
+/// Community publishing state (Module 8). NONE: never shared. REVIEW: waiting for a reviewer.
+enum PublishStatus {
+  NONE
+  REVIEW
+  PUBLISHED
+  REJECTED
+  REMOVED
+}
+
 model Asset {
   id               String     @id @default(uuid(7)) @db.Uuid
   ownerId          String     @map("owner_id") @db.Uuid
@@ -392,6 +404,20 @@ model Asset {
   /// Forges: the active printer profile and, for the generic profile, the entered bed size.
   printerProfileId String?    @map("printer_profile_id") @db.Uuid
   printerBedMm     Json?      @map("printer_bed_mm")
+  /// Community (Module 8): page text, print notes, review state, and counters.
+  description      String     @default("")
+  tags             String[]   @default([])
+  category         String?
+  printNotes       Json?      @map("print_notes")
+  publishStatus    PublishStatus @default(NONE) @map("publish_status")
+  /// The creator's listing choice: true shows the model in search once published; false is link-only.
+  listed           Boolean    @default(true)
+  publishedAt      DateTime?  @map("published_at")
+  reviewNote       String?    @map("review_note")
+  needsRepair      Boolean    @default(false) @map("needs_repair")
+  downloadCount    Int        @default(0) @map("download_count")
+  likeCount        Int        @default(0) @map("like_count")
+  saveCount        Int        @default(0) @map("save_count")
   deletedAt        DateTime?  @map("deleted_at")
   createdAt        DateTime   @default(now()) @map("created_at")
   updatedAt        DateTime   @updatedAt @map("updated_at")
@@ -400,6 +426,10 @@ model Asset {
 
   @@index([ownerId, kind, createdAt])
   @@index([title(ops: raw("gin_trgm_ops"))], type: Gin, map: "assets_title_trgm_idx")
+  @@index([description(ops: raw("gin_trgm_ops"))], type: Gin, map: "assets_description_trgm_idx")
+  @@index([tags], type: Gin)
+  @@index([publishStatus, visibility, publishedAt])
+  @@index([forkedFromId])
   @@map("assets")
 }
 
@@ -449,6 +479,7 @@ enum FileRole {
   THUMBNAIL
   TEXTURE
   REPAIRED
+  PHOTO
 }
 
 model AssetFile {
@@ -1280,4 +1311,123 @@ model CustomizerExport {
 
   @@index([userId, createdAt])
   @@map("customizer_exports")
+}
+
+// ───────────── Module 8: community (likes, saves, collections, comments, reports) ─────────────
+
+model AssetLike {
+  userId    String   @map("user_id") @db.Uuid
+  assetId   String   @map("asset_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@id([userId, assetId])
+  @@index([assetId])
+  @@map("asset_likes")
+}
+
+model AssetSave {
+  userId    String   @map("user_id") @db.Uuid
+  assetId   String   @map("asset_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@id([userId, assetId])
+  @@index([assetId])
+  @@map("asset_saves")
+}
+
+model Collection {
+  id          String           @id @default(uuid(7)) @db.Uuid
+  ownerId     String           @map("owner_id") @db.Uuid
+  title       String
+  description String           @default("")
+  isPublic    Boolean          @default(false) @map("is_public")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  items       CollectionItem[]
+
+  @@index([ownerId])
+  @@map("collections")
+}
+
+model CollectionItem {
+  collectionId String     @map("collection_id") @db.Uuid
+  assetId      String     @map("asset_id") @db.Uuid
+  position     Int
+  addedAt      DateTime   @default(now()) @map("added_at")
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, assetId])
+  @@index([collectionId, position])
+  @@map("collection_items")
+}
+
+enum CommentStatus {
+  VISIBLE
+  HIDDEN
+}
+
+model AssetComment {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  assetId   String        @map("asset_id") @db.Uuid
+  authorId  String        @map("author_id") @db.Uuid
+  body      String
+  status    CommentStatus @default(VISIBLE)
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  @@index([assetId, createdAt])
+  @@map("asset_comments")
+}
+
+/// One row per download. The license as it stood at that moment travels with the record.
+model AssetDownload {
+  id              String   @id @default(uuid(7)) @db.Uuid
+  assetId         String   @map("asset_id") @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  fileId          String   @map("file_id") @db.Uuid
+  licenseCode     String   @map("license_code")
+  licenseSnapshot Json     @map("license_snapshot")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([assetId, createdAt])
+  @@index([userId, createdAt])
+  @@map("asset_downloads")
+}
+
+model Follow {
+  followerId String   @map("follower_id") @db.Uuid
+  creatorId  String   @map("creator_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@id([followerId, creatorId])
+  @@index([creatorId])
+  @@map("follows")
+}
+
+enum ReportTarget {
+  MODEL
+  COMMENT
+  CREATOR
+}
+
+enum ReportStatus {
+  OPEN
+  ACTIONED
+  DISMISSED
+}
+
+model ContentReport {
+  id         String       @id @default(uuid(7)) @db.Uuid
+  targetType ReportTarget @map("target_type")
+  targetId   String       @map("target_id") @db.Uuid
+  reporterId String       @map("reporter_id") @db.Uuid
+  reason     String
+  details    String       @default("")
+  status     ReportStatus @default(OPEN)
+  handledBy  String?      @map("handled_by") @db.Uuid
+  handledAt  DateTime?    @map("handled_at")
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  @@unique([targetType, targetId, reporterId])
+  @@index([status, createdAt])
+  @@map("content_reports")
 }

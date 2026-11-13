@@ -561,6 +561,43 @@ Consequences: quality is below the best paid services, and there are no textures
 little for single-colour printing. Running cost is the GPU rental. The GPU image is written from
 TRELLIS's own setup script but has not been built or run on a GPU from this repository yet.
 
+## ADR-045 — Community model library (Module 8, slices M8-A to M8-E)
+
+Status: accepted, 2026-11-13.
+
+Decision:
+- Shared models are library assets, not a separate table. Anything a creator generated, forged,
+  or uploaded can be shared once it has a license; versions, files, the viewer, repair, and
+  print quotes are reused. The asset gains page fields (description, tags, category, print
+  notes), a publish state (NONE, REVIEW, PUBLISHED, REJECTED, REMOVED), a listing choice
+  (listed or link-only), a needs-repair flag, and counters. New tables: likes, saves,
+  collections and items, comments, downloads (with a license snapshot), follows, reports.
+  This differs from the addendum's separate `Model` table; the behaviour it asks for is the same.
+- Sharing needs a creator name (handle, set once, unique ignoring case, reserved words refused)
+  and a license. Text is checked by the content policy on every path (page, comment,
+  collection, profile). A model that is not watertight is published with a needs-repair warning,
+  not blocked.
+- Review: `COMMUNITY_REVIEW=required` (default) sends each model to the admin review queue;
+  `auto` publishes at once after the automatic checks. The local stack and E2E use `auto`.
+  Models in review, rejected, or taken down are 404 to everyone but the owner, on every route.
+- Remixes copy the files into a new private library model linked to the parent. A parent whose
+  license forbids derivatives refuses with `LICENSE_FORBIDS_DERIVATIVE`. A remix of a
+  share-alike model must use the same license, and a remix of a non-commercial model must stay
+  non-commercial (`LICENSE_INCOMPATIBLE`).
+- Downloads need sign-in (open question resolved: yes, so downloads are counted and abuse is
+  limited). Each records the license as it stood. The owner's own downloads do not count.
+  Files shown in the 3D viewer are reachable by signed URL without a download record; the
+  record is for stats and terms, not copy protection.
+- Search reads only our database. It never calls or indexes another site (a test fails if
+  `fetch` is called during search). Ranking is our own documented formula
+  (`apps/api/src/lib/community.ts`, `RANKING`): title match tiers, tag, creator, description,
+  plus 5 × log10(1 + downloads + 2 × likes + saves) so popularity breaks ties but a burst of
+  likes cannot beat a title match. A title search over 10,000 models answers within 200 ms at
+  p95 in the test suite.
+- Lists and model pages carry signed image and viewer URLs (15 minutes), so a grid of 24 models
+  costs one request instead of 25 (found when the per-user rate limit tripped in E2E).
+- Categories are our own names. Paid models (M8-F) and challenges (M8-G) are not built.
+
 ## Open questions
 
 Each has the option chosen for now.
@@ -597,3 +634,11 @@ Each has the option chosen for now.
     to review before launch.
 13. **STEP out of beta.** Chosen: STEP stays labeled beta until every starter passes a
     round trip in a licensed CAD tool; today only the export itself is tested.
+
+### Module 8 (community)
+
+14. Whether any external model index will ever exist. Chosen: none. Search covers our own catalog only.
+15. Whether free downloads need sign-in. Chosen: yes.
+16. `ALL-RIGHTS-RESERVED` on the free tier. Chosen: allowed, personal printing only, no remixes, no print orders.
+17. Ranking formula review for abuse (like farming). Chosen: the log-damped formula in ADR-045; revisit with real data.
+18. Who reviews shared models in production, and how quickly. Open: the review queue has API routes only; there is no admin web page yet.

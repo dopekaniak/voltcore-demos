@@ -6,6 +6,8 @@ mkdir -p var/logs
 export MOCK_PROVIDER_LATENCY_MS="${MOCK_PROVIDER_LATENCY_MS:-300-800}" ESTIMATE_ORDERS="${ESTIMATE_ORDERS:-allow-dev}"
 # Our own generation server with the test engine (no GPU): Generate runs the real provider path.
 export GEN_SERVER_URL="${GEN_SERVER_URL:-http://localhost:8100}" GEN_SERVER_TOKEN="${GEN_SERVER_TOKEN:-dev-gen-server-token}"
+# Community sharing publishes at once locally; production keeps the review queue (ADR-045).
+export COMMUNITY_REVIEW="${COMMUNITY_REVIEW:-auto}"
 start() { (setsid bash -c "$1" > "var/logs/$2.log" 2>&1 &); }
 start "cd apps/mesh && .venv/bin/uvicorn app.main:app --port 8000" mesh
 [ -x apps/gen-server/.venv/bin/uvicorn ] || (python3 -m venv apps/gen-server/.venv && apps/gen-server/.venv/bin/pip install -q -r apps/gen-server/requirements.txt)

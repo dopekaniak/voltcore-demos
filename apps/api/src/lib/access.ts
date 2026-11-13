@@ -10,14 +10,17 @@ export function idOr404(kind: IdKind, apiId: string, what = 'Resource'): string 
 }
 
 /**
- * Load an asset the caller may read: their own, or a non-private one. Private assets of
+ * Load an asset the caller may read: their own, or a non-private one that is not held by
+ * community review. Private assets of
  * other users return 404 (not 403) so their existence does not leak.
  */
 export async function readableAsset(db: Db, req: FastifyRequest, assetId: string, kind?: Asset['kind']): Promise<{ asset: Asset; isOwner: boolean }> {
   const asset = await db.asset.findUnique({ where: { id: assetId } });
   if (!asset || asset.deletedAt || (kind && asset.kind !== kind)) throw new AppError('NOT_FOUND', 'Not found');
   const isOwner = req.auth.userId !== null && asset.ownerId === req.auth.userId;
-  if (!isOwner && asset.visibility === 'PRIVATE') throw new AppError('NOT_FOUND', 'Not found');
+  // Models waiting for review, rejected, or taken down stay hidden from everyone but the owner.
+  const held = asset.publishStatus === 'REVIEW' || asset.publishStatus === 'REJECTED' || asset.publishStatus === 'REMOVED';
+  if (!isOwner && (asset.visibility === 'PRIVATE' || held)) throw new AppError('NOT_FOUND', 'Not found');
   return { asset, isOwner };
 }
 

@@ -34,6 +34,7 @@ export interface Me {
   id: string;
   email: string;
   name: string | null;
+  handle: string | null;
   role: 'USER' | 'ADMIN' | 'OPS';
   plan: string;
   totp_enabled: boolean;

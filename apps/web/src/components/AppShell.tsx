@@ -16,6 +16,7 @@ function setThemeCookie(theme: Theme) {
 }
 
 const NAV = [
+  { href: '/models', label: t.nav.models },
   { href: '/library', label: t.nav.library },
   { href: '/orders', label: t.nav.orders },
   { href: '/billing', label: t.nav.billing },
@@ -123,6 +124,8 @@ export function AppShell({ children, initialTheme }: { children: ReactNode; init
                         ))}
                       </select>
                     </label>
+                    <Link role="menuitem" href="/collections" className={menuItem}>{t.nav.collections}</Link>
+                    <Link role="menuitem" href="/creator" className={menuItem}>{t.nav.creator}</Link>
                     <button role="menuitem" type="button" onClick={signOut} className={`${menuItem} w-full text-left`}>
                       {t.nav.signOut}
                     </button>
@@ -151,7 +154,8 @@ export function AppShell({ children, initialTheme }: { children: ReactNode; init
       </footer>
       {/* Mobile: bottom tabs */}
       <nav aria-label="Primary" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-[var(--sw-border)] bg-[var(--sw-bg)] md:hidden">
-        {[{ href: '/', label: t.nav.create }, ...NAV].map((n) => (
+        {/* Five tabs fit a phone; Developers stays in the desktop bar. */}
+        {[{ href: '/', label: t.nav.create }, ...NAV.filter((n) => n.href !== '/developers')].map((n) => (
           <Link key={n.href} href={n.href} aria-current={isActive(n.href) && (n.href !== '/' || path === '/') ? 'page' : undefined} className="flex h-14 items-center justify-center text-xs text-[var(--sw-text)] aria-[current=page]:font-semibold aria-[current=page]:text-[var(--sw-accent)]">
             {n.label}
           </Link>

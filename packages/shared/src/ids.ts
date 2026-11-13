@@ -31,6 +31,8 @@ export const ID_PREFIX = {
   exportRecord: 'exr_',
   moderationCase: 'mod_',
   model: 'mdl_',
+  comment: 'cmt_',
+  report: 'rpt_',
 } as const;
 
 export type IdKind = keyof typeof ID_PREFIX;

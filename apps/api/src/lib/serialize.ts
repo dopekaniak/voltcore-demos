@@ -9,6 +9,7 @@ export function serializeUser(u: User, plan: string) {
     id: toApiId('user', u.id),
     email: u.email,
     name: u.name,
+    handle: u.handle,
     role: u.role,
     terms_version: u.termsVersion,
     totp_enabled: u.totpEnabledAt !== null,

@@ -114,7 +114,7 @@ export default function ModelViewer({ meshes, url, format, busy, overhangDeg = n
         (c as THREE.Mesh).geometry?.dispose();
       }
       for (const g of geometries) {
-        if (!g.getAttribute('normal')) g.computeVertexNormals();
+        if (!hasUsableNormals(g)) g.computeVertexNormals();
         if (overhangDeg !== null) paintOverhangs(g, overhangDeg);
         const m = s.material.clone();
         m.vertexColors = overhangDeg !== null;
@@ -394,4 +394,13 @@ function rebuildGrid(grid: THREE.Group, box: THREE.Box3, color: string) {
   (g.material as THREE.Material).transparent = true;
   (g.material as THREE.Material).opacity = 0.6;
   grid.add(g);
+}
+
+/** Many exporters write all-zero facet normals; treat those as missing so the model is lit. */
+function hasUsableNormals(g: THREE.BufferGeometry): boolean {
+  const n = g.getAttribute('normal');
+  if (!n) return false;
+  const a = n.array as ArrayLike<number>;
+  for (let i = 0; i < a.length; i++) if (a[i] !== 0) return true;
+  return false;
 }

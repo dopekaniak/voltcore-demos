@@ -11,3 +11,4 @@ export * as catalogApi from './catalog';
 export * as customizerApi from './customizers';
 export type { JobDto } from './jobs';
 export * as copilotApi from './copilot';
+export * as communityApi from './community';

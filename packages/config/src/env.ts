@@ -42,6 +42,9 @@ export const envSchema = z
     FORGE_BUILD_TIMEOUT_MS: z.coerce.number().int().positive().default(20000),
     FORGE_BUILD_MEMORY_MB: z.coerce.number().int().positive().default(1024),
 
+    /** Community publishing (Module 8): required = a reviewer approves each model; auto = published at once after the automatic checks. */
+    COMMUNITY_REVIEW: z.enum(['required', 'auto']).default('required'),
+
     SLICER_MODE: z.enum(['estimate', 'real']).default('estimate'),
     ESTIMATE_ORDERS: z.enum(['block', 'allow-dev']).default('block'),
 

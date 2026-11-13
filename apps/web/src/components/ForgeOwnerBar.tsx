@@ -87,6 +87,9 @@ export function ForgeOwnerBar(p: { forgeId: string; isOwner: boolean; visibility
           <Button variant="secondary" onClick={() => run('save')} loading={busy === 'save'} disabled={!p.dirty || busy !== null} data-testid="save-version">
             {t.forge.saveVersion}
           </Button>
+          <Link href={`/library/${p.forgeId}`} className="text-sm text-[var(--sw-accent)] underline" data-testid="forge-share">
+            {t.community.shareTitle}
+          </Link>
         </>
       ) : (
         <p className="text-[var(--sw-text-muted)]">{t.forge.notOwner}</p>

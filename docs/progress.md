@@ -331,3 +331,33 @@ engine text → refine) and J4d (photo → refine) passed against the running st
 
 Not verified: the GPU image has not been built or run on a GPU here (no GPU or Docker on the
 build machine). Real output quality and time per task are unmeasured.
+
+## Community model library (Module 8, M8-A to M8-E, ADR-045)
+
+Shipped:
+- Database: page fields, publish state, listing and counters on assets; likes, saves,
+  collections, comments, downloads with license snapshots, follows, reports; PHOTO files;
+  creator handle and bio on users.
+- API: search and browse (filters: category, tag, license, file type, printable, remixable,
+  creator; sorts: best match, newest, most downloaded, most liked), categories, model page,
+  publish, edit, unpublish, photos, download, like, save, saved list, comments, remix, reports,
+  collections (create, edit, add, remove, reorder), creator profile and follow, creator name,
+  creator stats, upload an STL/OBJ/3MF into the library, admin review queue and decisions,
+  admin reports and take-downs.
+- Web: Models (search and browse), model page (viewer, photos, license block, print notes,
+  download, like, save, collect, remix, report, comments, lineage), share panel on library
+  models (creator name, license, page text, tags, print notes, photos), "Upload a model" in the
+  library, Collections (with Saved), creator pages, Creator stats. Forge owners get a link to
+  the share panel. Models added to the nav.
+- Viewer: meshes with all-zero normals (common from some exporters) are now lit correctly.
+- Phone bottom bar keeps five tabs; Developers stays in the desktop bar.
+
+Checks: API community tests 18 passed (license and handle gates, review hides models,
+needs-repair publishes, prohibited text refused, unlisted, ND remix refused, BY remix credited,
+SA remix keeps SA, idempotent likes, private saves, download records, private collection 404,
+reorder, reports and take-down, search and filters, no outbound requests, 10,000-model p95 under
+200 ms). E2E J8 (share → search → like → save → download → comment → collect → remix → creator
+page → creator stats) passed.
+
+Not built: paid models and payouts (M8-F), challenges (M8-G), an admin web page for review and
+reports (API only), STEP uploads, bulk upload.

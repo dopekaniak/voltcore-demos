@@ -5,6 +5,7 @@ export const userSchema = z.object({
   id: z.string(),
   email: z.string(),
   name: z.string().nullable(),
+  handle: z.string().nullable(),
   role: z.enum(['USER', 'ADMIN', 'OPS']),
   terms_version: z.string().nullable(),
   totp_enabled: z.boolean(),
