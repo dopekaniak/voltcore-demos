@@ -14,10 +14,10 @@ import os
 import random
 import re
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Set
-from urllib.parse import quote_plus
+from urllib.parse import quote_plus, urlparse
 
 import httpx
 from camoufox.async_api import AsyncCamoufox
@@ -34,6 +34,9 @@ logging.basicConfig(
     datefmt="%H:%M:%S",
 )
 logger = logging.getLogger("CamoufoxScraper")
+
+# Hard ceiling on listings per run: limits request volume, runtime, and webhook payload size
+MAX_LEADS_CAP = 200
 
 # Domains that count as "No Real Website" (prime agency targets)
 SOCIAL_ONLY_DOMAINS = (
@@ -173,7 +176,7 @@ async def extract_listing_details(page: Page, url: str, query: str) -> Optional[
             review_count=review_count,
             address=address,
             maps_url=url,
-            scraped_at=datetime.utcnow().isoformat() + "Z",
+            scraped_at=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         )
 
     except Exception as exc:
@@ -181,10 +184,29 @@ async def extract_listing_details(page: Page, url: str, query: str) -> Optional[
         return None
 
 
+def validate_webhook_url(webhook_url: str) -> bool:
+    """Only allow HTTPS webhooks, or plain HTTP when the host is localhost."""
+    parsed = urlparse(webhook_url)
+    if parsed.scheme == "https" and parsed.netloc:
+        return True
+    if parsed.scheme == "http" and parsed.hostname in ("localhost", "127.0.0.1"):
+        return True
+    logger.error("Refusing webhook URL: must be https:// (or http://localhost for local n8n).")
+    return False
+
+
 async def push_to_n8n_webhook(leads: List[BusinessLead], webhook_url: str) -> None:
     """Sends scraped leads to your local or cloud n8n webhook router."""
     if not webhook_url or not leads:
         return
+    if not validate_webhook_url(webhook_url):
+        return
+
+    # Optional shared secret. Set N8N_LEAD_WEBHOOK_TOKEN in .env and check it in the n8n Webhook node.
+    headers = {}
+    token = os.getenv("N8N_LEAD_WEBHOOK_TOKEN", "")
+    if token:
+        headers["X-Webhook-Token"] = token
 
     payload = {
         "source": "camoufox_local_scraper",
@@ -195,7 +217,7 @@ async def push_to_n8n_webhook(leads: List[BusinessLead], webhook_url: str) -> No
 
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
-            resp = await client.post(webhook_url, json=payload)
+            resp = await client.post(webhook_url, json=payload, headers=headers)
             resp.raise_for_status()
             logger.info(f"Pushed {len(leads)} leads to n8n webhook ({resp.status_code}).")
     except Exception as exc:
@@ -294,6 +316,14 @@ async def run_scraper(
             await push_to_n8n_webhook(leads, webhook_url)
 
 
+def bounded_int(value: str) -> int:
+    """argparse type: integer between 1 and MAX_LEADS_CAP."""
+    number = int(value)
+    if not 1 <= number <= MAX_LEADS_CAP:
+        raise argparse.ArgumentTypeError(f"must be between 1 and {MAX_LEADS_CAP}")
+    return number
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Camoufox Anti-Detect B2B Lead Scraper")
     parser.add_argument(
@@ -306,9 +336,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "-m",
         "--max-leads",
-        type=int,
+        type=bounded_int,
         default=25,
-        help="Maximum number of listings to inspect (default: 25)",
+        help=f"Maximum number of listings to inspect (1-{MAX_LEADS_CAP}, default: 25)",
     )
     parser.add_argument(
         "--only-websiteless",
