@@ -10,6 +10,7 @@ import { providerRegistry } from '@sw/providers';
 import { MeshClient } from '@sw/shared/node';
 import { createMailer } from './mailer';
 import { processEmail, type EmailPayload } from './processors/email';
+import { processOrder, type OrderMessage } from './processors/orders';
 import { reap } from './processors/reaper';
 import { processWebhookDelivery } from './processors/webhook-delivery';
 import { makePublisher, redisConnection, startWorker } from './queues';
@@ -31,6 +32,7 @@ const workers = [
   startWorker('mesh-analysis', conn, async (job) => dispatchMesh(ctx, (job.data as { jobId: string }).jobId), 2),
   startWorker('forge-build', conn, async (job) => dispatchForge(ctx, (job.data as { jobId: string }).jobId), 2),
   startWorker('email', conn, async (job) => processEmail(mailer, job.data as EmailPayload)),
+  startWorker('order', conn, async (job) => processOrder(ctx, job.data as OrderMessage), 2),
   startWorker('webhook-delivery', conn, async (job) => processWebhookDelivery(db, env, (job.data as { deliveryId: string }).deliveryId)),
 ];
 

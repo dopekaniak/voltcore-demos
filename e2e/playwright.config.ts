@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const reuse = !process.env.CI;
-const env = { ...process.env, ESTIMATE_ORDERS: 'allow-dev', MOCK_PROVIDER_LATENCY_MS: '300-800', GEN_SERVER_URL: 'http://localhost:8100', GEN_SERVER_TOKEN: 'dev-gen-server-token', COMMUNITY_REVIEW: 'auto' } as Record<string, string>;
+const env = { ...process.env, ESTIMATE_ORDERS: 'allow-dev', MOCK_PROVIDER_LATENCY_MS: '300-800', GEN_SERVER_URL: 'http://localhost:8100', GEN_SERVER_TOKEN: 'dev-gen-server-token', COMMUNITY_REVIEW: 'auto', ORDER_ROUTE_DELAY_MS: '8000', MOCK_PARTNER_STEP_MS: '3000' } as Record<string, string>;
 const genEnv = { ...env, GEN_ENGINE: 'test', GEN_TEST_DELAY_S: '1', GEN_ALLOWED_IMAGE_HOSTS: 'localhost', GEN_DATA_DIR: '../../var/gen' } as Record<string, string>;
 
 /**

@@ -598,6 +598,40 @@ Decision:
   costs one request instead of 25 (found when the per-user rate limit tripped in E2E).
 - Categories are our own names. Paid models (M8-F) and challenges (M8-G) are not built.
 
+## ADR-046 — Checkout, payments, orders, and mock partner routing (base slice 8)
+
+Status: accepted, 2026-11-13.
+
+Decision:
+- `POST /v1/checkout` reprices every cart item on the server (2% rule, `QUOTE_CHANGED`), refuses
+  estimate prices unless `ESTIMATE_ORDERS=allow-dev` (refused in production, so real orders stay
+  off until ADR-002b clears a slicer), records the address and terms acceptance, creates the
+  order (DRAFT → AWAITING_PAYMENT) and a payment session. US addresses only for now.
+- Payments go through one gateway interface with two modes. `stripe-test` calls Stripe Checkout
+  Sessions over HTTPS with an idempotency key (no SDK). `mock` returns a stand-in payment page on
+  our site. Both use Stripe's webhook signature scheme with a 5-minute tolerance, and the mock
+  page posts its signed event through the same `/v1/webhooks/payments` route, so one code path
+  is tested. The Stripe mode is written from Stripe's API reference and unit-tested with a fake
+  transport; it has not been run against Stripe from here (no test key).
+- Events are stored raw (unique event id) and processed once in a transaction. An order becomes
+  PAID only when `payment_status=paid` and the amount and currency equal the order total; a
+  mismatch is recorded as an event and audited, and the order stays unpaid.
+- On payment: quotes are marked ORDERED, the cart is emptied of those parts, the paid email is
+  queued, and routing is queued after `ORDER_ROUTE_DELAY_MS` (1 hour by default). Until then the
+  buyer can cancel for a full refund (PAID → CANCELED, refund recorded). Before payment, cancel
+  is free.
+- Routing picks an active printer that has the material and fits the scaled part upright, with
+  the shortest queue (pure `choosePrinter`). If none can take a part, the order waits and
+  retries in 30 minutes. Buyers see the partner's city, not ids.
+- Only mock partners exist. They move each item ROUTED → PRINTING → QC → PASSED every
+  `MOCK_PARTNER_STEP_MS`, then ship with a `MOCK…` tracking number and deliver, emailing at each
+  milestone. QC always passes in the mock; the state machine keeps rework and escalation for
+  real partners. The UI says payments are in test mode.
+- Tax: "Tax calculated where applicable." (Stripe Tax is not wired; gap recorded here.)
+
+Not built: admin order board and status changes, problem reports, partial refunds, invoices,
+abandoned-session expiry for the mock (Stripe sends `checkout.session.expired` itself).
+
 ## Open questions
 
 Each has the option chosen for now.
@@ -642,3 +676,9 @@ Each has the option chosen for now.
 16. `ALL-RIGHTS-RESERVED` on the free tier. Chosen: allowed, personal printing only, no remixes, no print orders.
 17. Ranking formula review for abuse (like farming). Chosen: the log-damped formula in ADR-045; revisit with real data.
 18. Who reviews shared models in production, and how quickly. Open: the review queue has API routes only; there is no admin web page yet.
+
+### Checkout (ADR-046)
+
+19. Which payment account and when to switch from mock to Stripe test mode. Open: needs a Stripe account in the owner's name (keys go in the environment, never in code).
+20. Which real print partners, and their API. Open: only mock partners exist; nothing claims a real one.
+21. Shipping outside the US. Chosen for now: US only.

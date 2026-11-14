@@ -1,15 +1,30 @@
 import { AppError, toApiId } from '@sw/shared';
+import { quoteChanged } from '@sw/pricing';
 import { sha256Hex } from '@sw/shared/node';
-import { checkFit, estimatePrint, leadTimeDays, PricingError, pricingConfig, quoteTotals, settingsSchema, validateSettings, type MeshFacts, type PrintSettings } from '@sw/pricing';
+import {
+  checkFit,
+  estimatePrint,
+  leadTimeDays,
+  PricingError,
+  pricingConfig,
+  quoteTotals,
+  settingsSchema,
+  validateSettings,
+  type MeshFacts,
+  type PrintSettings,
+} from '@sw/pricing';
 import type { Env } from '@sw/config';
 import type { PrintPart, Quote, Tx } from '@sw/db';
+import type { AppContext } from '../context';
+import { assertAssetNotSafetyCritical, assertCatalogPrintable } from './catalog';
 
 export const TAX_NOTE = 'Tax calculated where applicable.';
 
 /** The analysis of the mesh that would be printed (the repaired one when chosen). */
 export function currentFacts(part: PrintPart): (MeshFacts & { printable?: boolean }) | null {
   const repair = part.repairReport as { after?: MeshFacts } | null;
-  const a = (part.useRepaired && repair?.after ? repair.after : part.analysis) as (MeshFacts & { printable?: boolean }) | null;
+  const a = (part.useRepaired && repair?.after ? repair.after : part.analysis) as
+    (MeshFacts & { printable?: boolean }) | null;
   return a && typeof a.volume_mm3 === 'number' ? a : null;
 }
 
@@ -36,7 +51,19 @@ export function priceFor(env: Env, part: PrintPart, settings: PrintSettings) {
   try {
     checkFit(cfg, facts.bbox_mm, settings.scale_pct);
     const est = estimatePrint(cfg, facts, settings);
-    const totals = quoteTotals(cfg, [{ material: settings.material, filament_mg: est.filament_mg, support_mg: est.support_mg, print_time_s: est.print_time_s, quantity: settings.quantity }], { shipping: settings.shipping, tax_minor: 0 });
+    const totals = quoteTotals(
+      cfg,
+      [
+        {
+          material: settings.material,
+          filament_mg: est.filament_mg,
+          support_mg: est.support_mg,
+          print_time_s: est.print_time_s,
+          quantity: settings.quantity,
+        },
+      ],
+      { shipping: settings.shipping, tax_minor: 0 },
+    );
     const isEstimate = env.SLICER_MODE === 'estimate';
     return {
       cfg,
@@ -45,18 +72,39 @@ export function priceFor(env: Env, part: PrintPart, settings: PrintSettings) {
       isEstimate,
       orderable: !isEstimate || env.ESTIMATE_ORDERS === 'allow-dev',
       leadTime: leadTimeDays(cfg, settings.quantity, settings.shipping),
-      inputsHash: sha256Hex(JSON.stringify({ facts: { v: facts.volume_mm3, a: facts.surface_area_mm2, b: facts.bbox_mm, o: facts.overhang_area_mm2 }, settings, version: cfg.pricing_version })),
+      inputsHash: sha256Hex(
+        JSON.stringify({
+          facts: {
+            v: facts.volume_mm3,
+            a: facts.surface_area_mm2,
+            b: facts.bbox_mm,
+            o: facts.overhang_area_mm2,
+          },
+          settings,
+          version: cfg.pricing_version,
+        }),
+      ),
     };
   } catch (e) {
     toAppError(e);
   }
 }
 
-export async function storeQuote(tx: Tx, env: Env, part: PrintPart, settings: PrintSettings, now: Date, idempotencyKey?: string): Promise<Quote> {
+export async function storeQuote(
+  tx: Tx,
+  env: Env,
+  part: PrintPart,
+  settings: PrintSettings,
+  now: Date,
+  idempotencyKey?: string,
+): Promise<Quote> {
   const p = priceFor(env, part, settings);
   const line = p.totals.lines[0]!;
   // Older active quotes for the part are superseded.
-  await tx.quote.updateMany({ where: { printPartId: part.id, status: 'ACTIVE' }, data: { status: 'SUPERSEDED' } });
+  await tx.quote.updateMany({
+    where: { printPartId: part.id, status: 'ACTIVE' },
+    data: { status: 'SUPERSEDED' },
+  });
   return tx.quote.create({
     data: {
       ownerId: part.ownerId,
@@ -94,7 +142,10 @@ export async function storeQuote(tx: Tx, env: Env, part: PrintPart, settings: Pr
 
 export function serializeQuote(env: Env, q: Quote, now = new Date()) {
   const expired = q.status === 'ACTIVE' && q.expiresAt <= now;
-  const lines = (q.lines as { part_id: string; [k: string]: unknown }[]).map((l) => ({ ...l, part_id: toApiId('part', l.part_id) }));
+  const lines = (q.lines as { part_id: string; [k: string]: unknown }[]).map((l) => ({
+    ...l,
+    part_id: toApiId('part', l.part_id),
+  }));
   return {
     id: toApiId('quote', q.id),
     part_id: toApiId('part', q.printPartId),
@@ -114,4 +165,56 @@ export function serializeQuote(env: Env, q: Quote, now = new Date()) {
     expires_at: q.expiresAt.toISOString(),
     created_at: q.createdAt.toISOString(),
   };
+}
+
+/**
+ * Validate a quote for the cart and for checkout: owned, active, not expired, part ready and
+ * checks acknowledged, and still within 2% when repriced from its stored inputs (J5). The
+ * client never sends an amount.
+ */
+export async function validateQuote(
+  ctx: AppContext,
+  userId: string,
+  quoteId: string,
+): Promise<Quote> {
+  const q = await ctx.db.quote.findUnique({ where: { id: quoteId }, include: { printPart: true } });
+  if (!q || q.ownerId !== userId || !q.printPart || q.printPart.ownerId !== userId)
+    throw new AppError('NOT_FOUND', 'Quote not found');
+  if (q.status !== 'ACTIVE')
+    throw new AppError('QUOTE_EXPIRED', 'This quote is no longer active; get a new one');
+  if (q.expiresAt <= ctx.now())
+    throw new AppError('QUOTE_EXPIRED', 'This quote expired; get a new one');
+  const part = q.printPart;
+  // Safety class and license gates run on every path to an order, not only in the UI.
+  await assertCatalogPrintable(ctx.db, part.catalogPartId, part.fitAcknowledgedAt);
+  if (part.assetVersionId) {
+    const v = await ctx.db.assetVersion.findUnique({ where: { id: part.assetVersionId } });
+    if (v) await assertAssetNotSafetyCritical(ctx.db, v.assetId);
+  }
+  if (part.status !== 'READY')
+    throw new AppError(
+      'PART_NOT_READY',
+      part.status === 'NEEDS_REPAIR'
+        ? 'Repair the part before ordering it'
+        : 'The part is not ready',
+    );
+  if (part.checksFailing && !part.checksAcknowledgedAt)
+    throw new AppError('CHECKS_NOT_ACKNOWLEDGED', 'Acknowledge the failing print checks first');
+  const settings = mergeSettings(
+    part,
+    (q.inputs as { settings: Record<string, unknown> }).settings,
+  );
+  const now = priceFor(ctx.env, part, settings);
+  if (
+    quoteChanged(pricingConfig(q.pricingVersion), q.totalMinor, now.totals.total_minor) ||
+    now.totals.pricing_version !== q.pricingVersion
+  ) {
+    const fresh = await ctx.db.$transaction((tx) =>
+      storeQuote(tx, ctx.env, part, settings, ctx.now()),
+    );
+    throw new AppError('QUOTE_CHANGED', 'The price changed; review the new quote', {
+      quote: serializeQuote(ctx.env, fresh, ctx.now()),
+    });
+  }
+  return q;
 }

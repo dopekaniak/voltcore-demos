@@ -55,6 +55,10 @@ export const envSchema = z
     STRIPE_TAX_ENABLED: bool.default(false),
 
     PARTNER_MODE: z.enum(['mock']).default('mock'),
+    /** Paid orders wait this long before routing, so a buyer can cancel for a full refund (build prompt 10). */
+    ORDER_ROUTE_DELAY_MS: z.coerce.number().int().nonnegative().default(3_600_000),
+    /** Mock partners move each order one step (printing, QC, shipped, delivered) this often. */
+    MOCK_PARTNER_STEP_MS: z.coerce.number().int().positive().default(60_000),
 
     STORAGE_DRIVER: z.enum(['fs', 's3']).default('fs'),
     STORAGE_DIR: z.string().default('./var/storage'),

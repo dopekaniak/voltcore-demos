@@ -361,3 +361,26 @@ page → creator stats) passed.
 
 Not built: paid models and payouts (M8-F), challenges (M8-G), an admin web page for review and
 reports (API only), STEP uploads, bulk upload.
+
+## Checkout, payments, and orders (base slice 8, ADR-046)
+
+Shipped:
+- API: `POST /v1/checkout`, `GET /v1/orders`, `GET /v1/orders/:id` (items, partner city,
+  timeline, tracking), `POST /v1/orders/:id/cancel` (free before payment; full refund within the
+  cancel window), `POST /v1/webhooks/payments` (signed, stored raw, processed once), mock payment
+  session read and complete. Payment gateway with mock and Stripe test modes.
+- Worker: `order` queue. Routing to partner printers after the cancel window; the mock partner
+  prints, checks, ships with tracking, and delivers, with emails at each step.
+- Web: Checkout (address, terms, summary), test payment page, Orders list, order page that
+  follows status live. The cart's Checkout button no longer leads to a missing page.
+- Quote validation moved to `lib/quote.ts` and shared by the cart and checkout.
+
+Checks: API orders tests 13 passed (session created at the server total, empty cart, terms,
+country, estimate gate, sign-in, unsigned and tampered events rejected, duplicate event processed
+once, amount and currency mismatch never pays, abandoned payment expires, mock page uses the
+signed path, cancel before and after payment with refund, IDOR, signature tolerance, printer
+choice). Worker order flow 3 passed (route → print → ship → deliver with emails; no printer
+available waits; canceled order never routes). E2E J3 (upload → repair → quote → sign in → cart →
+checkout → test payment → delivered) and J3b (cancel with refund) passed.
+
+Not verified: Stripe test mode against Stripe itself (no key here).

@@ -8,6 +8,9 @@ export MOCK_PROVIDER_LATENCY_MS="${MOCK_PROVIDER_LATENCY_MS:-300-800}" ESTIMATE_
 export GEN_SERVER_URL="${GEN_SERVER_URL:-http://localhost:8100}" GEN_SERVER_TOKEN="${GEN_SERVER_TOKEN:-dev-gen-server-token}"
 # Community sharing publishes at once locally; production keeps the review queue (ADR-045).
 export COMMUNITY_REVIEW="${COMMUNITY_REVIEW:-auto}"
+# Paid orders route after a short cancel window and the mock partner steps quickly, so a local
+# order goes from paid to delivered in under a minute (production defaults: 1 h and 60 s).
+export ORDER_ROUTE_DELAY_MS="${ORDER_ROUTE_DELAY_MS:-8000}" MOCK_PARTNER_STEP_MS="${MOCK_PARTNER_STEP_MS:-3000}"
 start() { (setsid bash -c "$1" > "var/logs/$2.log" 2>&1 &); }
 start "cd apps/mesh && .venv/bin/uvicorn app.main:app --port 8000" mesh
 [ -x apps/gen-server/.venv/bin/uvicorn ] || (python3 -m venv apps/gen-server/.venv && apps/gen-server/.venv/bin/pip install -q -r apps/gen-server/requirements.txt)

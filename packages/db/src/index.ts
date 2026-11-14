@@ -27,3 +27,4 @@ export * from './outbox';
 export * from './audit';
 export * from './jobs';
 export * from './events';
+export * from './orders';

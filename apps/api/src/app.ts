@@ -14,6 +14,7 @@ import { catalogRoutes } from './routes/catalog';
 import { customizerRoutes } from './routes/customizers';
 import { copilotRoutes } from './routes/copilot';
 import { communityRoutes } from './routes/community';
+import { orderRoutes } from './routes/orders';
 import { printRoutes } from './routes/print';
 import { generateRoutes } from './routes/generate';
 import { internalRoutes } from './routes/internal';
@@ -62,5 +63,6 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
   customizerRoutes(app, ctx);
   copilotRoutes(app, ctx);
   communityRoutes(app, ctx);
+  orderRoutes(app, ctx);
   return app;
 }
