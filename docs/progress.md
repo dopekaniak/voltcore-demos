@@ -384,3 +384,19 @@ available waits; canceled order never routes). E2E J3 (upload → repair → quo
 checkout → test payment → delivered) and J3b (cancel with refund) passed.
 
 Not verified: Stripe test mode against Stripe itself (no key here).
+
+## Generation server proven on a GPU (2026-11-18)
+
+Ran `setup-gpu.sh` from GitHub on a rented NVIDIA L40S (Python 3.11, as on RunPod's PyTorch 2.4
+image) and generated real models. Fixed what the run found:
+- open3d needs libEGL and libusb on slim images: the installer adds them.
+- Unpinned transformers 4.47+ needs PyTorch 2.6: the proven package set is pinned in
+  `requirements-gpu.txt` and applied on every run (scikit-image 0.26.0 for rembg).
+- Meshes came out not watertight, and the site's repair could not close them. Cause: the old
+  face reduction (fast-simplification) opened them. Post-processing now reduces faces with open3d
+  only when the result stays closed, and rebuilds a closed solid from a voxel grid if a mesh is
+  still open.
+
+Measured once loaded: text preview 5 s, refine 10-12 s, photo 25 s. The dragon, refined dragon,
+and photo mug all passed the mesh service's printability check (watertight, manifold).
+`Dockerfile.gpu` now uses the same base image and versions; the image itself is not yet built.

@@ -62,8 +62,17 @@ From any computer with the token:
 GEN_SERVER_TOKEN=<token> apps/gen-server/smoke.sh https://<pod-id>-8100.proxy.runpod.net "a small round vase"
 ```
 
-The first generation downloads the model weights (about 10 GB) and takes several minutes. Later
-ones should take well under a minute on a 24 GB card (not yet measured).
+The first generation downloads the model weights (about 4 GB for text, 3 GB more for photos)
+and takes about a minute. Measured on an NVIDIA L40S (2026-11-18), once loaded:
+
+| Task | Time | Result |
+| --- | --- | --- |
+| Text preview | 5 s | 150,000 triangles, watertight |
+| Refine (high detail) | 10-12 s | 400,000 triangles, watertight |
+| Photo to 3D | about 25 s | 150,000 triangles, watertight |
+
+All results passed the mesh service's printability check (watertight, manifold, no
+non-manifold edges). A 24 GB card should be somewhat slower; not yet measured.
 
 ### 4. Connect the website
 
