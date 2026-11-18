@@ -1,5 +1,5 @@
 // Cable clip — a snap-in ring on a flat mounting base.
-// Original Shapewright starter forge. MIT License.
+// Original PrintForge starter forge. MIT License.
 //
 // Printed lying flat: the ring axis is Z, so the whole profile sits on the bed and no
 // part of the clip overhangs. The opening at the top is narrower than the cable, so the

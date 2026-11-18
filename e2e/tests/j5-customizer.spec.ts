@@ -15,7 +15,7 @@ test('J5: customize a name plate for free, reject bad text, then export with the
   await signIn(page);
   await page.goto('/customizers/nameplate');
   await expect(page.getByTestId('export-allowance')).toContainText('free exports left this month');
-  await expect(page.getByTestId('export-footer')).toContainText('Made with the Shapewright');
+  await expect(page.getByTestId('export-footer')).toContainText('Made with the PrintForge');
   await expect(page.getByTestId('bbox-readout')).not.toHaveText('—', { timeout: 60_000 });
   const download = page.waitForEvent('download', { timeout: 90_000 });
   await page.getByTestId('cz-export-stl').click();

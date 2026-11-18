@@ -145,7 +145,7 @@ export function AppShell({ children, initialTheme }: { children: ReactNode; init
       </main>
       <footer className="hidden border-t border-[var(--sw-border)] py-6 text-xs text-[var(--sw-text-muted)] md:block">
         <div className="mx-auto flex max-w-6xl flex-wrap gap-4 px-4">
-          <span>© Shapewright</span>
+          <span>© PrintForge</span>
           <Link href="/legal/terms">{t.footer.terms}</Link>
           <Link href="/legal/privacy">{t.footer.privacy}</Link>
           <Link href="/legal/notices">{t.footer.notices}</Link>

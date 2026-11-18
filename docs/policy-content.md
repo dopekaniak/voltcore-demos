@@ -2,7 +2,7 @@
 
 ## Prohibited items
 
-Shapewright does not design, generate, or print:
+PrintForge does not design, generate, or print:
 
 - firearms and firearm parts (frames, receivers, barrels, slides, trigger groups, auto sears,
   bump stocks, magazines for firearms), suppressors and silencers;

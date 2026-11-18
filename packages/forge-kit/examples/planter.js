@@ -1,5 +1,5 @@
 // Planter — a tapered pot with drainage holes and a rolled-out rim.
-// Original Shapewright starter forge. MIT License.
+// Original PrintForge starter forge. MIT License.
 //
 // Prints upright with no supports: the taper widens upward at well under 45 degrees from
 // vertical, and the rim flares out on a 45-degree chamfer before its flat band.

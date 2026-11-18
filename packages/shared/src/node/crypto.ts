@@ -20,6 +20,7 @@ export function safeEqual(a: string, b: string): boolean {
 
 /** Derive a purpose-specific key from APP_SECRET. */
 export function deriveKey(appSecret: string, purpose: string, length = 32): Buffer {
+  // The salt keeps the original product name: changing it would change every derived key.
   return Buffer.from(hkdfSync('sha256', appSecret, 'shapewright', purpose, length));
 }
 

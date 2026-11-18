@@ -1,4 +1,4 @@
-# Shapewright
+# PrintForge
 
 Describe it, forge it, print it. A platform for parametric forges, AI-generated models,
 and print-on-demand orders.

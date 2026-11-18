@@ -39,12 +39,12 @@ export function customizerRoutes(app: FastifyInstance, ctx: AppContext): void {
       free_remaining: plan === 'free' ? Math.max(0, p.free_exports_per_month - used) : 0,
       formats: plan === 'free' ? p.free_plan_formats : p.paid_plan_formats,
       // Free plans show a small credit line on the export page; printed parts are never marked.
-      footer: plan === 'free' ? `Made with the Shapewright ${c.title} customizer` : null,
+      footer: plan === 'free' ? `Made with the PrintForge ${c.title} customizer` : null,
     };
   }
   async function license(c: Customizer) {
     const l = c.licenseId ? await ctx.db.licenseTerms.findUnique({ where: { id: c.licenseId } }) : null;
-    return l ? { code: l.code, name: l.name, attribution: l.attributionTemplate.replace('{title}', c.title).replace('{author}', 'Shapewright') } : null;
+    return l ? { code: l.code, name: l.name, attribution: l.attributionTemplate.replace('{title}', c.title).replace('{author}', 'PrintForge') } : null;
   }
   async function validate(req: FastifyRequest, c: Customizer, inputs: Record<string, unknown>) {
     const v = validateCustomizerInputs(c.schema as unknown as ParamSchema, c.inputRules as Record<string, InputRule>, inputs);

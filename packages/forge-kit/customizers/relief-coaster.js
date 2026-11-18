@@ -1,5 +1,5 @@
 // Relief coaster — a round coaster with a raised relief made from an uploaded image.
-// Original Shapewright starter customizer. MIT License.
+// Original PrintForge starter customizer. MIT License.
 // The platform replaces the RELIEF literal with a height map computed from the user's
 // image (grayscale, resized to a fixed grid) before building. With no image, a ripple
 // pattern is used.

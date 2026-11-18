@@ -3,7 +3,7 @@ import type { Db } from '@sw/db';
 import { decrypt, signPayload } from '@sw/shared/node';
 
 /**
- * Deliver one outbound webhook, signed like Stripe (`Shapewright-Signature: t=..,v1=..`).
+ * Deliver one outbound webhook, signed like Stripe (`PrintForge-Signature: t=..,v1=..`).
  * Throws on failure so the queue retries with backoff; gives up after `maxAttempts`.
  */
 export async function processWebhookDelivery(
@@ -25,7 +25,7 @@ export async function processWebhookDelivery(
   try {
     const res = await fetchImpl(d.endpoint.url, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'shapewright-signature': signPayload(secret, body, Math.floor(Date.now() / 1000)) },
+      headers: { 'content-type': 'application/json', 'printforge-signature': signPayload(secret, body, Math.floor(Date.now() / 1000)) },
       body,
       signal: AbortSignal.timeout(10_000),
       redirect: 'manual',

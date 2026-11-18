@@ -234,7 +234,7 @@ export function mergeBinaryStl(buffers) {
   let tris = 0;
   for (const b of buffers) tris += new DataView(b.buffer, b.byteOffset, b.byteLength).getUint32(80, true);
   const out = new Uint8Array(84 + tris * 50);
-  const header = new TextEncoder().encode('Shapewright forge export');
+  const header = new TextEncoder().encode('PrintForge forge export');
   out.set(header.subarray(0, 80), 0);
   new DataView(out.buffer).setUint32(80, tris, true);
   let off = 84;

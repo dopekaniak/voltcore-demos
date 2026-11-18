@@ -1,5 +1,5 @@
 // Cable organizer — a desk-edge comb with a parametric number of cable slots.
-// Original Shapewright starter customizer. MIT License.
+// Original PrintForge starter customizer. MIT License.
 export default {
   meta: { title: 'Cable organizer', units: 'mm' },
   parameters: [

@@ -1,8 +1,8 @@
-# Shapewright — product definition
+# PrintForge — product definition
 
 **Tagline:** describe it, forge it, print it.
 
-Shapewright is a web platform with three connected modes that share one account, one
+PrintForge is a web platform with three connected modes that share one account, one
 credit wallet, and one library.
 
 | Mode | What the user does | What they get |

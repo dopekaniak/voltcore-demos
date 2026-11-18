@@ -1,5 +1,5 @@
 // Rectangular box with a snap-fit lid.
-// Original Shapewright starter forge. MIT License.
+// Original PrintForge starter forge. MIT License.
 //
 // Two printed pieces. The body prints open side up. The lid prints upside down: its plate
 // is on the bed and its lip points up. A ridge on the outside of the lip clicks into a

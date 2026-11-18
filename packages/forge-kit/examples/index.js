@@ -1,4 +1,4 @@
-// Starter forge registry. Each entry is an original Shapewright forge (MIT).
+// Starter forge registry. Each entry is an original PrintForge forge (MIT).
 export const STARTERS = [
   {
     key: 'cable-clip',

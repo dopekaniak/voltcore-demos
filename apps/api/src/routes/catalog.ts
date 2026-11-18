@@ -45,7 +45,7 @@ export function catalogRoutes(app: FastifyInstance, ctx: AppContext): void {
     await ctx.db.asset.update({ where: { id: asset.id }, data: { license: terms.code } });
     await ctx.db.part.updateMany({ where: { assetId: asset.id }, data: { licenseId: terms.id } });
     await audit(ctx.db, { actorId: userId, action: 'asset.license', targetType: 'asset', targetId: asset.id, data: { code: terms.code }, requestId: req.id });
-    return licenseBlock(terms, ml, { title: asset.title, author: owner.name ?? 'a Shapewright creator' });
+    return licenseBlock(terms, ml, { title: asset.title, author: owner.name ?? 'a PrintForge creator' });
   });
 
   route(app, ctx, catalogApi.createPart, async ({ body }, req) => {

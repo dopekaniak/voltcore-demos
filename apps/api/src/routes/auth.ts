@@ -75,8 +75,8 @@ export function authRoutes(app: FastifyInstance, ctx: AppContext): void {
     if (user.totpEnabledAt) throw new AppError('INVALID_STATE', 'TOTP is already enabled');
     const secret = newTotpSecret();
     await ctx.db.user.update({ where: { id: user.id }, data: { totpSecretEnc: encrypt(ctx.env.APP_SECRET, 'totp', secret) } });
-    const label = encodeURIComponent(`Shapewright:${user.email}`);
-    return { otpauth_url: `otpauth://totp/${label}?secret=${secret}&issuer=Shapewright&digits=6&period=30`, secret };
+    const label = encodeURIComponent(`PrintForge:${user.email}`);
+    return { otpauth_url: `otpauth://totp/${label}?secret=${secret}&issuer=PrintForge&digits=6&period=30`, secret };
   });
 
   route(app, ctx, authApi.totpVerify, async ({ body }, req) => {

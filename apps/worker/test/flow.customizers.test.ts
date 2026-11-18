@@ -51,7 +51,7 @@ describe('customizers', () => {
     const s = await signIn(t);
     const call = as(t, s.cookie);
     const c = (await call('GET', '/v1/customizers/nameplate')).json();
-    expect(c.export).toMatchObject({ free_remaining: 3, formats: ['stl'], footer: 'Made with the Shapewright Name plate or keychain customizer' });
+    expect(c.export).toMatchObject({ free_remaining: 3, formats: ['stl'], footer: 'Made with the PrintForge Name plate or keychain customizer' });
     const r = await call('POST', `/v1/customizers/${c.id}/exports`, { inputs: { label: 'MORGAN', width: 70, height: 24, thickness: 3, depth: 1.5 }, format: 'stl' }, { 'idempotency-key': key() });
     expect(r.statusCode).toBe(202);
     expect(r.json()).toMatchObject({ free: true, credits: 0, footer: c.export.footer });

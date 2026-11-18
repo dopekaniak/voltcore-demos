@@ -1,4 +1,4 @@
-/** Original Shapewright mark: a chevron over three layer lines. */
+/** Original PrintForge mark: a chevron over three layer lines. */
 export function Logo({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={className} aria-hidden="true" focusable="false">

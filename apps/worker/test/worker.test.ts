@@ -56,7 +56,7 @@ describe('webhook delivery', () => {
       let body = '';
       req.on('data', (c) => (body += c));
       req.on('end', () => {
-        received = { sig: String(req.headers['shapewright-signature']), body };
+        received = { sig: String(req.headers['printforge-signature']), body };
         res.writeHead(200).end('ok');
       });
     });

@@ -30,7 +30,7 @@ export function exportLicenseSnapshot(a: { planCode: string; modelLicense: { cod
   return {
     terms_version: TERMS_VERSION,
     plan_code: a.planCode,
-    ownership: 'You own the designs you make. Shapewright claims no ownership of them.',
+    ownership: 'You own the designs you make. PrintForge claims no ownership of them.',
     personal_use: true,
     ...(isPaidPlan(a.planCode) ? { commercial_use_terms: 'Your plan includes commercial use: you may sell this design and prints made from it, subject to the model license below.' } : {}),
     model_license: a.modelLicense,

@@ -1,9 +1,9 @@
 /**
  * All user-facing copy for the web app (build prompt 11: "All copy in one i18n file").
- * Original Shapewright copy. Functions take values so translations can reorder them.
+ * Original PrintForge copy. Functions take values so translations can reorder them.
  */
 export const t = {
-  brand: { name: 'Shapewright', tagline: 'Describe it, forge it, print it.' },
+  brand: { name: 'PrintForge', tagline: 'Describe it, forge it, print it.' },
   nav: {
     create: 'Create',
     describe: 'Describe a part',
@@ -40,7 +40,7 @@ export const t = {
   },
   home: {
     title: 'Describe a part. Get a model you can adjust and print.',
-    lead: 'Type what you need in plain words. Shapewright writes it as a parametric forge with sliders, print checks, and STL, 3MF, and STEP exports.',
+    lead: 'Type what you need in plain words. PrintForge writes it as a parametric forge with sliders, print checks, and STL, 3MF, and STEP exports.',
     promptLabel: 'Describe a part',
     promptPlaceholder: 'A 40 mm cable clip for a 6 mm cable, with a snap closure',
     submit: 'Forge it',

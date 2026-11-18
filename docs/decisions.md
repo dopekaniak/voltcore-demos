@@ -21,7 +21,7 @@ the end; each has the option chosen for now so work can continue.
 
 ## ADR-000 — Brand
 
-**Decision:** the brand is **Shapewright**, tagline "describe it, forge it, print it".
+**Decision:** the brand is **PrintForge**, tagline "describe it, forge it, print it".
 Accent colour orange `#C2410C` (5.2:1 on white), neutral grays, semantic green/amber/red.
 The logo is an original geometric mark (a wrench-like chevron over a layer stack) drawn as
 inline SVG.
@@ -416,7 +416,7 @@ Previews build in the browser and are free. Exports run as `FORGE_EXPORT` jobs o
 worker: the first `free_exports_per_month` (3, seed data `customizer.policy`) are free on
 the free plan, then each costs `export_cost` (5) credits, reserved and committed like
 Generate. Free plans export STL only; 3MF is for paid plans. Free-plan exports show a
-"Made with the Shapewright … customizer" credit line on the export page; files and printed
+"Made with the PrintForge … customizer" credit line on the export page; files and printed
 parts are never marked. Text inputs are rejected (not trimmed) when they break the length
 or character allowlist (`CUSTOMIZER_INPUT_INVALID`) and pass the prompt moderation list;
 numbers are clamped with a visible message. Image input: the upload goes through the
@@ -636,7 +636,7 @@ abandoned-session expiry for the mock (Stripe sends `checkout.session.expired` i
 
 Each has the option chosen for now.
 
-1. **Trademark clearance for "Shapewright".** Chosen: use it internally; clear before launch.
+1. **Trademark clearance for "PrintForge".** Chosen: use it internally; clear before launch.
 2. **Meshy webhook authenticity.** No signature is documented. Chosen: never trust the body;
    fetch the task by ID. Revisit if Meshy publishes a signing scheme.
 3. **Estimate-mode ordering.** Chosen: blocked in production, `allow-dev` for demos (ADR-010).

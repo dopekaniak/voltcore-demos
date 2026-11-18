@@ -6,8 +6,8 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 
 export const TEMPLATES: Record<string, (v: Vars) => { subject: string; text: string }> = {
   'magic-link': (v) => ({
-    subject: 'Your Shapewright sign-in link',
-    text: `Sign in to Shapewright:\n\n${v.url}\n\nThis link works once and expires in 15 minutes. If you did not ask for it, ignore this email.`,
+    subject: 'Your PrintForge sign-in link',
+    text: `Sign in to PrintForge:\n\n${v.url}\n\nThis link works once and expires in 15 minutes. If you did not ask for it, ignore this email.`,
   }),
   'order-paid': (v) => ({
     subject: `Order ${v.order} confirmed`,

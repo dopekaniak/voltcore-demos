@@ -70,7 +70,7 @@ export const envSchema = z
 
     MAIL_DRIVER: z.enum(['smtp', 'log', 'memory']).default('log'),
     SMTP_URL: z.string().optional(),
-    MAIL_FROM: z.string().default('Shapewright <no-reply@shapewright.local>'),
+    MAIL_FROM: z.string().default('PrintForge <no-reply@printforge.local>'),
 
     RATE_LIMIT_USER_PER_MIN: z.coerce.number().int().positive().default(60),
     REFUND_SECOND_APPROVAL_MINOR: z.coerce.number().int().nonnegative().default(10000),

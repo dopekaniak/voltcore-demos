@@ -1,5 +1,5 @@
 // Filleted box — a desk tray with rounded edges, using the kernel's fillet feature.
-// Original Shapewright starter forge. MIT License.
+// Original PrintForge starter forge. MIT License.
 //
 // The outside vertical edges and the top rim are filleted with Solid.fillet, which runs
 // natively on the Manifold backend for previews and STL/3MF, and on OpenCASCADE for STEP.

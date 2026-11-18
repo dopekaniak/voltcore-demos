@@ -1,5 +1,5 @@
 // Name plate / keychain — raised lettering on a rounded plate with an optional key ring hole.
-// Original Shapewright starter customizer. MIT License. Uses the bundled Roboto face (OFL).
+// Original PrintForge starter customizer. MIT License. Uses the bundled Roboto face (OFL).
 export default {
   meta: { title: 'Name plate', units: 'mm' },
   parameters: [

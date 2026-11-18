@@ -1,5 +1,5 @@
 // Modular storage tile — a grid of square bins on a base plate.
-// Original Shapewright starter customizer. MIT License.
+// Original PrintForge starter customizer. MIT License.
 export default {
   meta: { title: 'Storage tile', units: 'mm' },
   parameters: [

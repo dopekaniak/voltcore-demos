@@ -1,5 +1,5 @@
 // Fan bracket — a plate that holds a square case fan, with an upright mounting flange.
-// Original Shapewright starter forge. MIT License.
+// Original PrintForge starter forge. MIT License.
 //
 // Prints with the fan plate flat on the bed and the flange standing up along one edge.
 // The fan screw holes follow the common case-fan spacings (40, 60, 80, 92, 120, 140 mm).

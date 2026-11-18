@@ -1,4 +1,4 @@
-"""Shapewright mesh service (internal only). Analyze, repair, convert, remesh, samples.
+"""PrintForge mesh service (internal only). Analyze, repair, convert, remesh, samples.
 
 No slicer is linked or called here (rule 6, ADR-002b). Every route except /health needs the
 service token. Request bodies are raw file bytes; `format` names the input format.
@@ -21,7 +21,7 @@ from .slicecheck import slice_check
 
 SERVICE_TOKEN = os.environ.get("MESH_SERVICE_TOKEN", "dev-mesh-service-token")
 
-app = FastAPI(title="shapewright-mesh", docs_url=None, redoc_url=None, openapi_url=None)
+app = FastAPI(title="printforge-mesh", docs_url=None, redoc_url=None, openapi_url=None)
 
 
 def require_token(authorization: str = Header(default="")) -> None:

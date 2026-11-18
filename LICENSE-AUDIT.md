@@ -5,7 +5,7 @@ Licenses were read from each package's published metadata unless noted.
 
 ## Project
 
-Shapewright source in this repository: proprietary, all rights reserved (no license file is
+PrintForge source in this repository: proprietary, all rights reserved (no license file is
 granted to third parties). Starter forges in `packages/forge-kit/examples/` are original
 work and are released under MIT so users may fork them.
 

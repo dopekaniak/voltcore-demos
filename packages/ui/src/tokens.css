@@ -1,5 +1,5 @@
 /*
- * Shapewright design tokens. One accent (orange), neutral grays, semantic colors.
+ * PrintForge design tokens. One accent (orange), neutral grays, semantic colors.
  * Light and dark themes; `prefers-color-scheme` by default, overridden by data-theme.
  * Contrast pairs used for text meet WCAG 2.2 AA (4.5:1) in both themes.
  */

@@ -1,6 +1,6 @@
 # Local infrastructure. `pnpm dev` runs the Node apps on the host; this file provides the
 # backing services. The mesh container ships no slicer (rule 6, ADR-002b).
-name: shapewright
+name: printforge
 services:
   postgres:
     image: postgres:16

@@ -44,7 +44,7 @@ export async function serializeCatalogPart(db: Db, p: Part, viewerId: string | n
     part_number_text: p.partNumberText,
     safety_class: p.safetyClass,
     status: p.status,
-    license: l ? licenseBlock(l, ml, { title: p.title, author: owner?.name ?? 'a Shapewright creator' }) : null,
+    license: l ? licenseBlock(l, ml, { title: p.title, author: owner?.name ?? 'a PrintForge creator' }) : null,
     asset_id: p.assetId ? toApiId('asset', p.assetId) : null,
     print: { ...printStatus(p, l), allowed_materials: p.allowedMaterials },
     safety_warning: p.safetyClass === 'SAFETY_CRITICAL' ? SAFETY_WARNING : null,

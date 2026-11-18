@@ -69,7 +69,7 @@ export function developerRoutes(app: FastifyInstance, ctx: AppContext): void {
       ? await ctx.repos.webhooks.createDelivery(scopeOf(req.auth.userId!), id, 'webhook.test', {
           type: 'webhook.test',
           created: Math.floor(ctx.now().getTime() / 1000),
-          data: { message: 'Test event from Shapewright' },
+          data: { message: 'Test event from PrintForge' },
         })
       : null;
     if (!delivery) throw new AppError('NOT_FOUND', 'Webhook not found');
