@@ -27,6 +27,12 @@ mkdir -p "$ROOT" && cd "$ROOT"
 log() { echo "[printforge] $*"; }
 
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader || { echo "No NVIDIA GPU found"; exit 1; }
+
+# open3d (imported by TRELLIS's text pipeline) needs these shared libraries; slim GPU images lack them.
+if command -v apt-get >/dev/null && [ "$(id -u)" = 0 ] && ! ldconfig -p | grep -q libEGL.so.1; then
+  log "installing system libraries"
+  apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq libegl1 libgl1 libgomp1 libglib2.0-0 libusb-1.0-0 libx11-6 libxext6 libsm6 libxrender1 >/dev/null
+fi
 PY=$(command -v python3.11 || command -v python3.10 || command -v python3)
 
 if [ ! -d src ]; then
