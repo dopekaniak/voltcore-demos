@@ -7,3 +7,4 @@ scipy==1.16.3
 fast-simplification==0.2.0
 pillow==11.3.0
 httpx==0.28.1
+scikit-image==0.25.2

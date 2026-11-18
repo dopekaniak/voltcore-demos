@@ -1,7 +1,25 @@
-# Server packages for the GPU image. numpy, scipy, pillow and trimesh come from the TRELLIS
-# install step so their versions match PyTorch 2.4 on Python 3.10.
+# Server and model packages for GPU machines, pinned to the set proven on an NVIDIA L40S with
+# PyTorch 2.4.0+cu121 and Python 3.11 (2026-11-18). setup-gpu.sh installs PyTorch, xformers,
+# spconv, kaolin and utils3d first, then this file on every run.
 fastapi==0.120.4
 uvicorn==0.38.0
 httpx==0.28.1
 fast-simplification==0.2.0
-networkx<3.5
+networkx==3.4.2
+numpy==2.4.6
+scipy==1.17.1
+scikit-image==0.25.2
+trimesh==5.2.1
+pillow==13.0.0
+imageio==2.38.2
+easydict==1.14
+opencv-python-headless==5.1.0.95
+ninja==1.13.2
+rembg==2.0.87
+onnxruntime==1.32.0
+open3d==0.20.0
+# transformers 4.47+ needs PyTorch 2.6 for TRELLIS's CLIP text encoder; 4.46.3 works with 2.4.
+transformers==4.46.3
+tokenizers==0.20.3
+safetensors==0.8.0
+huggingface_hub==0.36.2

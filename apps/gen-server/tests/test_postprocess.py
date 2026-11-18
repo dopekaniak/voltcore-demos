@@ -24,3 +24,27 @@ def test_exports():
     files = export_all(trimesh.creation.box((10, 20, 30)))
     assert files["glb"][:4] == b"glTF"
     assert files["obj"].startswith(b"v ") or b"\nv " in files["obj"]
+
+
+def test_rebuild_turns_a_tangled_mesh_into_a_closed_solid():
+    from app.postprocess import make_watertight
+
+    # Two blocks that touch along one edge: that edge has four faces (non-manifold), the kind
+    # of tangle generated meshes carry. The rebuild returns one closed solid of the same size.
+    a = trimesh.creation.box((10, 10, 10))
+    b = trimesh.creation.box((10, 10, 10))
+    b.apply_translation([10, 10, 0])
+    m = trimesh.util.concatenate([a, b])
+    m.merge_vertices()
+    assert not m.is_watertight
+    r = make_watertight(m)
+    assert r is not None and r.is_watertight and r.is_volume
+    assert abs(r.extents[0] - 20) < 1.0 and abs(r.extents[2] - 10) < 1.0
+
+
+def test_face_reduction_never_opens_a_closed_mesh():
+    from app.postprocess import reduce_faces
+
+    dense = trimesh.creation.icosphere(subdivisions=6, radius=20)
+    out = reduce_faces(dense, 5_000)
+    assert out.is_watertight

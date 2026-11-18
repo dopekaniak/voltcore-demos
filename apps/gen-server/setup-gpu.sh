@@ -60,10 +60,10 @@ if [ ! -x venv/bin/python ]; then
   venv/bin/pip install -q xformers==0.0.27.post2 --index-url https://download.pytorch.org/whl/cu121
   venv/bin/pip install -q spconv-cu120
   venv/bin/pip install -q kaolin -f https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.4.0_cu121.html
-  venv/bin/pip install -q pillow imageio easydict opencv-python-headless scipy ninja rembg onnxruntime trimesh open3d transformers safetensors huggingface_hub
   venv/bin/pip install -q git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8
-  venv/bin/pip install -q -r src/apps/gen-server/requirements-gpu.txt
 fi
+# Pinned versions on every run, so an existing machine picks up fixes after `git pull`.
+venv/bin/pip install -q -r src/apps/gen-server/requirements-gpu.txt
 
 log "checking the install"
 PYTHONPATH="$ROOT/trellis" SPCONV_ALGO=native ATTN_BACKEND=xformers venv/bin/python -c "
