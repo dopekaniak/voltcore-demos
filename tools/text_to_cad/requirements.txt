@@ -1,0 +1,3 @@
+numpy>=1.26
+trimesh>=4.4
+manifold3d>=3.0

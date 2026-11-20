@@ -10,3 +10,4 @@ Append new business decisions, API endpoints/keys (names only, never values), an
 - 2026-10-23: Active accounts (names only): Anthropic Claude Pro ($20/mo, subscription, not API billing); "NAN" subscription; "RYZ" subscription; two Shopify stores; possibly 1–2 forgotten Shopify trials that may auto-bill. Action item: audit billing and cancel unused trials before they convert.
 - 2026-10-23: Deployment decision: LaunchLocal lead pipeline is the first project. Shopify and UGC deferred.
 - 2026-11-20: Added short-form video breakdown for "Claude just killed 3D modeling" (text-to-CAD hook + comment-to-DM CTA) under content/ugc_short_form/, with source video.
+- 2026-11-20: Built in-repo text-to-CAD tool at tools/text_to_cad (hook, stand, cable clip, gear from plain-English requests -> watertight STL). Removed the external text-to-cad clone line from scripts/install_ai_stack.sh.
