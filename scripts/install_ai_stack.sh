@@ -39,5 +39,7 @@ clone_if_missing LibreChat https://github.com/LibreChat-AI/LibreChat.git
 clone_if_missing Open-Generative-AI https://github.com/Anil-matcha/Open-Generative-AI.git
 # 8. FinceptTerminal (open-source Bloomberg-style terminal & quant research)
 clone_if_missing FinceptTerminal https://github.com/Fincept-Corporation/FinceptTerminal.git
+# 9. text-to-cad (free open-source text-to-CAD repo: describe a part, get a printable model)
+clone_if_missing text-to-cad https://github.com/earthspike/text-to-cad.git
 
 echo "=== All repositories are in repos/ ==="
